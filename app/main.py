@@ -138,9 +138,18 @@ async def healthz():
 
 @app.get("/health")
 async def health(request: Request):
-    """Liveness plus a full readiness breakdown of every dependency."""
-    client: MCPToolClient = request.app.state.mcp
-    mcp_ok = client.session is not None and bool(client.tools)
+    """Liveness plus a full readiness breakdown of every dependency.
+
+    Never raises. A readiness probe that 500s tells you nothing about *which*
+    dependency is down, which is the only reason to call it. If startup failed
+    before the MCP client was attached to app state, that is itself the finding
+    and is reported as a degraded MCP section rather than an exception.
+    """
+    client: MCPToolClient | None = getattr(request.app.state, "mcp", None)
+    mcp_error = getattr(request.app.state, "mcp_error", None) or (
+        None if client is not None else "MCP client not initialised (startup did not complete)"
+    )
+    mcp_ok = client is not None and client.session is not None and bool(client.tools)
 
     index_ok, index_detail = True, {}
     try:
@@ -159,10 +168,10 @@ async def health(request: Request):
         "as_of_date": settings.as_of_date,
         "mcp": {
             "connected": mcp_ok,
-            "transport": client.transport or settings.mcp_transport,
+            "transport": (client.transport if client else None) or settings.mcp_transport,
             "server": f"{client.server_name} v{client.server_version}" if mcp_ok else None,
-            "tool_count": len(client.tools),
-            "error": request.app.state.mcp_error or None,
+            "tool_count": len(client.tools) if client else 0,
+            "error": mcp_error,
         },
         "rag_index": {"ok": index_ok, **index_detail},
         "llm": {

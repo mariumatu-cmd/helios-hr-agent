@@ -43,6 +43,36 @@ def test_health_status_code_reflects_readiness(client):
     assert response.status_code == (200 if body["status"] == "ok" else 503)
 
 
+def test_health_reports_rather_than_crashes_when_startup_did_not_complete():
+    """`/health` must diagnose a failed startup, not 500 on it.
+
+    A readiness probe exists to say *which* dependency is down. If the lifespan
+    never ran -- or died before attaching the MCP client to app state -- then
+    reading `app.state.mcp` raises AttributeError and the endpoint returns 500,
+    which is exactly the situation in which its answer matters most and tells
+    you nothing.
+
+    `app` is a module-level singleton shared with the `client` fixture, whose
+    lifespan populates the same state, so the pre-startup condition is staged
+    explicitly and restored rather than relying on test ordering.
+    """
+    saved = dict(app.state._state)
+    app.state._state.pop("mcp", None)
+    app.state._state.pop("mcp_error", None)
+    try:
+        response = TestClient(app).get("/health")
+    finally:
+        app.state._state.clear()
+        app.state._state.update(saved)
+
+    body = response.json()
+    assert response.status_code == 503
+    assert body["status"] == "degraded"
+    assert body["mcp"]["connected"] is False
+    assert body["mcp"]["tool_count"] == 0
+    assert "startup" in (body["mcp"]["error"] or "")
+
+
 def test_healthz_is_liveness_only(client):
     """`/healthz` must stay 200 even while `/health` reports degraded.
 
