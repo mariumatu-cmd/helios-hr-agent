@@ -111,9 +111,17 @@ def search_policy_documents(query: str, k: int = 5, doc_id: str | None = None) -
         result = retrieve.search(query, k=max(1, min(int(k), 10)), doc_id=doc_id)
         payload = result.to_dict()
         if not payload["grounded"]:
+            unknown = payload.get("unknown_terms") or []
+            specifics = (
+                f" There is no record of {', '.join(repr(t) for t in unknown)} in "
+                f"either the policy corpus or the HR system, so name that gap "
+                f"explicitly rather than refusing vaguely."
+                if unknown else ""
+            )
             payload["instruction"] = (
                 "Do not answer from these passages. Tell the user the HR policy corpus "
                 "does not cover this question and suggest contacting HR directly."
+                + specifics
             )
         return payload
 

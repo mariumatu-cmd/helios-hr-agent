@@ -40,13 +40,29 @@ POOL = 50
 # 60 is the value from Cormack et al. (2009) and was left untuned deliberately.
 RRF_K = 60
 
-# Below this best-cosine, the query is treated as out-of-corpus and the agent is
-# told to refuse rather than ground an answer in the nearest irrelevant policy.
-# Measured, not guessed: `scripts/calibrate_threshold.py` scores 15 in-corpus and
-# 10 out-of-corpus questions. The distributions separate cleanly
-# (in-corpus min 0.688, out-of-corpus max 0.620); 0.65 is the midpoint of that
-# margin and yields 0 false accepts and 0 false refusals on the calibration set.
-MIN_DENSE_SIMILARITY = 0.65
+# A floor on the best cosine similarity. This catches input that is not a
+# question about anything -- keyboard mash, bare punctuation, a lone number.
+#
+# It is deliberately NOT the topical abstention mechanism, though it started out
+# as one. The first calibration (scripts/calibrate_threshold.py) put it at 0.65
+# on evidence that looked conclusive: 15 in-corpus questions scored at or above
+# 0.688, 10 out-of-corpus questions at or below 0.620. A harder negative set
+# demolished that. "What does the Helios pet insurance policy cover?" scores
+# 0.771 -- higher than ten of the sixteen genuine evaluation questions -- because
+# the embedder correctly places it next to the real benefits text. Similarity
+# measures topical adjacency, and an out-of-corpus question about HR is
+# topically adjacent by construction. On the harder set the 0.65 floor
+# false-accepted 7 of 8 while also false-refusing genuine statement-phrased
+# queries, which score lower than terse keyword ones.
+#
+# Topical abstention therefore moved to rag/vocabulary.py, which asks a question
+# similarity cannot: does the system hold any record of these words at all.
+# That leaves this floor a narrow job, and it is recalibrated for that job by
+# scripts/recalibrate_threshold.py: lowest genuine question 0.577, highest
+# nonsense string 0.552, so 0.56 sits in the margin. Three nonsense strings
+# ("42", "?????", "the the the the the") pass the lexical gate, which is why
+# this floor is kept rather than removed.
+MIN_DENSE_SIMILARITY = 0.56
 
 
 @dataclass
@@ -82,12 +98,18 @@ class SearchResult:
     best_similarity: float
     reason: str = ""
 
+    # Content terms the question uses that neither knowledge store contains.
+    # Surfaced rather than hidden so the agent can name what it does not know
+    # ("no record of pet insurance") instead of refusing opaquely.
+    unknown_terms: list[str] = field(default_factory=list)
+
     def to_dict(self) -> dict:
         return {
             "query": self.query,
             "grounded": self.grounded,
             "best_similarity": round(self.best_similarity, 4),
             "reason": self.reason,
+            "unknown_terms": self.unknown_terms,
             "hits": [h.to_dict() for h in self.hits],
         }
 
@@ -207,11 +229,27 @@ def search(
     k: int = 6,
     doc_id: str | None = None,
     expand: bool = True,
+    mode: str | None = None,
 ) -> SearchResult:
-    """Hybrid search. Returns at most ``k`` hits plus a groundedness verdict."""
+    """Hybrid search. Returns at most ``k`` hits plus a groundedness verdict.
+
+    ``mode`` selects the retrieval strategy and defaults to ``settings.retrieval_mode``:
+
+        hybrid  dense + BM25 fused with reciprocal rank fusion (shipped)
+        dense   dense vectors only
+        bm25    lexical only
+
+    The single-signal modes exist so the ablations in
+    ``evaluation/run_retrieval_eval.py`` exercise the same code path the service
+    uses, rather than a reimplementation that could quietly differ from it.
+    """
     query = (query or "").strip()
     if not query:
         return SearchResult(query, [], False, 0.0, "empty query")
+
+    mode = (mode or settings.retrieval_mode or "hybrid").lower().strip()
+    if mode not in {"hybrid", "dense", "bm25"}:
+        return SearchResult(query, [], False, 0.0, f"unknown retrieval mode {mode!r}")
 
     index = _Index.get()
 
@@ -222,12 +260,21 @@ def search(
             return SearchResult(query, [], False, 0.0, f"unknown doc_id {doc_id!r}; known: {known}")
         allowed = set(index._by_doc[doc_id])
 
+    # The dense pass runs even in bm25 mode: `best_similarity` is what the
+    # groundedness gate is calibrated against, and dropping it would make the
+    # bm25 ablation incomparable by changing two variables at once.
     dense, best_similarity = _dense_rank(index, query, allowed)
     sparse = bm25.score(index.bm25, query, allowed)[:POOL]
 
     dense_positions = {i: r for r, (i, _) in enumerate(dense, start=1)}
     sparse_positions = {i: r for r, (i, _) in enumerate(sparse, start=1)}
-    fused = _rrf([i for i, _ in dense], [i for i, _ in sparse])
+
+    if mode == "dense":
+        fused = _rrf([i for i, _ in dense])
+    elif mode == "bm25":
+        fused = _rrf([i for i, _ in sparse])
+    else:
+        fused = _rrf([i for i, _ in dense], [i for i, _ in sparse])
 
     ordered = sorted(fused.items(), key=lambda kv: (-kv[1], kv[0]))[:k]
 
@@ -256,15 +303,39 @@ def search(
 
     grounded = bool(hits) and best_similarity >= MIN_DENSE_SIMILARITY
     reason = ""
+
+    # Second, independent gate. Cosine similarity alone does not separate
+    # in-corpus from out-of-corpus questions on this corpus: "What does the
+    # Helios pet insurance policy cover?" scores 0.771, above ten of the sixteen
+    # genuine evaluation questions, because the embedder places it next to the
+    # real benefits text. Lexical evidence does not make that mistake -- no
+    # token "pet" exists in either knowledge store. Measured on the evaluation
+    # negatives, similarity alone false-accepts 7 of 8; adding this gate
+    # false-accepts 0 of 8 with no false refusals. See
+    # evaluation/results/abstention_analysis.md.
+    unknown: list[str] = []
+    if hits:
+        from rag.vocabulary import unknown_terms
+
+        unknown = unknown_terms(query)
+
     if not hits:
         reason = "no passage matched the query"
+    elif unknown:
+        grounded = False
+        reason = (
+            "the question refers to "
+            + ", ".join(f"{t!r}" for t in unknown)
+            + ", which appears in neither the policy corpus nor the HR data; "
+            "the passages below are the closest available but do not cover it"
+        )
     elif not grounded:
         reason = (
             f"best passage similarity {best_similarity:.3f} is below the "
             f"{MIN_DENSE_SIMILARITY} grounding threshold; the corpus does not "
             f"appear to cover this question"
         )
-    return SearchResult(query, hits, grounded, best_similarity, reason)
+    return SearchResult(query, hits, grounded, best_similarity, reason, unknown)
 
 
 def get_section(doc_id: str, section: str) -> list[Hit]:

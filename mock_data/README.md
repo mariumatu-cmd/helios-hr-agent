@@ -43,7 +43,7 @@ computation against policy, not a single lookup:
 ## Mutability
 
 `hr_tickets.json` is **seed state only**. Tickets created through the agent's
-`create_mock_hr_ticket` tool are written to an in-memory store and are never
+`create_hr_ticket` tool are written to an in-memory store and are never
 persisted back to disk. This keeps every agent action reversible and the
 repository reproducible, satisfying the "prevent irreversible actions"
 requirement.

@@ -1,0 +1,46 @@
+--- real ---
+  0.5770  lex:pass    Tomas Silva asks to work remotely from Brazil for a mont
+  0.5849  lex:pass    Maya Rodriguez wants to work from Portugal for 42 days s
+  0.5858  lex:pass    Marcus Doyle wants to switch to fully remote.
+  0.6064  lex:pass    Jonas Weber wants three days of PTO starting 21 Septembe
+  0.6360  lex:pass    Is Sofia Marino covered by short-term disability?
+  0.6459  lex:pass    who approves an exception
+  0.6633  lex:pass    H-1B
+  0.7305  lex:pass    If my laptop is stolen while travelling, who do I notify
+  0.7494  lex:pass    What is the per-night hotel cap for domestic travel?
+  0.7716  lex:pass    can I carry over unused PTO
+  0.7859  lex:pass    blackout periods
+  0.7913  lex:pass    parental leave
+  0.7924  lex:pass    How many company holidays does Helios observe?
+  0.7944  lex:pass    How much PTO does a full-time employee with three years 
+  0.7955  lex:pass    What is the maximum number of consecutive days I may wor
+  0.8011  lex:pass    equipment stipend
+  min 0.5770  median 0.7494  max 0.8011
+
+--- topical ---
+  0.5903  lex:REFUSE  Which Helios office has a rooftop swimming pool?
+  0.6510  lex:REFUSE  How many shares are in the employee stock purchase plan?
+  0.6547  lex:REFUSE  What was Helios's Q3 revenue?
+  0.6632  lex:REFUSE  What is the sabbatical policy after ten years of service
+  0.6639  lex:REFUSE  What is the tuition reimbursement cap for an MBA?
+  0.6970  lex:REFUSE  How do I enrol in the Helios company car scheme?
+  0.7708  lex:REFUSE  What does the Helios pet insurance policy cover?
+  min 0.5903  median 0.6632  max 0.7708
+
+--- nonsense ---
+  0.5085  lex:REFUSE  blorptastic zyzzyva flimflarn
+  0.5274  lex:pass    42
+  0.5280  lex:pass    ?????
+  0.5376  lex:REFUSE  aaaaaaaaaaaa
+  0.5439  lex:REFUSE  qwertyuiop zxcvbnm
+  0.5494  lex:pass    the the the the the
+  0.5518  lex:REFUSE  asdkjhasd kjahsdkjh asdkjh
+  min 0.5085  median 0.5376  max 0.5518
+
+lowest genuine question : 0.5770
+highest nonsense string : 0.5518
+margin                  : +0.0252
+
+RECOMMENDED MIN_DENSE_SIMILARITY = 0.56
+
+lexical gate catches 7/7 topical non-questions, which the similarity floor is no longer asked to do.
