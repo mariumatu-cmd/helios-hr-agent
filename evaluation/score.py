@@ -22,6 +22,7 @@ Five dimensions, each in [0, 1], averaged into a per-case score:
 """
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -260,6 +261,21 @@ def aggregate(scores: list[CaseScore]) -> dict:
         bucket["pass_rate"] = round(bucket["passed"] / bucket["cases"], 4)
 
     latencies = sorted(s.latency_ms for s in scores)
+
+    def percentile(p: float) -> float:
+        """Nearest-rank percentile.
+
+        Reported as p50/p95 because that is what the project brief asks for.
+        With ~28 samples an interpolating definition would imply a precision the
+        sample size does not support, so the nearest rank is used and the raw
+        per-case latencies are written to the JSON for anyone who wants to
+        recompute it differently.
+        """
+        if not latencies:
+            return 0.0
+        rank = max(1, math.ceil(p * len(latencies)))
+        return round(latencies[rank - 1], 1)
+
     return {
         "cases": len(scores),
         "passed": sum(s.passed for s in scores),
@@ -273,9 +289,11 @@ def aggregate(scores: list[CaseScore]) -> dict:
         "by_difficulty": difficulties,
         "latency_ms": {
             "mean": round(sum(latencies) / len(latencies), 1),
-            "median": round(latencies[len(latencies) // 2], 1),
-            "p90": round(latencies[min(len(latencies) - 1, int(0.9 * len(latencies)))], 1),
+            "p50": percentile(0.50),
+            "p95": percentile(0.95),
+            "min": round(latencies[0], 1),
             "max": round(latencies[-1], 1),
+            "samples": latencies,
         },
         "mean_steps": mean([float(s.steps) for s in scores]),
     }
