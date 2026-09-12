@@ -1,0 +1,195 @@
+HELIOS SYSTEMS, INC.
+EQUIPMENT AND ASSET MANAGEMENT POLICY
+
+doc_id: POL-EQUIP-001
+title: Equipment and Asset Management Policy
+version: 3.8
+effective_date: 2026-01-01
+owner: IT Operations
+applies_to: All workers issued Helios equipment
+related: POL-SEC-001, POL-EXP-001, POL-BEN-001
+
+================================================================================
+1. PURPOSE
+================================================================================
+
+This policy describes how Helios Systems issues, maintains, refreshes, and
+recovers company equipment. It applies to every worker issued a Helios asset,
+including contractors and interns.
+
+All Helios equipment remains the property of Helios Systems at all times,
+regardless of how long it has been in an employee's possession.
+
+================================================================================
+2. STANDARD ISSUE BY ROLE
+================================================================================
+
+Every new worker receives a standard equipment bundle determined by their role
+family. Requests outside the standard bundle require manager approval and are
+reviewed by IT Operations.
+
+  Role family            Laptop                      Additional
+  ---------------------  --------------------------  ------------------------
+  Engineering            16" MacBook Pro, 32GB RAM   External SSD, docking
+                         or Dell XPS 15 (Linux)      station, 27" monitor
+  Data / ML              16" MacBook Pro, 64GB RAM   27" monitor, GPU cloud
+                                                     allocation
+  Design                 16" MacBook Pro, 32GB RAM   Colour-calibrated 27"
+                                                     monitor, drawing tablet
+  Sales / Customer       14" MacBook Air, 16GB RAM   Headset, portable monitor
+  Success
+  Corporate functions    14" MacBook Air, 16GB RAM   24" monitor
+  (Finance, People,
+  Legal, Marketing)
+  Support Engineering    14" MacBook Pro, 32GB RAM   Dual 24" monitors, headset
+
+All workers additionally receive: a headset, a USB-C hub, a laptop stand, a
+keyboard and mouse, and a hardware security key (see POL-SEC-001 Section 5).
+
+Mobile phones are issued only to workers in on-call rotations, Field Sales, and
+the executive team. Other workers may claim the monthly phone allowance of $40
+instead.
+
+================================================================================
+3. REFRESH CYCLE
+================================================================================
+
+  Asset                 Refresh interval    Notes
+  --------------------  ------------------  ------------------------------
+  Laptop                36 months           Measured from asset issue date
+  Monitor               60 months           Replaced on failure otherwise
+  Headset               24 months
+  Mobile phone          24 months
+  Keyboard / mouse      On failure          No fixed interval
+  Security key          On failure          Replacement requires identity
+                                            verification
+
+Refresh is automatic: IT contacts the employee approximately 30 days before the
+laptop refresh date to schedule the swap. Employees may defer a refresh once,
+by up to 6 months.
+
+Early replacement outside the refresh cycle requires a documented business
+justification and Director approval, except for hardware failure, which is
+always replaced at no cost to the team's budget.
+
+================================================================================
+4. HOME OFFICE EQUIPMENT
+================================================================================
+
+4.1 STIPEND
+
+Remote and hybrid employees receive a one-time home-office stipend of $750 on
+hire, and a refresh stipend of $300 every three years. The stipend is
+administered under POL-BEN-001 Section 8 and is claimed through the expense
+system.
+
+The stipend covers desks, chairs, lighting, and ergonomic accessories. It does
+not cover computing equipment, which IT purchases directly (Section 4.2).
+
+4.2 COMPUTING EQUIPMENT IS NEVER SELF-PURCHASED
+
+Employees must not buy laptops, monitors, peripherals, or software personally
+and submit an expense claim. Such claims are denied under POL-EXP-001
+Section 8. All computing equipment is ordered by IT Operations and shipped to
+the employee's registered address.
+
+4.3 ERGONOMIC ASSESSMENTS
+
+Any employee may request a remote ergonomic assessment at no cost. Equipment
+recommended by an ergonomic assessment, or required as a documented workplace
+accommodation, is purchased by Helios in addition to the stipend and does not
+reduce the stipend balance.
+
+================================================================================
+5. DAMAGE, LOSS, AND THEFT
+================================================================================
+
+Normal wear and accidental damage are covered by Helios at no cost to the
+employee. There is no deductible and no charge-back to the employee or team.
+
+Loss or theft must be reported to IT and to the Security Operations Center
+within 4 hours of discovery, per POL-SEC-001 Section 3.3. A police report is
+required for theft claims.
+
+Repeated loss - three or more devices lost within a rolling 24-month period -
+is reviewed by IT Operations with the employee's manager and People Operations.
+
+Deliberate damage or sale of Helios equipment is treated as misappropriation of
+company property under POL-CONDUCT-001.
+
+================================================================================
+6. PERSONAL USE
+================================================================================
+
+Incidental personal use of Helios equipment is permitted within the limits of
+POL-SEC-001 Section 6. Employees must not:
+
+  - allow family members or other third parties to use Helios equipment;
+  - store personal media libraries or personal financial records on a Helios
+    device;
+  - remove MDM enrolment or the endpoint security agent; or
+  - install unapproved software.
+
+Employees should assume that anything stored on a Helios device may be reviewed
+by Helios where there is a legitimate business or legal reason to do so.
+
+================================================================================
+7. TRAVEL AND LOANER DEVICES
+================================================================================
+
+Workers travelling to a location on the Elevated Risk list in POL-SEC-001
+Section 8 must travel with a clean loaner laptop and loaner phone, requested
+from IT with a minimum of 5 business days' notice. The primary device must not
+travel to these locations.
+
+Loaner devices are also available for any international trip on request, and are
+recommended where the employee will be working from a shared or public space.
+
+Loaner devices must be returned within 5 business days of return travel and are
+wiped and re-imaged on receipt.
+
+================================================================================
+8. RETURN AT SEPARATION
+================================================================================
+
+All Helios equipment must be returned by the employee's last day of employment.
+IT sends a prepaid shipping kit to remote employees approximately 7 days before
+the separation date.
+
+  Asset                     Return required
+  ------------------------  ----------------------------------------
+  Laptop                    Yes
+  Monitor(s)                Yes
+  Mobile phone (issued)     Yes
+  Security key              Yes
+  Headset                   Yes
+  Docking station, hub      Yes
+  Keyboard, mouse           No - employee may retain
+  Laptop stand              No - employee may retain
+  Home office furniture     No - purchased with stipend, employee
+                            retains ownership
+
+Equipment not returned within 21 days of the separation date is invoiced to the
+former employee at fair market value, and where permitted by state law, may be
+deducted from final pay.
+
+Employees must not wipe, reset, or factory-restore a device before returning it;
+IT performs a forensic-safe wipe after data-retention checks.
+
+================================================================================
+9. ACCESSIBILITY AND ACCOMMODATIONS
+================================================================================
+
+Equipment required as a reasonable accommodation is provided by Helios at no
+cost to the employee or the team budget, and is not subject to the standard
+issue limits in Section 2. Accommodation requests are handled confidentially by
+People Operations; IT is informed only of the equipment to be provided, never of
+the underlying medical information.
+
+================================================================================
+10. CONTACTS
+================================================================================
+
+IT Operations service desk: it-help@helios.example.com
+Asset management:           assets@helios.example.com
+Security Operations Center: +1-555-0100 (24/7)

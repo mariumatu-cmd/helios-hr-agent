@@ -1,0 +1,101 @@
+{
+  "_meta": {
+    "dataset": "offices",
+    "description": "SYNTHETIC Helios office locations. holiday_schedule maps to POL-HOL-001 s2; expense_tier maps to POL-EXP-001 s4-5.",
+    "as_of_date": "2026-09-12"
+  },
+  "offices": [
+    {
+      "office_id": "AUS",
+      "name": "Austin HQ",
+      "city": "Austin",
+      "state": "TX",
+      "country": "United States",
+      "timezone": "America/Chicago",
+      "utc_offset_standard": -6,
+      "holiday_schedule": "US",
+      "expense_tier": "us_other",
+      "entity": "Helios Systems, Inc.",
+      "hybrid_anchor_days": ["Tuesday", "Wednesday", "Thursday"]
+    },
+    {
+      "office_id": "SFO",
+      "name": "San Francisco",
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "United States",
+      "timezone": "America/Los_Angeles",
+      "utc_offset_standard": -8,
+      "holiday_schedule": "US",
+      "expense_tier": "tier_1",
+      "entity": "Helios Systems, Inc.",
+      "hybrid_anchor_days": ["Tuesday", "Wednesday", "Thursday"]
+    },
+    {
+      "office_id": "NYC",
+      "name": "New York",
+      "city": "New York",
+      "state": "NY",
+      "country": "United States",
+      "timezone": "America/New_York",
+      "utc_offset_standard": -5,
+      "holiday_schedule": "US",
+      "expense_tier": "tier_1",
+      "entity": "Helios Systems, Inc.",
+      "hybrid_anchor_days": ["Monday", "Tuesday", "Thursday"]
+    },
+    {
+      "office_id": "DUB",
+      "name": "Dublin",
+      "city": "Dublin",
+      "state": null,
+      "country": "Ireland",
+      "timezone": "Europe/Dublin",
+      "utc_offset_standard": 0,
+      "holiday_schedule": "IE",
+      "expense_tier": "intl_other",
+      "entity": "Helios Systems Ireland Ltd.",
+      "hybrid_anchor_days": ["Tuesday", "Wednesday", "Thursday"]
+    },
+    {
+      "office_id": "SIN",
+      "name": "Singapore",
+      "city": "Singapore",
+      "state": null,
+      "country": "Singapore",
+      "timezone": "Asia/Singapore",
+      "utc_offset_standard": 8,
+      "holiday_schedule": "SG",
+      "expense_tier": "tier_1",
+      "entity": "Helios Systems APAC Pte. Ltd.",
+      "hybrid_anchor_days": ["Tuesday", "Wednesday", "Thursday"]
+    },
+    {
+      "office_id": "TOR",
+      "name": "Toronto",
+      "city": "Toronto",
+      "state": "ON",
+      "country": "Canada",
+      "timezone": "America/Toronto",
+      "utc_offset_standard": -5,
+      "holiday_schedule": "US",
+      "holiday_schedule_note": "Canadian statutory holidays are administered locally; see People Operations.",
+      "expense_tier": "intl_other",
+      "entity": "Helios Systems Canada Inc.",
+      "hybrid_anchor_days": ["Tuesday", "Wednesday", "Thursday"]
+    },
+    {
+      "office_id": "REMOTE",
+      "name": "No assigned office",
+      "city": null,
+      "state": null,
+      "country": null,
+      "timezone": null,
+      "utc_offset_standard": null,
+      "holiday_schedule": "US",
+      "expense_tier": "us_other",
+      "entity": "Helios Systems, Inc.",
+      "hybrid_anchor_days": []
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+
+kind   best_sim  top doc          query
+in       0.7644  POL-PTO-001      How much PTO do I accrue after five years?
+in       0.7452  POL-INTL-001     Can I work from another country for a few weeks?
+in       0.6947  POL-PTO-001      What is the notice period for a three day vacation?
+in       0.8003  POL-LEAVE-002    Do part-time employees get short-term disability?
+in       0.6934  POL-EQUIP-001    What happens to my laptop when I leave the company?
+in       0.8713  POL-LEAVE-002    How long is paid parental leave?
+in       0.8602  POL-EXP-001      What is the per diem for meals while travelling?
+in       0.7095  POL-HOL-001      When is the holiday shutdown?
+in       0.7712  POL-REMOTE-001   Who approves a switch to fully remote work?
+in       0.7012  POL-SEC-001      What are the password requirements?
+in       0.7138  POL-PERF-001     How do promotions get decided?
+in       0.6882  POL-ONBOARD-001  What should I do in my first week at the company?
+in       0.8183  POL-PTO-001      Is there a blackout period for time off in customer suppor
+in       0.7518  POL-EXP-001      Can I expense a business class flight?
+in       0.7874  POL-SEC-001      What counts as a reportable security incident?
+out      0.4546  POL-INTL-001     What is the capital of Portugal?
+out      0.6200  POL-REMOTE-001   How do I rotate a Kubernetes service account token?
+out      0.5360  POL-EXP-001      Write me a Python function that sorts a linked list.
+out      0.5774  POL-PERF-001     What were the company's Q3 revenue figures?
+out      0.5177  POL-EQUIP-001    Which stock should I buy this quarter?
+out      0.4888  POL-PTO-001      How do I treat a sprained ankle?
+out      0.4822  POL-CONDUCT-001  What is the airspeed velocity of an unladen swallow?
+out      0.4975  POL-CONDUCT-001  Summarise the plot of Hamlet.
+out      0.6079  POL-SEC-001      What is our AWS root account password?
+out      0.5802  POL-REMOTE-001   How many employees does Microsoft have?
+
+in-corpus  min=0.6882  median=0.7518  max=0.8713
+out-corpus min=0.4546  median=0.5360  max=0.6200
+margin     +0.0683
+separable  -> recommended MIN_DENSE_SIMILARITY = 0.65
+current    MIN_DENSE_SIMILARITY=0.65 -> 0 false accepts, 0 false refusals
+

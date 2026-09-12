@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helios HR Assistant</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Helios HR Assistant</h1>
+    <p class="sub">Agentic RAG over 12 HR policy documents &middot; tools served over MCP</p>
+  </div>
+  <div class="status" id="status">
+    <span class="dot" id="status-dot"></span><span id="status-text">checking&hellip;</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel chat-panel">
+    <div class="demo-bar">
+      <span class="demo-label">Try:</span>
+      {% for task in demo_tasks %}
+      <button class="demo" data-q="{{ task.question }}">{{ task.label }}</button>
+      {% endfor %}
+    </div>
+
+    <div id="messages" class="messages">
+      <div class="msg assistant">
+        <p>Ask me about Helios HR policy &mdash; time off, remote work, benefits, expenses,
+        equipment or leave. I answer only from the policy corpus and the HR system of record,
+        and I cite the section I used.</p>
+        <p class="muted">Today is {{ as_of_date }} (the mock HR data snapshot date).
+        {{ tool_count }} tools discovered over MCP.</p>
+      </div>
+    </div>
+
+    <form id="composer">
+      <textarea id="input" rows="2" placeholder="e.g. How much notice do I need for three days off?" required></textarea>
+      <button type="submit" id="send">Send</button>
+    </form>
+  </section>
+
+  <aside class="panel trace-panel">
+    <h2>Execution trace</h2>
+    <p class="muted">Every model step and tool call from the last turn.</p>
+    <div id="trace" class="trace"><p class="muted empty">No run yet.</p></div>
+  </aside>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
