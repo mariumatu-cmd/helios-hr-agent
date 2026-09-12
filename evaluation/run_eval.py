@@ -108,8 +108,8 @@ def print_summary(summary: dict) -> None:
 
     latency = summary["latency_ms"]
     print(f"latency (s)        mean {latency['mean'] / 1000:.1f}   "
-          f"median {latency['median'] / 1000:.1f}   "
-          f"p90 {latency['p90'] / 1000:.1f}   max {latency['max'] / 1000:.1f}")
+          f"p50 {latency['p50'] / 1000:.1f}   "
+          f"p95 {latency['p95'] / 1000:.1f}   max {latency['max'] / 1000:.1f}")
     print(f"mean steps         {summary['mean_steps']:.2f}")
     print("=" * 72)
 
