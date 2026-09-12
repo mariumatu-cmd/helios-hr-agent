@@ -1,6 +1,6 @@
 """The evaluation task suite.
 
-Twenty-six cases, each a dataclass rather than a row of JSON so that the
+Twenty-eight cases, each a dataclass rather than a row of JSON so that the
 expectations can be *executable* -- several cases assert on a computed number
 that would be meaningless as a loose string match.
 
