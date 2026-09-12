@@ -59,6 +59,16 @@ def available_providers() -> list[str]:
     return [c.name for c in provider_chain()]
 
 
+def active_model() -> str:
+    """The model that a call would actually use right now, provider-qualified.
+
+    Reported in evaluation output: a score is only interpretable next to the
+    model that produced it.
+    """
+    chain = provider_chain()
+    return f"{chain[0].name}/{chain[0].model}" if chain else "none"
+
+
 @dataclass
 class LLMResponse:
     """Normalised result of one chat-completion call."""

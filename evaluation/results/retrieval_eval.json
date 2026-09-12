@@ -1,0 +1,1774 @@
+{
+  "index": {
+    "model": "BAAI/bge-small-en-v1.5",
+    "dimensions": 384,
+    "chunks": 133,
+    "documents": 12,
+    "doc_ids": [
+      "POL-BEN-001",
+      "POL-CONDUCT-001",
+      "POL-EQUIP-001",
+      "POL-HOL-001",
+      "POL-SEC-001",
+      "POL-INTL-001",
+      "POL-ONBOARD-001",
+      "POL-LEAVE-002",
+      "POL-PERF-001",
+      "POL-PTO-001",
+      "POL-REMOTE-001",
+      "POL-EXP-001"
+    ],
+    "source_formats": [
+      "html",
+      "md",
+      "pdf",
+      "txt"
+    ],
+    "chunking": {
+      "strategy": "heading_aware_with_sentence_aligned_overlap",
+      "target_tokens": 320,
+      "max_tokens": 420,
+      "overlap_tokens": 60
+    },
+    "corpus_fingerprint": "3b17d327e011abb42048058157b23ccf4973253bbdacc713294e14bc554c9894",
+    "seed": 42,
+    "built_at": "2026-09-12T11:35:09Z",
+    "build_seconds": 31.45
+  },
+  "k": 6,
+  "configurations": [
+    {
+      "mode": "hybrid",
+      "threshold": 0.56,
+      "k": 6,
+      "graded_queries": 16,
+      "recall_at_1": 0.875,
+      "recall_at_6": 1.0,
+      "mrr": 0.9375,
+      "empty_results_on_graded": 0,
+      "grounded_on_graded": 16,
+      "false_refusal_rate": 0.0,
+      "out_of_corpus_queries": 8,
+      "false_accepts": 0,
+      "false_accept_rate": 0.0,
+      "per_query": [
+        {
+          "case": "R01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7866
+        },
+        {
+          "case": "R02",
+          "expected": [
+            "POL-HOL-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.783
+        },
+        {
+          "case": "R03",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001",
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7955
+        },
+        {
+          "case": "R04",
+          "expected": [
+            "POL-EXP-001"
+          ],
+          "retrieved": [
+            "POL-EXP-001",
+            "POL-SEC-001",
+            "POL-INTL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.76
+        },
+        {
+          "case": "R05",
+          "expected": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7328
+        },
+        {
+          "case": "R06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-LEAVE-002",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8357
+        },
+        {
+          "case": "C01",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7418
+        },
+        {
+          "case": "C02",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-INTL-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7003
+        },
+        {
+          "case": "C03",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-LEAVE-002",
+            "POL-BEN-001",
+            "POL-REMOTE-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.671
+        },
+        {
+          "case": "C04",
+          "expected": [
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6663
+        },
+        {
+          "case": "C05",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PTO-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.6543
+        },
+        {
+          "case": "C06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6788
+        },
+        {
+          "case": "C07",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7074
+        },
+        {
+          "case": "C08",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7193
+        },
+        {
+          "case": "M01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7014
+        },
+        {
+          "case": "M03",
+          "expected": [
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-EXP-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8156
+        }
+      ],
+      "negatives": [
+        {
+          "question": "What does the Helios pet insurance policy cover?",
+          "grounded": false,
+          "best_similarity": 0.7708
+        },
+        {
+          "question": "How do I enrol in the Helios company car scheme?",
+          "grounded": false,
+          "best_similarity": 0.697
+        },
+        {
+          "question": "What is the tuition reimbursement cap for an MBA?",
+          "grounded": false,
+          "best_similarity": 0.6639
+        },
+        {
+          "question": "What was Helios's Q3 revenue?",
+          "grounded": false,
+          "best_similarity": 0.6547
+        },
+        {
+          "question": "Which Helios office has a rooftop swimming pool?",
+          "grounded": false,
+          "best_similarity": 0.5903
+        },
+        {
+          "question": "What is the sabbatical policy after ten years of service?",
+          "grounded": false,
+          "best_similarity": 0.6632
+        },
+        {
+          "question": "How many shares are in the employee stock purchase plan?",
+          "grounded": false,
+          "best_similarity": 0.651
+        },
+        {
+          "question": "What is the bereavement travel allowance for a second cousin?",
+          "grounded": false,
+          "best_similarity": 0.6913
+        }
+      ],
+      "label": "hybrid + both gates (shipped)",
+      "lexical_gate": true
+    },
+    {
+      "mode": "dense",
+      "threshold": 0.56,
+      "k": 6,
+      "graded_queries": 16,
+      "recall_at_1": 0.875,
+      "recall_at_6": 1.0,
+      "mrr": 0.9375,
+      "empty_results_on_graded": 0,
+      "grounded_on_graded": 16,
+      "false_refusal_rate": 0.0,
+      "out_of_corpus_queries": 8,
+      "false_accepts": 0,
+      "false_accept_rate": 0.0,
+      "per_query": [
+        {
+          "case": "R01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7866
+        },
+        {
+          "case": "R02",
+          "expected": [
+            "POL-HOL-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-REMOTE-001",
+            "POL-EXP-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.783
+        },
+        {
+          "case": "R03",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7955
+        },
+        {
+          "case": "R04",
+          "expected": [
+            "POL-EXP-001"
+          ],
+          "retrieved": [
+            "POL-EXP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.76
+        },
+        {
+          "case": "R05",
+          "expected": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7328
+        },
+        {
+          "case": "R06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8357
+        },
+        {
+          "case": "C01",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-ONBOARD-001",
+            "POL-PTO-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7418
+        },
+        {
+          "case": "C02",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-INTL-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7003
+        },
+        {
+          "case": "C03",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-LEAVE-002",
+            "POL-BEN-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.671
+        },
+        {
+          "case": "C04",
+          "expected": [
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-SEC-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6663
+        },
+        {
+          "case": "C05",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6543
+        },
+        {
+          "case": "C06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-PTO-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.6788
+        },
+        {
+          "case": "C07",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-SEC-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7074
+        },
+        {
+          "case": "C08",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-BEN-001",
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-EXP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7193
+        },
+        {
+          "case": "M01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7014
+        },
+        {
+          "case": "M03",
+          "expected": [
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-BEN-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8156
+        }
+      ],
+      "negatives": [
+        {
+          "question": "What does the Helios pet insurance policy cover?",
+          "grounded": false,
+          "best_similarity": 0.7708
+        },
+        {
+          "question": "How do I enrol in the Helios company car scheme?",
+          "grounded": false,
+          "best_similarity": 0.697
+        },
+        {
+          "question": "What is the tuition reimbursement cap for an MBA?",
+          "grounded": false,
+          "best_similarity": 0.6639
+        },
+        {
+          "question": "What was Helios's Q3 revenue?",
+          "grounded": false,
+          "best_similarity": 0.6547
+        },
+        {
+          "question": "Which Helios office has a rooftop swimming pool?",
+          "grounded": false,
+          "best_similarity": 0.5903
+        },
+        {
+          "question": "What is the sabbatical policy after ten years of service?",
+          "grounded": false,
+          "best_similarity": 0.6632
+        },
+        {
+          "question": "How many shares are in the employee stock purchase plan?",
+          "grounded": false,
+          "best_similarity": 0.651
+        },
+        {
+          "question": "What is the bereavement travel allowance for a second cousin?",
+          "grounded": false,
+          "best_similarity": 0.6913
+        }
+      ],
+      "label": "dense only",
+      "lexical_gate": true
+    },
+    {
+      "mode": "bm25",
+      "threshold": 0.56,
+      "k": 6,
+      "graded_queries": 16,
+      "recall_at_1": 0.8125,
+      "recall_at_6": 0.9375,
+      "mrr": 0.8562,
+      "empty_results_on_graded": 0,
+      "grounded_on_graded": 16,
+      "false_refusal_rate": 0.0,
+      "out_of_corpus_queries": 8,
+      "false_accepts": 0,
+      "false_accept_rate": 0.0,
+      "per_query": [
+        {
+          "case": "R01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-LEAVE-002",
+            "POL-REMOTE-001",
+            "POL-BEN-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7866
+        },
+        {
+          "case": "R02",
+          "expected": [
+            "POL-HOL-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-EQUIP-001",
+            "POL-LEAVE-002",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.783
+        },
+        {
+          "case": "R03",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-SEC-001",
+            "POL-REMOTE-001",
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7955
+        },
+        {
+          "case": "R04",
+          "expected": [
+            "POL-EXP-001"
+          ],
+          "retrieved": [
+            "POL-CONDUCT-001",
+            "POL-PTO-001",
+            "POL-SEC-001",
+            "POL-ONBOARD-001",
+            "POL-EXP-001"
+          ],
+          "rank": 5,
+          "grounded": true,
+          "best_similarity": 0.76
+        },
+        {
+          "case": "R05",
+          "expected": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-SEC-001",
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7328
+        },
+        {
+          "case": "R06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-CONDUCT-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8357
+        },
+        {
+          "case": "C01",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-SEC-001",
+            "POL-REMOTE-001",
+            "POL-EQUIP-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7418
+        },
+        {
+          "case": "C02",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-LEAVE-002",
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7003
+        },
+        {
+          "case": "C03",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-LEAVE-002",
+            "POL-BEN-001",
+            "POL-CONDUCT-001",
+            "POL-REMOTE-001",
+            "POL-EXP-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.671
+        },
+        {
+          "case": "C04",
+          "expected": [
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "retrieved": [
+            "POL-PERF-001",
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6663
+        },
+        {
+          "case": "C05",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-ONBOARD-001",
+            "POL-BEN-001",
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-SEC-001"
+          ],
+          "rank": null,
+          "grounded": true,
+          "best_similarity": 0.6543
+        },
+        {
+          "case": "C06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-LEAVE-002",
+            "POL-EQUIP-001",
+            "POL-HOL-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6788
+        },
+        {
+          "case": "C07",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7074
+        },
+        {
+          "case": "C08",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7193
+        },
+        {
+          "case": "M01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7014
+        },
+        {
+          "case": "M03",
+          "expected": [
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-ONBOARD-001",
+            "POL-BEN-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8156
+        }
+      ],
+      "negatives": [
+        {
+          "question": "What does the Helios pet insurance policy cover?",
+          "grounded": false,
+          "best_similarity": 0.7708
+        },
+        {
+          "question": "How do I enrol in the Helios company car scheme?",
+          "grounded": false,
+          "best_similarity": 0.697
+        },
+        {
+          "question": "What is the tuition reimbursement cap for an MBA?",
+          "grounded": false,
+          "best_similarity": 0.6639
+        },
+        {
+          "question": "What was Helios's Q3 revenue?",
+          "grounded": false,
+          "best_similarity": 0.6547
+        },
+        {
+          "question": "Which Helios office has a rooftop swimming pool?",
+          "grounded": false,
+          "best_similarity": 0.5903
+        },
+        {
+          "question": "What is the sabbatical policy after ten years of service?",
+          "grounded": false,
+          "best_similarity": 0.6632
+        },
+        {
+          "question": "How many shares are in the employee stock purchase plan?",
+          "grounded": false,
+          "best_similarity": 0.651
+        },
+        {
+          "question": "What is the bereavement travel allowance for a second cousin?",
+          "grounded": false,
+          "best_similarity": 0.6913
+        }
+      ],
+      "label": "bm25 only",
+      "lexical_gate": true
+    },
+    {
+      "mode": "hybrid",
+      "threshold": 0.56,
+      "k": 6,
+      "graded_queries": 16,
+      "recall_at_1": 0.875,
+      "recall_at_6": 1.0,
+      "mrr": 0.9375,
+      "empty_results_on_graded": 0,
+      "grounded_on_graded": 16,
+      "false_refusal_rate": 0.0,
+      "out_of_corpus_queries": 8,
+      "false_accepts": 8,
+      "false_accept_rate": 1.0,
+      "per_query": [
+        {
+          "case": "R01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7866
+        },
+        {
+          "case": "R02",
+          "expected": [
+            "POL-HOL-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.783
+        },
+        {
+          "case": "R03",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001",
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7955
+        },
+        {
+          "case": "R04",
+          "expected": [
+            "POL-EXP-001"
+          ],
+          "retrieved": [
+            "POL-EXP-001",
+            "POL-SEC-001",
+            "POL-INTL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.76
+        },
+        {
+          "case": "R05",
+          "expected": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7328
+        },
+        {
+          "case": "R06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-LEAVE-002",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8357
+        },
+        {
+          "case": "C01",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7418
+        },
+        {
+          "case": "C02",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-INTL-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7003
+        },
+        {
+          "case": "C03",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-LEAVE-002",
+            "POL-BEN-001",
+            "POL-REMOTE-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.671
+        },
+        {
+          "case": "C04",
+          "expected": [
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6663
+        },
+        {
+          "case": "C05",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PTO-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.6543
+        },
+        {
+          "case": "C06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6788
+        },
+        {
+          "case": "C07",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7074
+        },
+        {
+          "case": "C08",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7193
+        },
+        {
+          "case": "M01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7014
+        },
+        {
+          "case": "M03",
+          "expected": [
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-EXP-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8156
+        }
+      ],
+      "negatives": [
+        {
+          "question": "What does the Helios pet insurance policy cover?",
+          "grounded": true,
+          "best_similarity": 0.7708
+        },
+        {
+          "question": "How do I enrol in the Helios company car scheme?",
+          "grounded": true,
+          "best_similarity": 0.697
+        },
+        {
+          "question": "What is the tuition reimbursement cap for an MBA?",
+          "grounded": true,
+          "best_similarity": 0.6639
+        },
+        {
+          "question": "What was Helios's Q3 revenue?",
+          "grounded": true,
+          "best_similarity": 0.6547
+        },
+        {
+          "question": "Which Helios office has a rooftop swimming pool?",
+          "grounded": true,
+          "best_similarity": 0.5903
+        },
+        {
+          "question": "What is the sabbatical policy after ten years of service?",
+          "grounded": true,
+          "best_similarity": 0.6632
+        },
+        {
+          "question": "How many shares are in the employee stock purchase plan?",
+          "grounded": true,
+          "best_similarity": 0.651
+        },
+        {
+          "question": "What is the bereavement travel allowance for a second cousin?",
+          "grounded": true,
+          "best_similarity": 0.6913
+        }
+      ],
+      "label": "hybrid, similarity gate only",
+      "lexical_gate": false
+    },
+    {
+      "mode": "hybrid",
+      "threshold": 0.0,
+      "k": 6,
+      "graded_queries": 16,
+      "recall_at_1": 0.875,
+      "recall_at_6": 1.0,
+      "mrr": 0.9375,
+      "empty_results_on_graded": 0,
+      "grounded_on_graded": 16,
+      "false_refusal_rate": 0.0,
+      "out_of_corpus_queries": 8,
+      "false_accepts": 0,
+      "false_accept_rate": 0.0,
+      "per_query": [
+        {
+          "case": "R01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7866
+        },
+        {
+          "case": "R02",
+          "expected": [
+            "POL-HOL-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.783
+        },
+        {
+          "case": "R03",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001",
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7955
+        },
+        {
+          "case": "R04",
+          "expected": [
+            "POL-EXP-001"
+          ],
+          "retrieved": [
+            "POL-EXP-001",
+            "POL-SEC-001",
+            "POL-INTL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.76
+        },
+        {
+          "case": "R05",
+          "expected": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7328
+        },
+        {
+          "case": "R06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-LEAVE-002",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8357
+        },
+        {
+          "case": "C01",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7418
+        },
+        {
+          "case": "C02",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-INTL-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7003
+        },
+        {
+          "case": "C03",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-LEAVE-002",
+            "POL-BEN-001",
+            "POL-REMOTE-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.671
+        },
+        {
+          "case": "C04",
+          "expected": [
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6663
+        },
+        {
+          "case": "C05",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PTO-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.6543
+        },
+        {
+          "case": "C06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6788
+        },
+        {
+          "case": "C07",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7074
+        },
+        {
+          "case": "C08",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7193
+        },
+        {
+          "case": "M01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7014
+        },
+        {
+          "case": "M03",
+          "expected": [
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-EXP-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8156
+        }
+      ],
+      "negatives": [
+        {
+          "question": "What does the Helios pet insurance policy cover?",
+          "grounded": false,
+          "best_similarity": 0.7708
+        },
+        {
+          "question": "How do I enrol in the Helios company car scheme?",
+          "grounded": false,
+          "best_similarity": 0.697
+        },
+        {
+          "question": "What is the tuition reimbursement cap for an MBA?",
+          "grounded": false,
+          "best_similarity": 0.6639
+        },
+        {
+          "question": "What was Helios's Q3 revenue?",
+          "grounded": false,
+          "best_similarity": 0.6547
+        },
+        {
+          "question": "Which Helios office has a rooftop swimming pool?",
+          "grounded": false,
+          "best_similarity": 0.5903
+        },
+        {
+          "question": "What is the sabbatical policy after ten years of service?",
+          "grounded": false,
+          "best_similarity": 0.6632
+        },
+        {
+          "question": "How many shares are in the employee stock purchase plan?",
+          "grounded": false,
+          "best_similarity": 0.651
+        },
+        {
+          "question": "What is the bereavement travel allowance for a second cousin?",
+          "grounded": false,
+          "best_similarity": 0.6913
+        }
+      ],
+      "label": "hybrid, lexical gate only",
+      "lexical_gate": true
+    },
+    {
+      "mode": "hybrid",
+      "threshold": 0.0,
+      "k": 6,
+      "graded_queries": 16,
+      "recall_at_1": 0.875,
+      "recall_at_6": 1.0,
+      "mrr": 0.9375,
+      "empty_results_on_graded": 0,
+      "grounded_on_graded": 16,
+      "false_refusal_rate": 0.0,
+      "out_of_corpus_queries": 8,
+      "false_accepts": 8,
+      "false_accept_rate": 1.0,
+      "per_query": [
+        {
+          "case": "R01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7866
+        },
+        {
+          "case": "R02",
+          "expected": [
+            "POL-HOL-001"
+          ],
+          "retrieved": [
+            "POL-HOL-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.783
+        },
+        {
+          "case": "R03",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001",
+            "POL-PTO-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7955
+        },
+        {
+          "case": "R04",
+          "expected": [
+            "POL-EXP-001"
+          ],
+          "retrieved": [
+            "POL-EXP-001",
+            "POL-SEC-001",
+            "POL-INTL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.76
+        },
+        {
+          "case": "R05",
+          "expected": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-SEC-001",
+            "POL-EQUIP-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7328
+        },
+        {
+          "case": "R06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-LEAVE-002",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8357
+        },
+        {
+          "case": "C01",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-INTL-001",
+            "POL-REMOTE-001",
+            "POL-SEC-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7418
+        },
+        {
+          "case": "C02",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-INTL-001",
+            "POL-ONBOARD-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7003
+        },
+        {
+          "case": "C03",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-LEAVE-002",
+            "POL-BEN-001",
+            "POL-REMOTE-001",
+            "POL-CONDUCT-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.671
+        },
+        {
+          "case": "C04",
+          "expected": [
+            "POL-PERF-001",
+            "POL-REMOTE-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6663
+        },
+        {
+          "case": "C05",
+          "expected": [
+            "POL-INTL-001"
+          ],
+          "retrieved": [
+            "POL-REMOTE-001",
+            "POL-INTL-001",
+            "POL-PTO-001"
+          ],
+          "rank": 2,
+          "grounded": true,
+          "best_similarity": 0.6543
+        },
+        {
+          "case": "C06",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.6788
+        },
+        {
+          "case": "C07",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001",
+            "POL-PERF-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7074
+        },
+        {
+          "case": "C08",
+          "expected": [
+            "POL-BEN-001"
+          ],
+          "retrieved": [
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7193
+        },
+        {
+          "case": "M01",
+          "expected": [
+            "POL-PTO-001"
+          ],
+          "retrieved": [
+            "POL-PTO-001",
+            "POL-HOL-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.7014
+        },
+        {
+          "case": "M03",
+          "expected": [
+            "POL-EQUIP-001"
+          ],
+          "retrieved": [
+            "POL-EQUIP-001",
+            "POL-BEN-001",
+            "POL-ONBOARD-001",
+            "POL-EXP-001",
+            "POL-REMOTE-001"
+          ],
+          "rank": 1,
+          "grounded": true,
+          "best_similarity": 0.8156
+        }
+      ],
+      "negatives": [
+        {
+          "question": "What does the Helios pet insurance policy cover?",
+          "grounded": true,
+          "best_similarity": 0.7708
+        },
+        {
+          "question": "How do I enrol in the Helios company car scheme?",
+          "grounded": true,
+          "best_similarity": 0.697
+        },
+        {
+          "question": "What is the tuition reimbursement cap for an MBA?",
+          "grounded": true,
+          "best_similarity": 0.6639
+        },
+        {
+          "question": "What was Helios's Q3 revenue?",
+          "grounded": true,
+          "best_similarity": 0.6547
+        },
+        {
+          "question": "Which Helios office has a rooftop swimming pool?",
+          "grounded": true,
+          "best_similarity": 0.5903
+        },
+        {
+          "question": "What is the sabbatical policy after ten years of service?",
+          "grounded": true,
+          "best_similarity": 0.6632
+        },
+        {
+          "question": "How many shares are in the employee stock purchase plan?",
+          "grounded": true,
+          "best_similarity": 0.651
+        },
+        {
+          "question": "What is the bereavement travel allowance for a second cousin?",
+          "grounded": true,
+          "best_similarity": 0.6913
+        }
+      ],
+      "label": "hybrid, no gates",
+      "lexical_gate": false
+    }
+  ]
+}
