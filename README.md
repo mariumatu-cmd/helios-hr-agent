@@ -12,12 +12,13 @@ policy *and* a specific employee's data:
 > *"Maya Rodriguez wants to work from Portugal for six weeks, 5 October to 15
 > November. Can she?"*
 
-The policy allows 60 days abroad per rolling 12 months. Maya has 12 days already
+The policy allows 30 days abroad per rolling 12 months. Maya has 12 days already
 used inside the window — not the 24 a careless reading of her travel history
 suggests, because her Spain trip closed before the window opened. The agent must
 retrieve the rule, look up the history, apply the rolling-window arithmetic, and
-cite the section. The answer is "yes, with conditions", and it is only reachable
-by combining retrieval with structured data.
+cite the section. The answer is **no, by 24 days** — and the useful part is the
+alternatives it offers, which are only reachable by combining retrieval with
+structured data.
 
 **Deployed application:** see [`deployed.md`](deployed.md)
 **Design rationale and evaluation results:** see [`design-and-evaluation.md`](design-and-evaluation.md)

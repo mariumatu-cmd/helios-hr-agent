@@ -618,21 +618,26 @@ Expected tool sequence:
 
 | # | Tool | Arguments | Returns |
 |---|---|---|---|
-| 1 | `lookup_employee_profile` | `{"name": "Maya Rodriguez"}` | `E-1041`, full-time, 3.2 yrs tenure, citizen — no visa constraint |
-| 2 | `search_policy_documents` | `{"query": "international remote work eligibility days per year"}` | `POL-INTL-001 §2`, §3, §4 with citations |
-| 3 | `check_international_work_usage` | `{"employee_id": "E-1041"}` | **12** days used in the rolling window, 48 remaining |
-| 4 | `check_policy_compliance` | `{"employee_id": "E-1041", "request_type": "international_remote", "start_date": "2026-10-05", "end_date": "2026-11-15", "country": "Portugal"}` | verdict `review_required`, per-rule reasons, citations, approver |
+| 1 | `lookup_employee_profile` | `{"employee": "Maya Rodriguez"}` | `E-1041`, full-time, hired 2022-03-14, Austin TX, citizen — no visa constraint |
+| 2 | `search_policy_documents` | `{"query": "international remote work rolling limit eligibility"}` | `POL-INTL-001 §2`, §4.4, §5 with citations |
+| 3 | `check_international_work_usage` | `{"employee": "E-1041"}` | **12** days used in the rolling window, 18 remaining against a 30-day limit |
+| 4 | `check_policy_compliance` | `{"request_type": "international_remote_work", "employee": "E-1041", "start_date": "2026-10-05", "end_date": "2026-11-15", "country": "Portugal"}` | `compliant: false`, three findings, citations |
 
-Expected answer: **yes, with conditions.** 42 days requested against 48
-remaining, so the day limit passes. Tenure passes. Portugal is within the
-approved region. It requires manager plus HR sign-off 15 business days ahead, and
-tax registration beyond 30 consecutive days — so it is `review_required`, not
-approved, and the answer must name the approvers.
+Expected answer: **no — the request exceeds the rolling limit.** 42 requested
+days plus 12 already used is 54 against a 30-day limit, an overage of 24 days,
+cited to `POL-INTL-001 §2 Rolling 30-Day Limit`. Tenure passes (53 months against
+6 required) and immigration passes (citizen), so a correct answer says the
+*only* blocker is the day count — and offers the compliant alternatives: shorten
+the trip to 18 days, or split it so part falls after the window rolls forward.
 
 The trap: her travel history shows **24** days. Only 12 are inside the rolling
-window, because the Spain trip ended 2025-08-15, before the window opened. An
-agent that reasons about this in prose gets 24. An agent that calls the tool gets
-12. The evaluation encodes `"24 days"` as `must_not_include`.
+window, because the Spain trip ended 2025-08-15, before the window opened on
+2025-10-05. The tool returns the excluded record with `excluded_because` spelled
+out, so the exclusion is visible in the trace rather than implicit. An agent that
+reasons about this in prose counts 24 as *used*; an agent that calls the tool
+counts 12. The evaluation encodes `"24 days used"` and `"she has used 24"` as
+`must_not_include` — phrased precisely, because 24 is also the legitimate
+*overage*, and a blunt `"24"` would fail correct answers.
 
 ### Task 2 — PTO request that fails two ways
 
@@ -641,16 +646,18 @@ agent that reasons about this in prose gets 24. An agent that calls the tool get
 
 | # | Tool | Arguments | Returns |
 |---|---|---|---|
-| 1 | `lookup_employee_profile` | `{"name": "Jonas Weber"}` | `E-1088` |
-| 2 | `check_pto_balance` | `{"employee_id": "E-1088"}` | 13 h available, 24 h required |
+| 1 | `lookup_employee_profile` | `{"employee": "Jonas Weber"}` | `E-1088`, full-time, Customer Support, 0.86 yrs |
+| 2 | `check_pto_balance` | `{"employee": "E-1088"}` | 13 h (1.62 days) available |
 | 3 | `search_policy_documents` | `{"query": "PTO notice period advance request"}` | `POL-PTO-001 §3.1` |
-| 4 | `check_policy_compliance` | `{"employee_id": "E-1088", "request_type": "pto", "start_date": "2026-09-21", "hours": 24}` | verdict `denied`, **two** independent reasons |
+| 4 | `check_policy_compliance` | `{"request_type": "pto", "employee": "E-1088", "start_date": "2026-09-21", "days": 3}` | `compliant: false`, **two** blocking reasons |
 
 Expected answer: **not approvable, for two separate reasons.** Balance is 13 h
-against 24 h needed — an 11 h shortfall. Notice is 6 business days against the
-10 required. A correct answer names both, quantifies both, cites `§3.1` for
-notice and `§2.2` for balance, and offers alternatives: take 1.5 days now, move
-the request later to clear the notice period, or request unpaid leave.
+(1.62 days) against the 24 h needed — an 11 h shortfall, cited to
+`POL-PTO-001 §3.3 Insufficient Balance`. Notice is 6 business days against the
+10 required for 3 consecutive days, cited to `§3.1 Notice Requirements`. Blackout
+checks pass. A correct answer names both, quantifies both, cites both, and offers
+alternatives: take 1.5 days now, move the request later to clear the notice
+period, use a floating holiday (he has 2 remaining), or request unpaid leave.
 
 An agent that stops at the first failure gives a technically true and practically
 useless answer. The evaluation requires both numbers.
