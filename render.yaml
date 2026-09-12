@@ -1,0 +1,43 @@
+# Render free-tier deployment (project req. §6: publicly reachable, free tier).
+#
+# Why a Docker runtime rather than Render's native Python env:
+#   1. The embedding model weights are baked into the image at build time. With
+#      the native runtime fastembed would download ~80 MB from HuggingFace on the
+#      first query of every cold start, which on a free instance (which spins
+#      down after 15 minutes idle) means a multi-second stall plus a dependency
+#      on a third party being up at request time.
+#   2. `mcp_server/` is launched as a stdio subprocess. Pinning the interpreter
+#      and the working directory in the image removes a class of path bugs that
+#      only appear in the deployed environment.
+#
+# Memory: measured container total is 343 MB against the 512 MB cap, with the
+# embedder resident and warmed at startup. See evaluation/results/
+# memory_footprint.txt for the per-stage breakdown.
+services:
+  - type: web
+    name: helios-hr-assistant
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # Secrets are set in the Render dashboard, never committed. `sync: false`
+      # tells Render to prompt for the value instead of expecting it here.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: groq
+      - key: MCP_TRANSPORT
+        value: stdio
+      - key: WARM_EMBEDDER
+        value: "true"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: FASTEMBED_CACHE_PATH
+        value: /app/.fastembed_cache
+      - key: PYTHONUNBUFFERED
+        value: "1"

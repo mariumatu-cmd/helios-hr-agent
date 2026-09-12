@@ -1,0 +1,185 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep the fastembed ONNX weights out of the default cache location so the
+  # actions/cache key below controls them explicitly.
+  FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.fastembed_cache
+  HF_HUB_DISABLE_SYMLINKS_WARNING: "1"
+
+jobs:
+  quality:
+    name: Lint, test and verify the index
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # The embedding model is ~50 MB and is downloaded once per cache key.
+      # Without this, every run re-downloads it from Hugging Face and is subject
+      # to their rate limits.
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: .fastembed_cache
+          key: fastembed-bge-small-v1
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      # The index is committed so the deployed service never embeds at boot.
+      # This asserts it still matches the corpus: editing a policy without
+      # rebuilding would leave the app answering from stale text, which is
+      # exactly the kind of drift that is invisible at runtime.
+      - name: Verify the committed RAG index matches the corpus
+        run: python -m rag.ingest.build_index --check
+
+      - name: Validate mock data integrity
+        run: python scripts/validate_mock_data.py
+
+      - name: Policy rule spot-checks
+        run: python scripts/check_rules.py
+
+      - name: Test
+        run: pytest -q --junitxml=test-results.xml
+
+      # Proves the tools are reachable over a real MCP stdio transport, not just
+      # importable as Python functions.
+      - name: MCP protocol smoke test
+        run: python scripts/mcp_smoketest.py
+
+      - name: Verify the app boots and reports healthy dependencies
+        run: python scripts/healthcheck.py
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+          if-no-files-found: ignore
+
+  container:
+    name: Build the deployment image and smoke-test it
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    # The Dockerfile is what Render actually runs. Building it here is the only
+    # thing that turns "the Dockerfile looks right" into "the Dockerfile works",
+    # and it catches a broken image before it reaches the deploy job rather than
+    # after.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: helios-hr:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run the container and assert it serves
+        run: |
+          docker run -d --name helios -p 8000:8000 -e PORT=8000 helios-hr:ci
+
+          # Startup includes warming the embedder, so allow generous time before
+          # declaring failure -- and dump the logs if it never comes up.
+          for attempt in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8000/healthz >/dev/null 2>&1; then
+              echo "alive after ${attempt} attempt(s)"
+              break
+            fi
+            sleep 4
+          done
+
+          if ! curl -fsS http://127.0.0.1:8000/healthz >/dev/null 2>&1; then
+            echo "container never became live:"
+            docker logs helios
+            exit 1
+          fi
+
+          echo "--- /health ---"
+          curl -sS http://127.0.0.1:8000/health -o health.json || true
+
+          # No API key in CI, so the LLM is expected to be unconfigured and the
+          # overall status 'degraded'. Everything else must be healthy.
+          python3 scripts/assert_health.py health.json
+
+          echo "--- resident memory ---"
+          docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.MemPerc}}' helios
+
+      - name: Container logs
+        if: always()
+        run: docker logs helios || true
+
+  deploy:
+    name: Deploy to Render
+    needs: [quality, container]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Render builds from the repository itself. The deploy hook is optional:
+      # when the secret is absent (for example on a fork) the job reports that
+      # and succeeds, rather than failing a build for a missing credential.
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK is not set; skipping deploy."
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" && echo "Deploy triggered."
+
+      # A deploy that is merely "triggered" proves nothing. This polls the live
+      # service until it reports every dependency healthy -- including the LLM
+      # provider, which unlike in CI must be configured in production.
+      - name: Wait for the deployment to report healthy
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "APP_URL repository variable is not set; skipping verification."
+            exit 0
+          fi
+          for attempt in $(seq 1 40); do
+            if curl -fsS "$APP_URL/health" -o health.json 2>/dev/null; then
+              echo "attempt $attempt: /health returned 200"
+              python3 scripts/assert_health.py health.json --require-llm
+              exit 0
+            fi
+            echo "attempt $attempt: not healthy yet"
+            sleep 15
+          done
+          echo "Deployment did not become healthy within 10 minutes."
+          curl -sS "$APP_URL/health" || true
+          exit 1

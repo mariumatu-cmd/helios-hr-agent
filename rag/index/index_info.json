@@ -1,0 +1,36 @@
+{
+  "model": "BAAI/bge-small-en-v1.5",
+  "dimensions": 384,
+  "chunks": 133,
+  "documents": 12,
+  "doc_ids": [
+    "POL-BEN-001",
+    "POL-CONDUCT-001",
+    "POL-EQUIP-001",
+    "POL-HOL-001",
+    "POL-SEC-001",
+    "POL-INTL-001",
+    "POL-ONBOARD-001",
+    "POL-LEAVE-002",
+    "POL-PERF-001",
+    "POL-PTO-001",
+    "POL-REMOTE-001",
+    "POL-EXP-001"
+  ],
+  "source_formats": [
+    "html",
+    "md",
+    "pdf",
+    "txt"
+  ],
+  "chunking": {
+    "strategy": "heading_aware_with_sentence_aligned_overlap",
+    "target_tokens": 320,
+    "max_tokens": 420,
+    "overlap_tokens": 60
+  },
+  "corpus_fingerprint": "3b17d327e011abb42048058157b23ccf4973253bbdacc713294e14bc554c9894",
+  "seed": 42,
+  "built_at": "2026-09-12T11:35:09Z",
+  "build_seconds": 31.45
+}

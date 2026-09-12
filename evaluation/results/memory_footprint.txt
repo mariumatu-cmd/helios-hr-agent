@@ -1,0 +1,17 @@
+
+stage                                      RSS (MB)     delta
+interpreter + stdlib                           15.1     +15.1
+after imports                                  92.2     +77.1
+after app startup (MCP + index metadata)      106.0     +13.8
+after first query (embedder resident)         270.2    +164.1
+after four queries (steady state)             270.2      +0.0
+
+web process peak    : 270.2 MB
+MCP stdio child     : 72.9 MB
+container total     : 343.1 MB
+free-tier budget    : 512 MB
+headroom            : 168.9 MB (67% used)
+platform            : win32 (python 3.12.10)
+
+WITHIN BUDGET
+

@@ -1,0 +1,91 @@
+{
+  "_meta": {
+    "dataset": "hr_tickets",
+    "description": "SYNTHETIC HR ticket records. This file is the SEED state only. Tickets created by the agent are MOCK: they are written to an in-memory store at runtime and are never persisted back to this file, so the repository state is always reproducible and no agent action is irreversible (project req. s4).",
+    "as_of_date": "2026-09-12",
+    "id_format": "HR-<YYYY>-<4-digit sequence>",
+    "next_sequence": 1043,
+    "categories": [
+      "pto_request",
+      "remote_work_request",
+      "international_remote_work",
+      "benefits_question",
+      "expense_question",
+      "equipment_request",
+      "leave_request",
+      "conduct_concern",
+      "payroll",
+      "other"
+    ],
+    "priorities": ["low", "normal", "high", "urgent"],
+    "statuses": ["open", "in_progress", "awaiting_employee", "resolved", "closed"]
+  },
+  "tickets": [
+    {
+      "ticket_id": "HR-2026-1038",
+      "employee_id": "E-1088",
+      "category": "international_remote_work",
+      "subject": "Request to work from Portugal in July",
+      "body": "Requesting approval to work from Lisbon 6 - 24 July. Manager has confirmed coverage.",
+      "status": "closed",
+      "priority": "normal",
+      "assigned_team": "Global Mobility",
+      "created_at": "2026-06-02T09:14:00Z",
+      "resolved_at": "2026-06-11T16:02:00Z",
+      "resolution": "Approved. 19 calendar days, within the 30-day limit; Helios entity present in Portugal."
+    },
+    {
+      "ticket_id": "HR-2026-1039",
+      "employee_id": "E-1065",
+      "category": "benefits_question",
+      "subject": "Dependent verification documents",
+      "body": "Adding two children to coverage; asking what documentation is required.",
+      "status": "awaiting_employee",
+      "priority": "normal",
+      "assigned_team": "Total Rewards",
+      "created_at": "2026-08-21T02:40:00Z",
+      "resolved_at": null,
+      "resolution": null,
+      "note": "Verification due 2026-09-20 or dependent coverage is cancelled (POL-BEN-001 s5)."
+    },
+    {
+      "ticket_id": "HR-2026-1040",
+      "employee_id": "E-1120",
+      "category": "equipment_request",
+      "subject": "Second monitor for modelling work",
+      "body": "Requesting an additional 27-inch monitor beyond the standard Data/ML bundle.",
+      "status": "resolved",
+      "priority": "low",
+      "assigned_team": "IT Operations",
+      "created_at": "2026-07-15T14:22:00Z",
+      "resolved_at": "2026-07-18T11:05:00Z",
+      "resolution": "Approved by manager; shipped."
+    },
+    {
+      "ticket_id": "HR-2026-1041",
+      "employee_id": "E-1099",
+      "category": "benefits_question",
+      "subject": "Short-term disability coverage question",
+      "body": "Asking whether short-term disability applies to part-time employees.",
+      "status": "closed",
+      "priority": "normal",
+      "assigned_team": "Total Rewards",
+      "created_at": "2026-04-09T17:33:00Z",
+      "resolved_at": "2026-04-10T13:10:00Z",
+      "resolution": "Confirmed part-time employees are not covered by STD or LTD (POL-BEN-001 s3). State disability options discussed."
+    },
+    {
+      "ticket_id": "HR-2026-1042",
+      "employee_id": "E-1055",
+      "category": "expense_question",
+      "subject": "Reimbursement for home office chair",
+      "body": "Asking whether a new desk chair can be expensed.",
+      "status": "closed",
+      "priority": "low",
+      "assigned_team": "Finance",
+      "created_at": "2026-05-28T15:47:00Z",
+      "resolved_at": "2026-05-29T09:20:00Z",
+      "resolution": "Directed to the home-office stipend under POL-BEN-001 s8; not an expense claim (POL-EXP-001 s8)."
+    }
+  ]
+}

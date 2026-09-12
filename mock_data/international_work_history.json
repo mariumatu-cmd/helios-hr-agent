@@ -1,0 +1,70 @@
+{
+  "_meta": {
+    "dataset": "international_work_history",
+    "description": "SYNTHETIC record of approved international remote-work days, used to evaluate the 30-day rolling 12-month limit in POL-INTL-001 s2.",
+    "as_of_date": "2026-09-12",
+    "rolling_window_months": 12,
+    "annual_limit_days": 30,
+    "field_notes": {
+      "calendar_days": "counted inclusive of start and end date; partial days count as whole days per POL-INTL-001 s2",
+      "status": "approved | completed | denied | cancelled; only approved and completed consume the allowance"
+    }
+  },
+  "records": [
+    {
+      "record_id": "IRW-2026-0043",
+      "employee_id": "E-1041",
+      "country": "Ireland",
+      "start_date": "2026-03-02",
+      "end_date": "2026-03-13",
+      "calendar_days": 12,
+      "status": "completed",
+      "approved_by": "E-1007",
+      "notes": "Co-located with Dublin platform team."
+    },
+    {
+      "record_id": "IRW-2026-0111",
+      "employee_id": "E-1065",
+      "country": "Japan",
+      "start_date": "2026-05-11",
+      "end_date": "2026-05-18",
+      "calendar_days": 8,
+      "status": "completed",
+      "approved_by": "E-1030",
+      "notes": "Customer onsite; within the 14-day Japan cap."
+    },
+    {
+      "record_id": "IRW-2026-0126",
+      "employee_id": "E-1088",
+      "country": "Portugal",
+      "start_date": "2026-07-06",
+      "end_date": "2026-07-24",
+      "calendar_days": 19,
+      "status": "completed",
+      "approved_by": "E-1032",
+      "notes": "Approved; Helios entity present."
+    },
+    {
+      "record_id": "IRW-2025-0298",
+      "employee_id": "E-1041",
+      "country": "Spain",
+      "start_date": "2025-08-04",
+      "end_date": "2025-08-15",
+      "calendar_days": 12,
+      "status": "completed",
+      "approved_by": "E-1007",
+      "notes": "OUTSIDE the current rolling 12-month window as of 2026-09-12; must NOT count toward the limit."
+    },
+    {
+      "record_id": "IRW-2026-0155",
+      "employee_id": "E-1210",
+      "country": "United Kingdom",
+      "start_date": "2026-09-28",
+      "end_date": "2026-10-09",
+      "calendar_days": 12,
+      "status": "approved",
+      "approved_by": "E-1005",
+      "notes": "Future-dated approval; consumes allowance."
+    }
+  ]
+}

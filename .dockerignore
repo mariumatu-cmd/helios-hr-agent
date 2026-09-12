@@ -1,0 +1,17 @@
+# Keep the build context small and the image reproducible.
+#
+# Note: markdown is NOT excluded wholesale -- the policy corpus is markdown and
+# must reach the image. Only the developer-facing docs tree is dropped.
+.venv/
+.git/
+.github/
+.fastembed_cache/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+tests/
+docs/
+PLAN.md
+.DS_Store

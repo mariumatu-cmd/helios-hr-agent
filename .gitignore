@@ -1,0 +1,30 @@
+# secrets
+.env
+*.key
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# local model cache (fastembed downloads ONNX weights here)
+.fastembed_cache/
+models/
+
+# evaluation run outputs (committed results live in evaluation/results/*.md|json)
+evaluation/results/raw/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# course materials -- the assignment brief is not mine to redistribute
+*Requirements.pdf
