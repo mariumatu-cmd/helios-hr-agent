@@ -267,6 +267,12 @@ class Trace:
     answer: str = ""
     steps: list[Step] = field(default_factory=list)
     citations: list[str] = field(default_factory=list)
+    # The passages behind those citation labels, with their text. The brief
+    # asks `/chat` to return snippets alongside citations, and a label on its
+    # own is not checkable by a reader: it says where a claim came from without
+    # showing what was there. Separate from `citations` because the scorer and
+    # the answer's inline markers both rely on that being a flat list of labels.
+    sources: list[dict[str, Any]] = field(default_factory=list)
     tools_used: list[str] = field(default_factory=list)
     total_ms: float = 0.0
     # `total_ms` minus every provider rate-limit wait: the latency this system
@@ -312,6 +318,45 @@ def _extract_citations(result: Any, into: list[str]) -> None:
             _extract_citations(item, into)
 
 
+SNIPPET_CHARS = 400
+
+
+def _extract_sources(result: Any, into: list[dict], seen: set[str]) -> None:
+    """Collect the retrieved passages behind the citations, with their text.
+
+    `citations` carries labels, which is what the evaluation scores against and
+    what the answer quotes inline. A label alone is not checkable by a human,
+    though: it says *where* a claim came from without showing *what* was there,
+    so a reader cannot tell a correct citation from a confidently wrong one
+    without going and fetching the document.
+
+    This walks the same tool results and keeps the passage itself, truncated to
+    a readable snippet. Kept as a separate field rather than folded into
+    `citations` because the scorer and the answer's inline markers both depend
+    on that staying a flat list of labels.
+    """
+    if isinstance(result, dict):
+        label = result.get("citation")
+        text = result.get("text")
+        if isinstance(label, str) and isinstance(text, str) and label not in seen:
+            seen.add(label)
+            snippet = text.strip()
+            if len(snippet) > SNIPPET_CHARS:
+                snippet = snippet[:SNIPPET_CHARS].rstrip() + "..."
+            into.append({
+                "citation": label,
+                "doc_id": result.get("doc_id", ""),
+                "doc_title": result.get("doc_title", ""),
+                "section": result.get("section", ""),
+                "snippet": snippet,
+            })
+        for value in result.values():
+            _extract_sources(value, into, seen)
+    elif isinstance(result, list):
+        for item in result:
+            _extract_sources(item, into, seen)
+
+
 async def run_agent(
     question: str,
     client: MCPToolClient,
@@ -331,6 +376,7 @@ async def run_agent(
     messages.append({"role": "user", "content": question})
 
     citations: list[str] = []
+    source_labels: set[str] = set()
 
     for index in range(1, max_steps + 1):
         # Bound the request before it is sent. Doing this per step rather than
@@ -453,6 +499,7 @@ async def run_agent(
 
         for call, result in await asyncio.gather(*(execute(c) for c in response.tool_calls)):
             _extract_citations(result.content, citations)
+            _extract_sources(result.content, trace.sources, source_labels)
             if result.name not in trace.tools_used:
                 trace.tools_used.append(result.name)
             if isinstance(result.content, dict) and "grounded" in result.content:

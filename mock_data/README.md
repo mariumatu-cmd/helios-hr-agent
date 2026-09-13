@@ -12,9 +12,9 @@ contact.
 
 | File | Records | Purpose |
 | --- | --- | --- |
-| `employees.json` | 16 | Employee profiles, employment type, manager chain, location, work arrangement, performance state, work authorization |
-| `pto_balances.json` | 16 | PTO accrual band, balance, scheduled future time, floating holidays |
-| `benefits_elections.json` | 16 | Plan elections, waiting-period state, match and parental-leave eligibility |
+| `employees.json` | 17 | Employee profiles, employment type, manager chain, location, work arrangement, performance state, work authorization |
+| `pto_balances.json` | 17 | PTO accrual band, balance, scheduled future time, floating holidays |
+| `benefits_elections.json` | 17 | Plan elections, waiting-period state, match and parental-leave eligibility |
 | `international_work_history.json` | 5 | Approved international remote-work days, for the rolling 12-month limit |
 | `offices.json` | 7 | Office locations, timezones, holiday schedule, expense tier |
 | `hr_tickets.json` | 5 | Seed HR tickets, plus the ID sequence for mock ticket creation |
@@ -39,6 +39,13 @@ computation against policy, not a single lookup:
 - **`E-1099` Sofia Marino** is part-time: no STD/LTD, pro-rated parental leave.
 - **`E-1150`**, **`E-1177`**, and **`C-2003`** are temporary, intern, and
   contractor respectively, and are benefit-ineligible.
+- **`E-1073` Maya Osei** exists to make partial-name ambiguity real. With
+  sixteen unique first names, `resolve_employee`'s ambiguity branch could never
+  fire and its unit test skipped itself, so an agent that guessed the wrong
+  person would never have been caught. A second Maya in a different department
+  with a different PTO balance (49 available hours, against Maya Rodriguez's
+  73.39) means a guess produces a *wrong number*, not merely a coin flip, and
+  the only correct behaviour is to ask which Maya is meant.
 
 ## Mutability
 

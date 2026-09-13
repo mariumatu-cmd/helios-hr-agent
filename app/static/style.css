@@ -92,6 +92,17 @@ button.demo:hover { border-color: var(--accent); color: #fff; }
   border-radius: 4px;
   padding: .12rem .4rem;
 }
+details.cite { cursor: pointer; }
+details.cite > summary { list-style: none; }
+details.cite > summary::-webkit-details-marker { display: none; }
+details.cite[open] { flex-basis: 100%; }
+.snippet {
+  font-family: var(--fg-font, inherit);
+  font-size: .78rem;
+  color: var(--muted, #9aa7b4);
+  margin: .4rem 0 .1rem;
+  white-space: pre-wrap;
+}
 
 #composer { display: flex; gap: .5rem; margin-top: .8rem; }
 textarea {

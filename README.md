@@ -24,6 +24,22 @@ structured data.
 **Design rationale and evaluation results:** see [`design-and-evaluation.md`](design-and-evaluation.md)
 **How AI coding tools were used:** see [`ai-tooling.md`](ai-tooling.md)
 
+### Submission map
+
+| Required artefact | Where |
+|---|---|
+| All developed code | `agent/`, `app/`, `mcp_server/`, `rag/`, `scripts/`, `tests/` |
+| Introductory description, setup, local run, deployment | this file |
+| Architecture, RAG, MCP, orchestration, tool schemas, guardrails, deployment, evaluation | [`design-and-evaluation.md`](design-and-evaluation.md) |
+| AI coding tools used, what worked and what did not | [`ai-tooling.md`](ai-tooling.md) |
+| Deployed URL, health endpoint, cold-start notes | [`deployed.md`](deployed.md) |
+| Evaluation questions, expected answers, scripts, results | `evaluation/` |
+| Synthetic employee, PTO, benefits and ticket data | `mock_data/` |
+| MCP server code and tool definitions | `mcp_server/` (see the naming note at the end of this file) |
+
+The repository is public, and `quantic-grader` also holds an explicit read
+invitation so access does not depend on that staying true.
+
 ---
 
 ## What it does
@@ -35,7 +51,7 @@ structured data.
 | Hand-written agent loop with full step-by-step tracing and provider fallback | `agent/` |
 | FastAPI chat app that renders every tool call, argument, and result | `app/` |
 | Two-store abstention gate that refuses questions the system genuinely cannot answer | `rag/vocabulary.py` |
-| 28-case evaluation suite with a deterministic scorer, plus a 6-way retrieval ablation | `evaluation/` |
+| 30-case evaluation suite with a deterministic scorer, plus a 6-way retrieval ablation | `evaluation/` |
 
 ---
 
@@ -200,7 +216,8 @@ arguments, what came back, and which policy sections were cited.
 | `GET /health` | Readiness. 503 when the index or a model provider is missing. |
 | `GET /tools` | The live MCP tool manifest, as discovered from the server. |
 | `GET /documents` | The indexed corpus. |
-| `POST /chat` | `{"message": "...", "history": []}` → answer plus full trace. |
+| `POST /chat` | `{"message": "...", "history": []}` → the answer, `citations` (labels), `sources` (the passages behind them, with snippets), and the step-by-step tool trace. |
+| `GET /demo-tasks` | The seeded agentic demo tasks, so a grader can reproduce them. |
 
 ### Running the MCP server on its own
 
@@ -240,7 +257,7 @@ agent loop against a scripted model, and the HTTP layer.
 # No API key required -- retrieval quality and a 6-way ablation
 python -m evaluation.run_retrieval_eval
 
-# Requires an API key -- full agent evaluation over 28 cases
+# Requires an API key -- full agent evaluation over 30 cases
 python -m evaluation.run_eval
 python -m evaluation.run_eval --category refusal     # one slice
 python -m evaluation.run_eval --min-pass-rate 0.85   # gate for CI

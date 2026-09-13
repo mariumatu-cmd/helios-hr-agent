@@ -18,7 +18,7 @@ const escape = (value) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
 
-function addMessage(role, text, citations) {
+function addMessage(role, text, citations, sources) {
   const el = document.createElement("div");
   el.className = `msg ${role}`;
   el.innerHTML = escape(text)
@@ -26,9 +26,20 @@ function addMessage(role, text, citations) {
     .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
     .join("");
   if (citations && citations.length) {
+    // The label says where a claim came from; the snippet shows what was
+    // there. Collapsed by default so the answer stays readable, but present,
+    // so a citation can be checked without leaving the page.
+    const byLabel = new Map((sources || []).map((s) => [s.citation, s]));
     el.innerHTML +=
       `<div class="cites">` +
-      citations.map((c) => `<span class="cite">${escape(c)}</span>`).join("") +
+      citations
+        .map((c) => {
+          const source = byLabel.get(c);
+          if (!source) return `<span class="cite">${escape(c)}</span>`;
+          return `<details class="cite"><summary>${escape(c)}</summary>
+            <p class="snippet">${escape(source.snippet)}</p></details>`;
+        })
+        .join("") +
       `</div>`;
   }
   messagesEl.appendChild(el);
@@ -106,7 +117,7 @@ async function send(question) {
 
     const trace = await response.json();
     pending.remove();
-    addMessage("assistant", trace.answer || "(no answer returned)", trace.citations);
+    addMessage("assistant", trace.answer || "(no answer returned)", trace.citations, trace.sources);
     renderTrace(trace);
 
     history.push({ role: "user", content: question });

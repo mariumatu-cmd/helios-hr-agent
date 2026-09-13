@@ -145,3 +145,47 @@ def test_the_pass_threshold_is_applied_to_the_mean_of_scored_dimensions():
     result = score_case(case, FakeTrace(answer="a b c"))
     assert result.answer_match == 0.75
     assert result.passed is False
+
+
+
+# -- clarification detection --------------------------------------------------
+def test_asking_which_of_two_matches_scores_as_a_clarification():
+    answer = "There are two employees named Maya. Which did you mean, Maya Rodriguez or Maya Osei?"
+    result = score_case(_case(behaviour="clarify"), FakeTrace(answer=answer))
+    assert result.behaviour == 1.0
+
+
+def test_guessing_instead_of_asking_fails_the_clarification_dimension():
+    """The failure this dimension exists to catch.
+
+    A confident, well-formed, correctly-cited answer about the wrong person
+    looks like a success on every other dimension, so nothing else in the
+    scorer would have marked it down.
+    """
+    answer = "Maya has 73.39 hours of PTO available (POL-PTO-001 s2.1 Accrual Rates)."
+    result = score_case(_case(behaviour="clarify"), FakeTrace(answer=answer))
+    assert result.behaviour == 0.0
+
+
+def test_clarifying_words_without_a_question_do_not_count():
+    """An answer that mentions the ambiguity and then resolves it anyway has
+    not deferred to the user; it has narrated its guess."""
+    answer = "Several employees match, so I will use Maya Rodriguez. She has 73.39 hours."
+    result = score_case(_case(behaviour="clarify"), FakeTrace(answer=answer))
+    assert result.behaviour == 0.0
+
+
+def test_a_flat_refusal_is_not_a_clarification():
+    """Refusing and asking are different correct-looking behaviours, and only
+    one of them is correct here. Scoring them alike would hide the difference."""
+    answer = "I cannot determine that."
+    result = score_case(_case(behaviour="clarify"), FakeTrace(answer=answer))
+    assert result.behaviour == 0.0
+
+
+def test_clarify_is_scored_as_a_dimension_not_a_gate():
+    """The dimension has to enter the mean, or a clarification failure would
+    cost nothing in the headline number."""
+    passing = score_case(_case(behaviour="clarify"), FakeTrace(answer="Which Maya?"))
+    failing = score_case(_case(behaviour="clarify"), FakeTrace(answer="She has 73 hours."))
+    assert passing.score > failing.score

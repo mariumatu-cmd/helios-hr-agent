@@ -452,3 +452,109 @@ async def test_final_step_reports_how_many_sources_the_answer_rests_on(scripted)
 
     step = next(s for s in trace.steps if s.kind == "final")
     assert step.summary == "answer synthesised from 2 cited sources"
+
+
+# --- /chat returns snippets, not just citation labels ----------------------
+# The brief asks the endpoint to return the answer, citations, snippets and a
+# tool-call trace. Labels alone are not checkable by a reader: they say where a
+# claim came from without showing what was there, so a correct citation and a
+# confidently wrong one look identical until you go and fetch the document.
+
+@pytest.mark.asyncio
+async def test_sources_carry_the_passage_behind_each_citation(scripted):
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto"})]),
+        final_step("15 days (POL-PTO-001 SS2.1)."),
+    ])
+    client = FakeClient(results={
+        "search_policy_documents": {
+            "results": [{
+                "citation": "POL-PTO-001 SS2.1 Accrual Rates",
+                "doc_id": "POL-PTO-001",
+                "doc_title": "Paid Time Off Policy",
+                "section": "2.1 Accrual Rates",
+                "text": "Full-time employees accrue 15 days in years 0-2.",
+            }]
+        }
+    })
+    trace = await orchestrator.run_agent("q", client)
+
+    assert trace.citations == ["POL-PTO-001 SS2.1 Accrual Rates"]
+    assert len(trace.sources) == 1
+    source = trace.sources[0]
+    assert source["citation"] == "POL-PTO-001 SS2.1 Accrual Rates"
+    assert source["doc_id"] == "POL-PTO-001"
+    assert source["section"] == "2.1 Accrual Rates"
+    assert source["snippet"] == "Full-time employees accrue 15 days in years 0-2."
+
+
+@pytest.mark.asyncio
+async def test_long_passages_are_truncated_to_a_snippet(scripted):
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto"})]),
+        final_step("done"),
+    ])
+    client = FakeClient(results={
+        "search_policy_documents": {
+            "results": [{"citation": "POL-PTO-001 SS2.1", "text": "x" * 2000}]
+        }
+    })
+    trace = await orchestrator.run_agent("q", client)
+
+    snippet = trace.sources[0]["snippet"]
+    assert len(snippet) <= orchestrator.SNIPPET_CHARS + 3
+    assert snippet.endswith("...")
+
+
+@pytest.mark.asyncio
+async def test_a_citation_seen_twice_yields_one_source(scripted):
+    """Two tools can return the same passage; the reader should see it once."""
+    scripted([
+        tool_step([
+            ("search_policy_documents", {"query": "pto"}),
+            ("check_policy_compliance", {"employee_id": "E-1042"}),
+        ]),
+        final_step("done"),
+    ])
+    hit = {"citation": "POL-PTO-001 SS2.1", "text": "Accrual text."}
+    client = FakeClient(results={
+        "search_policy_documents": {"results": [hit]},
+        "check_policy_compliance": {"rules": [hit]},
+    })
+    trace = await orchestrator.run_agent("q", client)
+
+    assert [s["citation"] for s in trace.sources] == ["POL-PTO-001 SS2.1"]
+
+
+@pytest.mark.asyncio
+async def test_a_citation_without_text_still_appears_in_citations(scripted):
+    """Not every citing tool returns a passage; the label must not be lost."""
+    scripted([
+        tool_step([("check_policy_compliance", {"employee_id": "E-1042"})]),
+        final_step("done"),
+    ])
+    client = FakeClient(results={
+        "check_policy_compliance": {"citation": "POL-REMOTE-001 SS4", "allowed": False}
+    })
+    trace = await orchestrator.run_agent("q", client)
+
+    assert trace.citations == ["POL-REMOTE-001 SS4"]
+    assert trace.sources == []
+
+
+@pytest.mark.asyncio
+async def test_sources_survive_json_serialisation(scripted):
+    """The endpoint returns `trace.to_dict()` straight to the client."""
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto"})]),
+        final_step("done"),
+    ])
+    client = FakeClient(results={
+        "search_policy_documents": {
+            "results": [{"citation": "POL-PTO-001 SS2.1", "text": "Accrual text."}]
+        }
+    })
+    trace = await orchestrator.run_agent("q", client)
+
+    payload = json.loads(json.dumps(trace.to_dict()))
+    assert payload["sources"][0]["snippet"] == "Accrual text."
