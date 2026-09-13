@@ -941,14 +941,13 @@ Three readings, stated plainly:
 28 cases, one repeat, `openai/gpt-oss-120b` configured as primary.
 Full output: `evaluation/results/eval_20260913T180224.json`.
 
-> **These numbers are from the 28-case suite**, measured before the two
-> `ambiguous` cases (`A01`, `A02`) were added and before `X04` began scoring
-> escalation routing separately from refusal. They are reported unchanged rather
-> than re-stated against the 30-case suite, because re-running costs a full day
-> of free-tier token quota (see *The free-tier ceiling* below) and quoting
-> measured numbers against a suite they were not measured on would be worse than
-> quoting a slightly stale denominator. The added cases are expected to be hard:
-> `behaviour` was already the weakest dimension at 0.571.
+> **The 28 cases below were measured together in one run; the three cases the
+> suite gained afterwards were measured separately and are reported under
+> *Completing the 30-case suite*.** A single 28-case run costs most of a day of
+> free-tier token quota (see *The free-tier ceiling* below), so the suite was
+> completed by measuring the delta rather than by paying for a whole second run.
+> Every number on this page is a real measurement; none is carried over from a
+> superseded scorer.
 
 ```
 cases 28   passed 21   pass rate 75%   mean score 0.812
@@ -975,6 +974,38 @@ cases 28   passed 21   pass rate 75%   mean score 0.812
 citation**, and no forbidden tool was called in any case that names one. Given
 retrieval recall@6 of 1.00, that is the claim this system most needs to support:
 when it answers, it answers from the corpus and says where from.
+
+#### Completing the 30-case suite
+
+The suite later gained two `ambiguous` cases, and `X04` was strengthened to score
+escalation *routing* as a separate requirement rather than accepting any
+refusal. Those three cases were measured on their own, under the current scorer:
+
+| Case | Category | Score | Result | Run |
+|---|---|---|---|---|
+| `A01` | `ambiguous` | 1.00 | pass | `eval_20260913T201327.json` |
+| `A02` | `ambiguous` | 1.00 | pass | `eval_20260913T201627.json` |
+| `X04` | `refusal` | 1.00 | pass | `eval_20260913T201327.json` |
+
+`X04` passed before the change too, but that earlier pass is not evidence for the
+stricter requirement, so it was re-measured rather than carried forward. The
+combined suite therefore stands at **23/30 (77%)**, with `ambiguous` at 2/2 and
+`refusal` at 4/4.
+
+Two caveats, because the composite is not a single run. The dimension means
+above are not recomputed to include these three; they cover the 28 cases
+measured together. And the three were run when three of the four Groq models had
+already hit their daily cap — the log shows the chain rotating past each 429
+before answering, which is the fallback path working, but it also means their
+latencies (70.6 s, 111.0 s, 93.3 s) carry rotation overhead and should not be
+compared against the p50 below.
+
+The `behaviour` dimension was the weakest at 0.571 and these cases score on it,
+so a 3/3 result deserves scepticism rather than celebration. The reason it is
+believable is that the failure it guards against had already been caught twice:
+the first `A02` measurement scored 0.0 because the *scorer* did not recognise
+clarification-by-asking, not because the agent guessed. See *The clarification
+detector was wrong the first time it ran*.
 
 #### What the seven failures actually were
 
@@ -1083,8 +1114,8 @@ being quietly re-run until they passed.
 | Cold start | **52.5 s** measured after 17 min idle; warm 363 ms | `evidence/cold-start.json` |
 | Fixed context floor | ~3,304 tokens/step (system 595 + 12-tool manifest 2,709) | `scripts/measure_context.py` |
 | Deployed agentic tasks | **2/2 pass** on the live service | `evidence/deployed-tasks.json` |
-| End-to-end suite | 21/28, mean 0.812, citation 1.000 | `evaluation/results/eval_20260913T180224.json` |
-| Tests | 186 passing, 1 skipped | `pytest -q` |
+| End-to-end suite | 23/30, citation 1.000 (28 together, mean 0.812; 3 measured separately) | `evaluation/results/eval_20260913T180224.json` + `…201327` + `…201627` |
+| Tests | 218 passing, 0 skipped | `pytest -q` |
 
 ---
 
