@@ -293,3 +293,91 @@ async def test_trace_reports_context_pressure(scripted):
     assert trace.peak_context_tokens > 0
     assert trace.elided_results == 0
     assert all(step.context_tokens > 0 for step in trace.steps)
+
+
+# --- recovering from a provider-rejected tool call --------------------------
+#
+# Groq validates tool-call arguments server-side and returns 400
+# `tool_use_failed` when the model's own output does not match the schema it
+# was given. Observed twice in one evaluation run, both on the fallback models
+# the free tier pushes work onto under load: once as `"confirmed": "False"`
+# written as a string, once as a call cut off mid-argument by the token cap.
+#
+# Before these tests the exception escaped and killed the run, so two safety
+# cases scored 0.00 for a reason that had nothing to do with safety.
+def _malformed(message: str = "expected boolean, but got string") -> Exception:
+    return orchestrator.llm.MalformedToolCall(message, failed_generation="<tool_call>...")
+
+
+async def test_a_rejected_tool_call_is_corrected_not_fatal(monkeypatch):
+    calls: list[list[dict]] = []
+
+    def chat(messages, tools=None, **kwargs):
+        calls.append(list(messages))
+        if len(calls) == 1:
+            raise _malformed()
+        return final_step("Recovered.")
+
+    monkeypatch.setattr(orchestrator.llm, "chat", chat)
+    trace = await orchestrator.run_agent("file a ticket", FakeClient())
+
+    assert trace.answer == "Recovered."
+    assert not trace.error
+    assert trace.malformed_tool_calls == 1
+
+
+async def test_the_correction_tells_the_model_what_was_wrong(monkeypatch):
+    """A bare 'that was invalid' is not actionable.
+
+    The two observed causes need opposite corrections -- retype the argument,
+    or shorten it -- so the provider's own message is passed through.
+    """
+    calls: list[list[dict]] = []
+
+    def chat(messages, tools=None, **kwargs):
+        calls.append(list(messages))
+        if len(calls) == 1:
+            raise _malformed()
+        return final_step("ok")
+
+    monkeypatch.setattr(orchestrator.llm, "chat", chat)
+    await orchestrator.run_agent("q", FakeClient())
+
+    correction = calls[1][-1]
+    assert correction["role"] == "user"
+    assert "expected boolean, but got string" in correction["content"]
+    assert "true and false" in correction["content"]
+
+
+async def test_a_persistently_malformed_model_stops_rather_than_loops(monkeypatch):
+    """Correction is bounded: every attempt costs a request against a daily quota."""
+    attempts = {"n": 0}
+
+    def chat(messages, tools=None, **kwargs):
+        attempts["n"] += 1
+        raise _malformed()
+
+    monkeypatch.setattr(orchestrator.llm, "chat", chat)
+    trace = await orchestrator.run_agent("q", FakeClient())
+
+    assert attempts["n"] == orchestrator.MAX_MALFORMED_TOOL_CALLS + 1
+    assert "malformed" in trace.error.lower()
+    assert trace.steps[-1].kind == "error"
+    assert not trace.truncated
+
+
+async def test_a_corrected_run_is_visible_in_the_trace(monkeypatch):
+    """A run that needed correcting is not the same as a clean one."""
+    calls = {"n": 0}
+
+    def chat(messages, tools=None, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise _malformed()
+        return final_step("done")
+
+    monkeypatch.setattr(orchestrator.llm, "chat", chat)
+    trace = await orchestrator.run_agent("q", FakeClient())
+
+    assert json.loads(json.dumps(trace.to_dict()))["malformed_tool_calls"] == 1
+    assert any(s.kind == "error" and "rejected" in s.thought for s in trace.steps)

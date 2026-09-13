@@ -54,7 +54,7 @@ set for local use.
 | Variable | Required | Value on the deployed service | Why |
 |---|---|---|---|
 | `GROQ_API_KEY` | one of the two | Groq free-tier key | Primary provider. |
-| `GEMINI_API_KEY` | one of the two | Google AI Studio free-tier key | Cross-provider fallback. |
+| `GEMINI_API_KEY` | one of the two | Google AI Studio free-tier key | Cross-provider fallback for single-shot calls. It cannot continue a tool loop (`design-and-evaluation.md` §6), so it does not substitute for `GROQ_API_KEY` on the agent endpoint. |
 | `LLM_PROVIDER` | no | `groq` | Which provider leads the chain. |
 | `GROQ_FALLBACK_MODELS` | no | `openai/gpt-oss-20b,qwen/qwen3.8-27b,qwen/qwen3.6-27b` | Groq meters tokens **per model**, so each extra model is a fresh per-minute budget. This is what keeps a multi-step run alive on the free tier. |
 | `LLM_MAX_TOKENS` | no | `1200` | Groq reserves this against the same per-minute bucket whether the completion uses it or not, so it is a prompt-budget decision, not just an output cap. |
@@ -207,6 +207,22 @@ argument, every result, and the citations harvested from the tool output.
 `/tools` is worth checking specifically: it renders the manifest the agent
 discovered over MCP at runtime, not a hardcoded list, which is the simplest
 demonstration that the protocol boundary is real.
+
+### Repository visibility
+
+The repository is **public**, and deliberately stays that way until grading is
+finished. Render's build pulls the source directly from GitHub, and it can only
+reach a private repository through its GitHub App, which has to be installed
+interactively. Flipping the repository to private would leave the running
+service up but break every subsequent deploy, including the CI-driven one
+described above — trading a working, continuously deployed demo for privacy that
+is not needed while the work is being marked.
+
+Nothing sensitive is exposed by this: all three keys live only in `.env`
+(git-ignored) and in Render's environment, the corpus and every employee record
+are synthetic, and `git log -p -- .env` is empty. After grading, make the
+repository private and reinstall Render's GitHub App if continuous deployment is
+still wanted.
 
 ## Deploying it yourself
 

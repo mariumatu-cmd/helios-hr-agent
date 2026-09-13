@@ -171,6 +171,33 @@ def fit_context(
     return fitted, total, elided
 
 
+# A malformed tool call is worth correcting, but not worth chasing: if the
+# model cannot produce valid arguments twice in a row it is not going to on the
+# third attempt, and each attempt costs a request against a daily quota.
+MAX_MALFORMED_TOOL_CALLS = 2
+
+
+def _tool_call_correction(exc: llm.MalformedToolCall) -> str:
+    """The corrective turn sent after a provider rejects a tool call.
+
+    It names the concrete failure rather than saying "that was invalid",
+    because the two observed causes need different corrections: a wrong JSON
+    type needs re-typing, and a truncated call needs a shorter one.
+    """
+    detail = str(exc).strip()
+    note = (
+        "Your last tool call was rejected before it ran, because its arguments did "
+        f"not match the tool's schema. The provider said: {detail}\n"
+        "Send the call again as a single valid JSON object. Use real JSON types -- "
+        "true and false for booleans, bare numbers for numbers -- and include every "
+        "required field. If the call was long, shorten the text arguments rather "
+        "than dropping fields."
+    )
+    if exc.failed_generation:
+        note += f"\nThe rejected call began: {exc.failed_generation[:400]}"
+    return note
+
+
 @dataclass
 class ToolInvocation:
     step: int
@@ -228,6 +255,10 @@ class Trace:
     # Total tool results compacted across the run, and the largest prompt sent.
     elided_results: int = 0
     peak_context_tokens: int = 0
+    # Tool calls the provider rejected as malformed and the agent recovered
+    # from. Recorded rather than swallowed: a run that needed correcting is not
+    # the same as a clean one, and the evaluation should be able to see it.
+    malformed_tool_calls: int = 0
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -294,6 +325,31 @@ async def run_agent(
             )
             trace.steps.append(Step(index=index, kind="error", thought=str(exc)))
             break
+        except llm.MalformedToolCall as exc:
+            # The provider rejected the model's own tool call. Recoverable, and
+            # worth recovering: it was observed aborting two otherwise-complete
+            # runs, both times on a fallback model that wrote a boolean as a
+            # string. Nothing was appended to the transcript, so a corrective
+            # user turn is safe -- there is no orphaned tool call to pair.
+            trace.malformed_tool_calls += 1
+            if trace.malformed_tool_calls > MAX_MALFORMED_TOOL_CALLS:
+                trace.error = f"MalformedToolCall: {exc}"
+                trace.answer = (
+                    "I could not complete this request: the model repeatedly produced "
+                    "a tool call the provider rejected as malformed."
+                )
+                trace.steps.append(Step(index=index, kind="error", thought=trace.error))
+                break
+            log.warning("malformed tool call at step %d; asking the model to correct it", index)
+            messages.append({"role": "user", "content": _tool_call_correction(exc)})
+            trace.steps.append(Step(
+                index=index,
+                kind="error",
+                thought=f"provider rejected the tool call: {exc}. Asked the model to re-send it.",
+                context_tokens=context_tokens,
+                elided_results=elided,
+            ))
+            continue
         except Exception as exc:
             log.exception("LLM call failed at step %d", index)
             trace.error = f"{type(exc).__name__}: {exc}"
