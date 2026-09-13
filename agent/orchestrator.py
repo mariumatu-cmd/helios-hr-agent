@@ -32,6 +32,134 @@ from config import settings
 log = logging.getLogger(__name__)
 
 
+# A token estimate good enough to budget against, without pulling in a
+# provider-specific tokeniser that would only be correct for one of the two
+# providers anyway. 3.5 chars/token deliberately *under*-states density, which
+# over-states the token count -- the safe direction to be wrong in when the
+# penalty for exceeding the budget is a request that can never succeed.
+CHARS_PER_TOKEN = 3.5
+
+# How much of an elided tool result to keep on the first pass. Enough to
+# preserve the citation strings and the leading facts the model already reasoned
+# over, without retaining the full passage text that drove the growth.
+ELIDED_RESULT_CHARS = 400
+
+# Second-pass floor. Stubs are not free: a long run accumulates enough of them
+# that the stubs alone can exceed the budget, which was observed in practice.
+# At this tier only the citations survive -- they are what the answer must
+# quote, and the model can re-call the tool for anything else.
+MINIMAL_RESULT_CHARS = 0
+
+
+def estimate_tokens(payload: Any) -> int:
+    """Approximate the token cost of anything JSON-serialisable."""
+    try:
+        text = payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
+    except (TypeError, ValueError):
+        text = str(payload)
+    return int(len(text) / CHARS_PER_TOKEN) + 1
+
+
+def _compact_tool_content(content: str, keep: int = ELIDED_RESULT_CHARS) -> str:
+    """Shrink one tool result, keeping its citations and its leading facts.
+
+    Citations are preserved verbatim because the answer is required to cite what
+    the system actually retrieved; dropping them during compaction would make a
+    long run silently less grounded than a short one.
+    """
+    citations: list[str] = []
+    try:
+        _extract_citations(json.loads(content), citations)
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    head = content[:keep]
+    note = (
+        f"[Earlier tool output truncated to fit the model's context budget; "
+        f"{len(content) - len(head)} characters elided."
+    )
+    if citations:
+        note += " Citations: " + "; ".join(citations[:12]) + "."
+    note += " Re-call the tool for the full text.]"
+    return f"{head}\n\n{note}" if head else note
+
+
+def fit_context(
+    messages: list[dict[str, Any]],
+    tools: list[dict[str, Any]] | None,
+    budget: int,
+) -> tuple[list[dict[str, Any]], int, int]:
+    """Bound a request to `budget` tokens by compacting the oldest tool results.
+
+    Only `role == "tool"` messages are touched. The system prompt, the user's
+    question and the assistant turns that carry `tool_calls` are left intact --
+    the first two because they define the task, the third because the provider
+    rejects a tool result whose matching assistant turn is missing or altered.
+
+    Compaction runs oldest-first so the budget is spent on the results the
+    current step is actually reasoning about, and in escalating tiers: first
+    truncate old results, then strip them to citations only, and only then
+    touch the newest result. A request over the provider's per-request limit
+    cannot succeed at any retry count or on any model, so losing detail always
+    beats failing outright.
+
+    Returns the (possibly rewritten) messages, the estimated token count, and
+    how many results were elided. The count is put into the trace so the
+    evaluation can tell a compacted run from an uncompacted one rather than
+    silently comparing the two.
+    """
+    overhead = estimate_tokens(tools) if tools else 0
+    total = overhead + sum(estimate_tokens(m) for m in messages)
+    if total <= budget:
+        return messages, total, 0
+
+    fitted = [dict(m) for m in messages]
+    touched: set[int] = set()
+
+    def compact(index: int, message: dict[str, Any], keep: int) -> None:
+        nonlocal total
+        if message.get("role") != "tool":
+            return
+        content = message.get("content") or ""
+        if len(content) <= max(keep, 1):
+            return
+        before = estimate_tokens(message)
+        message["content"] = _compact_tool_content(content, keep)
+        after = estimate_tokens(message)
+        if after >= before:       # already at the floor; rewriting would only churn
+            message["content"] = content
+            return
+        total -= before - after
+        touched.add(index)
+
+    # Escalating tiers. Each stops as soon as the request fits, so a run only
+    # loses as much detail as it actually has to.
+    tiers: list[tuple[range, int]] = [
+        # Truncate every result but the newest.
+        (range(len(fitted) - 1), ELIDED_RESULT_CHARS),
+        # Stubs are not free: enough of them will exceed the budget on their
+        # own, which is what happens on a long run. Strip to citations only.
+        (range(len(fitted) - 1), MINIMAL_RESULT_CHARS),
+        # Last resort -- a single large search can blow the budget by itself.
+        (range(len(fitted) - 1, -1, -1), MINIMAL_RESULT_CHARS),
+    ]
+    for indices, keep in tiers:
+        if total <= budget:
+            break
+        for index in indices:
+            if total <= budget:
+                break
+            compact(index, fitted[index], keep)
+
+    elided = len(touched)
+    if total > budget:
+        log.warning(
+            "context still %d tokens after eliding %d tool results (budget %d)",
+            total, elided, budget,
+        )
+    return fitted, total, elided
+
+
 @dataclass
 class ToolInvocation:
     step: int
@@ -59,6 +187,11 @@ class Step:
     service_ms: float = 0.0
     throttle_ms: float = 0.0
     attempts: int = 1
+    # Estimated prompt size and how many earlier tool results had to be
+    # compacted to reach it. Surfaced so a run that fitted comfortably is
+    # distinguishable from one that only fitted after losing detail.
+    context_tokens: int = 0
+    elided_results: int = 0
 
 
 @dataclass
@@ -81,6 +214,9 @@ class Trace:
     grounded: bool | None = None
     truncated: bool = False
     error: str = ""
+    # Total tool results compacted across the run, and the largest prompt sent.
+    elided_results: int = 0
+    peak_context_tokens: int = 0
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -128,6 +264,15 @@ async def run_agent(
     citations: list[str] = []
 
     for index in range(1, max_steps + 1):
+        # Bound the request before it is sent. Doing this per step rather than
+        # once up front is the point: the transcript only exceeds the budget
+        # after several tool results have accumulated.
+        messages, context_tokens, elided = fit_context(
+            messages, tools, settings.context_token_budget
+        )
+        trace.elided_results += elided
+        trace.peak_context_tokens = max(trace.peak_context_tokens, context_tokens)
+
         try:
             response = await asyncio.to_thread(llm.chat, messages, tools)
         except llm.NoProviderConfigured as exc:
@@ -158,6 +303,8 @@ async def run_agent(
                 service_ms=round(response.service_ms, 1),
                 throttle_ms=round(response.throttle_ms, 1),
                 attempts=response.attempts,
+                context_tokens=context_tokens,
+                elided_results=elided,
             ))
             trace.answer = (response.text or "").strip()
             break
@@ -169,6 +316,8 @@ async def run_agent(
             service_ms=round(response.service_ms, 1),
             throttle_ms=round(response.throttle_ms, 1),
             attempts=response.attempts,
+            context_tokens=context_tokens,
+            elided_results=elided,
         )
 
         # The assistant turn must be echoed back verbatim (with its tool_calls)

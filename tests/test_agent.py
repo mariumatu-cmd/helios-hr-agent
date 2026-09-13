@@ -280,3 +280,16 @@ async def test_trace_serialises_to_json(scripted):
     ])
     trace = await orchestrator.run_agent("q", FakeClient())
     assert json.loads(json.dumps(trace.to_dict()))["answer"] == "done"
+
+
+async def test_trace_reports_context_pressure(scripted):
+    """The trace has to distinguish a run that fitted from one that only fitted
+    after losing detail, or the evaluation silently compares the two."""
+    scripted([
+        tool_step([("search_policy_documents", {"query": "x"})]),
+        final_step("done"),
+    ])
+    trace = await orchestrator.run_agent("q", FakeClient())
+    assert trace.peak_context_tokens > 0
+    assert trace.elided_results == 0
+    assert all(step.context_tokens > 0 for step in trace.steps)

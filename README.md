@@ -84,8 +84,8 @@ Full detail, including transport rationale and tool schemas, is in
 Requires **Python 3.11+** (developed on 3.12).
 
 ```bash
-git clone <this repo>
-cd helios-hr-assistant
+git clone https://github.com/mariumatu-cmd/helios-hr-agent.git
+cd helios-hr-agent
 
 python -m venv .venv
 # Windows
@@ -107,13 +107,36 @@ cp .env.example .env
 | Variable | Where to get it | Notes |
 |---|---|---|
 | `GROQ_API_KEY` | https://console.groq.com/keys | Primary. Fast, free tier. |
-| `GEMINI_API_KEY` | https://aistudio.google.com/apikey | Automatic fallback. |
+| `GEMINI_API_KEY` | https://aistudio.google.com/apikey | Last-resort fallback. |
 
-Set either one, or both. With both configured the agent falls back
-transparently when the primary provider errors or rate-limits, and the fallback
-is recorded in the trace so you can see it happened. With neither, the app still
-starts and every non-LLM endpoint works — `/health` reports `degraded` and the
-chat endpoint says plainly that no model is configured.
+Set either one, or both. With neither, the app still starts and every non-LLM
+endpoint works — `/health` reports `degraded` and the chat endpoint says plainly
+that no model is configured.
+
+Degradation is a chain of **models**, not just of providers. Groq meters its
+free tier per model — measured directly, two back-to-back calls to different
+Groq models each saw a full 8,000-token bucket rather than a shared, draining
+one. That matters more than it sounds: at roughly 6,000 tokens per request
+against an 8,000 tokens-per-minute bucket, a *single* model allows about one
+agent step per minute, which is not enough to finish a multi-step task.
+Rotating across four Groq models multiplies the usable budget before Gemini is
+touched at all.
+
+Rotation is strictly reactive: it happens because a call failed, never because
+a quota header looked close. Predictive switching would make the agent
+non-deterministic and would invalidate any groundedness or latency claim
+measured across a run. Every hop is recorded in the trace.
+
+Two other variables matter on a free tier:
+
+| Variable | Default | Why it exists |
+|---|---|---|
+| `GROQ_FALLBACK_MODELS` | `openai/gpt-oss-20b,qwen/qwen3.8-27b,qwen/qwen3.6-27b` | Comma-separated, tried in order after `GROQ_MODEL`. Each is a separate 8,000 TPM budget. All were verified against the live catalogue to emit well-formed tool calls — Groq's `compound` models advertise 70,000 TPM but reject a caller-supplied tool manifest with HTTP 400, so they cannot drive this agent. |
+| `LLM_MAX_TOKENS` | `1200` | Completion cap. Groq reserves it against the per-minute budget whether the model uses it or not, so it is a prompt-budget decision as much as an output one. |
+| `CONTEXT_TOKEN_BUDGET` | `5200` | Max estimated prompt tokens per agent step. Groq's free tier allows 8,000 tokens/minute and that bucket covers the prompt *and* the completion, so a request over it can never succeed — not on a retry, and not on another model. Every step resends the tool manifest plus all prior tool results, so without this cap a multi-step run grows past the limit and stalls. The orchestrator compacts the oldest tool results to stay under it, always preserving citations. |
+
+`.env.example` documents every variable; `.env` is git-ignored and no key is
+ever committed.
 
 ### Build the retrieval index
 
@@ -128,6 +151,31 @@ heading boundaries, embeds them with `BAAI/bge-small-en-v1.5` running locally vi
 ONNX, and writes `rag/index/`. Takes about 30 seconds. Deterministic — the same
 corpus always produces the same 184 chunks, verified by a fingerprint in
 `rag/index/index_info.json`.
+
+### Reproducibility
+
+Every entry point — the web app, the index builder, and both evaluation
+harnesses — calls `config.apply_seeds()` before doing any work, which fixes
+`random`, `numpy` and `PYTHONHASHSEED` from the single `SEED` variable
+(default `42`). The seed used is written into `rag/index/index_info.json`
+alongside the corpus fingerprint, so an index can always be traced back to the
+corpus and seed that produced it.
+
+Determinism is enforced, not just intended:
+
+- **Chunking** is deterministic; CI rebuilds the index and fails the build if
+  the committed one does not match the corpus. The fingerprint normalises line
+  endings, so a Windows checkout and a Linux container agree — that was a real
+  bug, and the regression test for it is in `tests/test_ingestion.py`.
+- **Retrieval** is exact (no ANN approximation) over a committed index.
+- **The agent** runs at `AGENT_TEMPERATURE=0.0`, and model rotation is reactive
+  only, so a run cannot silently drift onto a different model mid-suite.
+- **Scoring** is rule-based rather than LLM-judged, so the same trace always
+  receives the same score.
+
+The remaining source of variance is the provider itself, which is not
+bit-reproducible even at temperature 0. `design-and-evaluation.md` reports that
+honestly rather than claiming determinism the system does not have.
 
 ---
 
@@ -229,13 +277,13 @@ live URL and the cold-start details.
 ```
 agent/           orchestrator, MCP client, LLM providers with fallback, prompts
 app/             FastAPI application, chat UI, static assets
-corpus/          12 HR policy documents in md / html / txt / pdf
+corpus/          16 HR policy documents in md / html / txt / pdf
 mcp_server/      MCP server, 12 tool definitions, and the HR rule engine
 mock_data/       6 JSON datasets: employees, PTO, benefits, travel, offices, tickets
 rag/             chunking, indexing, hybrid retrieval, abstention vocabulary
-evaluation/      26 scored cases, deterministic scorer, harnesses, results
+evaluation/      28 scored cases, deterministic scorer, harnesses, results
 scripts/         calibration, diagnostics, validation, smoke tests
-tests/           143 tests
+tests/           154 tests
 ```
 
 ## A note on the `mcp_server/` directory name
