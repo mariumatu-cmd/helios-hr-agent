@@ -51,7 +51,15 @@ _PERSIST_FIELDS = (
 
 
 def corpus_fingerprint(corpus_dir: pathlib.Path) -> str:
-    """Stable SHA-256 over the ingestable corpus files."""
+    """Stable SHA-256 over the ingestable corpus files.
+
+    Line endings are normalised before hashing. Git rewrites CRLF on checkout
+    under `core.autocrlf`, so hashing raw bytes would make the fingerprint a
+    property of the platform that checked the repo out rather than of the
+    corpus: an index built on Windows would look stale in CI, Docker and on
+    Render. Parsing already normalises newlines via `read_text`, so the chunks
+    themselves are identical either way.
+    """
     digest = hashlib.sha256()
     paths = sorted(
         p for p in corpus_dir.iterdir()
@@ -60,7 +68,10 @@ def corpus_fingerprint(corpus_dir: pathlib.Path) -> str:
     )
     for path in paths:
         digest.update(path.name.encode("utf-8"))
-        digest.update(path.read_bytes())
+        raw = path.read_bytes()
+        if path.suffix.lower() != ".pdf":
+            raw = raw.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        digest.update(raw)
     return digest.hexdigest()
 
 
