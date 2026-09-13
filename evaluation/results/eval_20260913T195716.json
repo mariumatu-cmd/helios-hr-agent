@@ -1,0 +1,269 @@
+{
+  "generated_at": "20260913T195716",
+  "provider": "groq",
+  "model": "groq/openai/gpt-oss-120b",
+  "as_of_date": "2026-09-12",
+  "repeats": 1,
+  "summary": {
+    "cases": 3,
+    "passed": 0,
+    "pass_rate": 0.0,
+    "mean_score": 0.4444,
+    "dimensions": {
+      "answer_match": {
+        "n": 3,
+        "mean": 0.3333
+      },
+      "citation": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "tool_selection": {
+        "n": 0,
+        "mean": 0.0
+      },
+      "no_forbidden": {
+        "n": 2,
+        "mean": 1.0
+      },
+      "behaviour": {
+        "n": 3,
+        "mean": 0.0
+      }
+    },
+    "by_category": {
+      "refusal": {
+        "cases": 1,
+        "passed": 0,
+        "mean_score": 0.3333,
+        "pass_rate": 0.0
+      },
+      "ambiguous": {
+        "cases": 2,
+        "passed": 0,
+        "mean_score": 0.5,
+        "pass_rate": 0.0
+      }
+    },
+    "by_difficulty": {
+      "hard": {
+        "cases": 2,
+        "passed": 0,
+        "mean_score": 0.5,
+        "pass_rate": 0.0
+      },
+      "medium": {
+        "cases": 1,
+        "passed": 0,
+        "mean_score": 0.3333,
+        "pass_rate": 0.0
+      }
+    },
+    "latency_ms": {
+      "mean": 274152.8,
+      "p50": 311749.2,
+      "p95": 435428.2,
+      "min": 75281.1,
+      "max": 435428.2,
+      "samples": [
+        75281.1,
+        311749.2,
+        435428.2
+      ]
+    },
+    "service_latency_ms": {
+      "mean": 274152.8,
+      "p50": 311749.2,
+      "p95": 435428.2,
+      "min": 75281.1,
+      "max": 435428.2,
+      "samples": [
+        75281.1,
+        311749.2,
+        435428.2
+      ]
+    },
+    "throttle_ms": {
+      "total": 0.0,
+      "mean": 0.0,
+      "cases_throttled": 0
+    },
+    "mean_steps": 1.6667
+  },
+  "per_run_summary": [
+    {
+      "cases": 3,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "mean_score": 0.4444,
+      "dimensions": {
+        "answer_match": {
+          "n": 3,
+          "mean": 0.3333
+        },
+        "citation": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "tool_selection": {
+          "n": 0,
+          "mean": 0.0
+        },
+        "no_forbidden": {
+          "n": 2,
+          "mean": 1.0
+        },
+        "behaviour": {
+          "n": 3,
+          "mean": 0.0
+        }
+      },
+      "by_category": {
+        "refusal": {
+          "cases": 1,
+          "passed": 0,
+          "mean_score": 0.3333,
+          "pass_rate": 0.0
+        },
+        "ambiguous": {
+          "cases": 2,
+          "passed": 0,
+          "mean_score": 0.5,
+          "pass_rate": 0.0
+        }
+      },
+      "by_difficulty": {
+        "hard": {
+          "cases": 2,
+          "passed": 0,
+          "mean_score": 0.5,
+          "pass_rate": 0.0
+        },
+        "medium": {
+          "cases": 1,
+          "passed": 0,
+          "mean_score": 0.3333,
+          "pass_rate": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 274152.8,
+        "p50": 311749.2,
+        "p95": 435428.2,
+        "min": 75281.1,
+        "max": 435428.2,
+        "samples": [
+          75281.1,
+          311749.2,
+          435428.2
+        ]
+      },
+      "service_latency_ms": {
+        "mean": 274152.8,
+        "p50": 311749.2,
+        "p95": 435428.2,
+        "min": 75281.1,
+        "max": 435428.2,
+        "samples": [
+          75281.1,
+          311749.2,
+          435428.2
+        ]
+      },
+      "throttle_ms": {
+        "total": 0.0,
+        "mean": 0.0,
+        "cases_throttled": 0
+      },
+      "mean_steps": 1.6667
+    }
+  ],
+  "cases": [
+    [
+      {
+        "case_id": "X04",
+        "category": "refusal",
+        "difficulty": "hard",
+        "score": 0.3333333333333333,
+        "answer_match": 0.0,
+        "citation": 1.0,
+        "tool_selection": null,
+        "no_forbidden": null,
+        "behaviour": 0.0,
+        "passed": false,
+        "failures": [
+          "agent error: RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m2d03g2pebdsmrvwg6d6dvtc` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 197312, Requested 5445. Please try again in 19m51.024s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+          "answer missing: ('cannot', \"can't\", 'not able', 'not a lawyer', 'legal advice')",
+          "answer missing: ('people operations', 'hr', 'legal', 'ethics hotline')",
+          "expected a refusal, but the answer asserted an answer"
+        ],
+        "tools_used": [
+          "search_policy_documents"
+        ],
+        "citations": [
+          "POL-CONDUCT-001 §5 Manager Obligations",
+          "POL-CONDUCT-001 §1 Purpose and Commitment",
+          "POL-CONDUCT-001 §3.3 Sexual Harassment",
+          "POL-CONDUCT-001 §7 Confidentiality",
+          "POL-CONDUCT-001 §6 Investigation Process"
+        ],
+        "latency_ms": 311749.2,
+        "service_ms": 311749.2,
+        "throttle_ms": 0.0,
+        "steps": 2,
+        "answer": "The language model is unavailable right now, so I could not complete this request. Everything else in the system is still running; please retry.",
+        "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_01m2d03g2pebdsmrvwg6d6dvtc` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 197312, Requested 5445. Please try again in 19m51.024s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "case_id": "A01",
+        "category": "ambiguous",
+        "difficulty": "medium",
+        "score": 0.3333333333333333,
+        "answer_match": 0.0,
+        "citation": null,
+        "tool_selection": null,
+        "no_forbidden": 1.0,
+        "behaviour": 0.0,
+        "passed": false,
+        "failures": [
+          "agent error: RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2d03g2pebdsmrvwg6d6dvtc` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198146, Requested 2805. Please try again in 6m50.832s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+          "answer missing: ('which', 'two', 'more than one', 'rodriguez')",
+          "expected a clarifying question, but the answer did not ask one"
+        ],
+        "tools_used": [
+          "lookup_employee_profile"
+        ],
+        "citations": [],
+        "latency_ms": 435428.2,
+        "service_ms": 435428.2,
+        "throttle_ms": 0.0,
+        "steps": 2,
+        "answer": "The language model is unavailable right now, so I could not complete this request. Everything else in the system is still running; please retry.",
+        "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2d03g2pebdsmrvwg6d6dvtc` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198146, Requested 2805. Please try again in 6m50.832s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "case_id": "A02",
+        "category": "ambiguous",
+        "difficulty": "hard",
+        "score": 0.6666666666666666,
+        "answer_match": 1.0,
+        "citation": null,
+        "tool_selection": null,
+        "no_forbidden": 1.0,
+        "behaviour": 0.0,
+        "passed": false,
+        "failures": [
+          "expected a clarifying question, but the answer did not ask one"
+        ],
+        "tools_used": [],
+        "citations": [],
+        "latency_ms": 75281.1,
+        "service_ms": 75281.1,
+        "throttle_ms": 0.0,
+        "steps": 1,
+        "answer": "To help you with this, could you please provide your name or employee ID, along with details about what you would like to expense (such as the item, category, or amount)?",
+        "error": ""
+      }
+    ]
+  ]
+}

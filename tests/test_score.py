@@ -189,3 +189,21 @@ def test_clarify_is_scored_as_a_dimension_not_a_gate():
     passing = score_case(_case(behaviour="clarify"), FakeTrace(answer="Which Maya?"))
     failing = score_case(_case(behaviour="clarify"), FakeTrace(answer="She has 73 hours."))
     assert passing.score > failing.score
+
+
+def test_a_polite_request_for_the_missing_information_is_a_clarification():
+    """Regression: this exact answer was measured on A02 and scored 0.0.
+
+    It is the behaviour the ambiguous cases exist to reward -- no tools called,
+    no claim asserted, the three missing pieces named -- and the detector
+    rejected it for being phrased as a polite request rather than as a statement
+    about the ambiguity. Recognising only one phrasing of a correct behaviour
+    understates the agent, which is the same failure the refusal detector had.
+    """
+    answer = (
+        "To help you with this, could you please provide your name or employee ID, "
+        "along with details about what you would like to expense (such as the item, "
+        "category, or amount)?"
+    )
+    result = score_case(_case(behaviour="clarify"), FakeTrace(answer=answer))
+    assert result.behaviour == 1.0
