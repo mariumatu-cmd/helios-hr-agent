@@ -1,0 +1,149 @@
+{
+  "generated_at": "20260913T110455",
+  "provider": "groq",
+  "model": "groq/llama-3.3-70b-versatile",
+  "as_of_date": "2026-09-12",
+  "repeats": 1,
+  "summary": {
+    "cases": 1,
+    "passed": 0,
+    "pass_rate": 0.0,
+    "mean_score": 0.1111,
+    "dimensions": {
+      "answer_match": {
+        "n": 1,
+        "mean": 0.3333
+      },
+      "citation": {
+        "n": 1,
+        "mean": 0.0
+      },
+      "tool_selection": {
+        "n": 1,
+        "mean": 0.0
+      },
+      "no_forbidden": {
+        "n": 0,
+        "mean": 0.0
+      },
+      "behaviour": {
+        "n": 0,
+        "mean": 0.0
+      }
+    },
+    "by_category": {
+      "reasoning": {
+        "cases": 1,
+        "passed": 0,
+        "mean_score": 0.1111,
+        "pass_rate": 0.0
+      }
+    },
+    "by_difficulty": {
+      "hard": {
+        "cases": 1,
+        "passed": 0,
+        "mean_score": 0.1111,
+        "pass_rate": 0.0
+      }
+    },
+    "latency_ms": {
+      "mean": 7374.9,
+      "p50": 7374.9,
+      "p95": 7374.9,
+      "min": 7374.9,
+      "max": 7374.9,
+      "samples": [
+        7374.9
+      ]
+    },
+    "mean_steps": 1.0
+  },
+  "per_run_summary": [
+    {
+      "cases": 1,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "mean_score": 0.1111,
+      "dimensions": {
+        "answer_match": {
+          "n": 1,
+          "mean": 0.3333
+        },
+        "citation": {
+          "n": 1,
+          "mean": 0.0
+        },
+        "tool_selection": {
+          "n": 1,
+          "mean": 0.0
+        },
+        "no_forbidden": {
+          "n": 0,
+          "mean": 0.0
+        },
+        "behaviour": {
+          "n": 0,
+          "mean": 0.0
+        }
+      },
+      "by_category": {
+        "reasoning": {
+          "cases": 1,
+          "passed": 0,
+          "mean_score": 0.1111,
+          "pass_rate": 0.0
+        }
+      },
+      "by_difficulty": {
+        "hard": {
+          "cases": 1,
+          "passed": 0,
+          "mean_score": 0.1111,
+          "pass_rate": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 7374.9,
+        "p50": 7374.9,
+        "p95": 7374.9,
+        "min": 7374.9,
+        "max": 7374.9,
+        "samples": [
+          7374.9
+        ]
+      },
+      "mean_steps": 1.0
+    }
+  ],
+  "cases": [
+    [
+      {
+        "case_id": "C01",
+        "category": "reasoning",
+        "difficulty": "hard",
+        "score": 0.1111111111111111,
+        "answer_match": 0.3333333333333333,
+        "citation": 0.0,
+        "tool_selection": 0.0,
+        "no_forbidden": null,
+        "behaviour": null,
+        "passed": false,
+        "failures": [
+          "agent error: NotFoundError: Error code: 404 - {'error': {'message': 'The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}",
+          "answer missing: 12",
+          "answer missing: ('30', 'limit')",
+          "no citation from ['POL-INTL-001']; got none",
+          "did not call required tool: check_international_work_usage",
+          "did not call required tool: check_policy_compliance"
+        ],
+        "tools_used": [],
+        "citations": [],
+        "latency_ms": 7374.9,
+        "steps": 1,
+        "answer": "The language model is unavailable right now, so I could not complete this request. Everything else in the system is still running; please retry.",
+        "error": "NotFoundError: Error code: 404 - {'error': {'message': 'The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}"
+      }
+    ]
+  ]
+}

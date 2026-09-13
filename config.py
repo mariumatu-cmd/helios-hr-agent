@@ -25,7 +25,11 @@ class Settings(BaseSettings):
     # -- LLM ------------------------------------------------------------------
     llm_provider: str = "groq"
     groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
+    # Groq retired the Llama 3.3 endpoints; `openai/gpt-oss-120b` is the
+    # strongest tool-calling model on the current free-tier catalogue and was
+    # verified to emit well-formed tool calls against this project's schemas.
+    # `qwen/qwen3.8-27b` also works and is the obvious fallback within Groq.
+    groq_model: str = "openai/gpt-oss-120b"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
 

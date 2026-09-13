@@ -1,0 +1,149 @@
+{
+  "generated_at": "20260913T110723",
+  "provider": "groq",
+  "model": "groq/openai/gpt-oss-120b",
+  "as_of_date": "2026-09-12",
+  "repeats": 1,
+  "summary": {
+    "cases": 1,
+    "passed": 1,
+    "pass_rate": 1.0,
+    "mean_score": 1.0,
+    "dimensions": {
+      "answer_match": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "citation": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "tool_selection": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "no_forbidden": {
+        "n": 0,
+        "mean": 0.0
+      },
+      "behaviour": {
+        "n": 0,
+        "mean": 0.0
+      }
+    },
+    "by_category": {
+      "reasoning": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      }
+    },
+    "by_difficulty": {
+      "hard": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": 10844.3,
+      "p50": 10844.3,
+      "p95": 10844.3,
+      "min": 10844.3,
+      "max": 10844.3,
+      "samples": [
+        10844.3
+      ]
+    },
+    "mean_steps": 3.0
+  },
+  "per_run_summary": [
+    {
+      "cases": 1,
+      "passed": 1,
+      "pass_rate": 1.0,
+      "mean_score": 1.0,
+      "dimensions": {
+        "answer_match": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "citation": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "tool_selection": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "no_forbidden": {
+          "n": 0,
+          "mean": 0.0
+        },
+        "behaviour": {
+          "n": 0,
+          "mean": 0.0
+        }
+      },
+      "by_category": {
+        "reasoning": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        }
+      },
+      "by_difficulty": {
+        "hard": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        }
+      },
+      "latency_ms": {
+        "mean": 10844.3,
+        "p50": 10844.3,
+        "p95": 10844.3,
+        "min": 10844.3,
+        "max": 10844.3,
+        "samples": [
+          10844.3
+        ]
+      },
+      "mean_steps": 3.0
+    }
+  ],
+  "cases": [
+    [
+      {
+        "case_id": "C01",
+        "category": "reasoning",
+        "difficulty": "hard",
+        "score": 1.0,
+        "answer_match": 1.0,
+        "citation": 1.0,
+        "tool_selection": 1.0,
+        "no_forbidden": null,
+        "behaviour": null,
+        "passed": true,
+        "failures": [],
+        "tools_used": [
+          "check_international_work_usage",
+          "check_policy_compliance"
+        ],
+        "citations": [
+          "POL-INTL-001 §2 Rolling 30-Day Limit",
+          "POL-INTL-001 §4.4 Immigration Review",
+          "POL-REMOTE-001 §3.1 Eligibility"
+        ],
+        "latency_ms": 10844.3,
+        "steps": 3,
+        "answer": "Maya has already used **12 international work days** in the current 12‑month rolling window (leaving 18 days of the 30‑day allowance unused)【POL-INTL-001 §2 Rolling 30-Day Limit】.  \n\nHer request for **42 days** in Portugal would bring the total to **54 days**, which exceeds the 30‑day rolling limit, so the request is **not compliant**【POL-INTL-001 §2 Rolling 30-Day Limit】.  \n\n**Result:** The request cannot be approved under the current policy limit. A shorter period (up to 18 additional days) would fit within the allowance.",
+        "error": ""
+      }
+    ]
+  ]
+}
