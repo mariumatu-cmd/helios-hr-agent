@@ -28,3 +28,5 @@ Thumbs.db
 
 # course materials -- the assignment brief is not mine to redistribute
 *Requirements.pdf
+# transient resume state for an interrupted evaluation run
+evaluation/results/checkpoint.jsonl

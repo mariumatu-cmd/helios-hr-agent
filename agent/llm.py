@@ -52,6 +52,18 @@ class ProviderConfig:
     base_url: str
     api_key: str
     model: str
+    # Whether this model can be handed a transcript that already contains an
+    # assistant tool-call to replay.
+    #
+    # Gemini cannot, through its OpenAI-compatible endpoint. Replaying one
+    # returns 400 "Function call is missing a thought_signature in functionCall
+    # parts", and the signature is not exposed by the compat layer, so there is
+    # nothing to send back. Verified against gemini-3.5-flash with thinking
+    # left on, `reasoning_effort="none"`, `thinking_budget=0` and
+    # `include_thoughts=false` -- all four fail identically. The first turn of a
+    # conversation is fine, because there is nothing to replay yet; only
+    # continuation fails.
+    replays_tool_calls: bool = True
 
 
 def _provider_config(name: str) -> ProviderConfig | None:
@@ -59,7 +71,11 @@ def _provider_config(name: str) -> ProviderConfig | None:
         return ProviderConfig("groq", _ENDPOINTS["groq"], settings.groq_api_key, settings.groq_model)
     if name == "gemini" and settings.gemini_api_key:
         return ProviderConfig(
-            "gemini", _ENDPOINTS["gemini"], settings.gemini_api_key, settings.gemini_model
+            "gemini",
+            _ENDPOINTS["gemini"],
+            settings.gemini_api_key,
+            settings.gemini_model,
+            replays_tool_calls=False,
         )
     return None
 
@@ -183,6 +199,19 @@ def _mark_cooling(cfg: ProviderConfig, seconds: float | None = None) -> None:
     _cooldown_until[_cooldown_key(cfg)] = time.monotonic() + wait
 
 
+def _replays_tool_calls_required(messages: list[dict[str, Any]]) -> bool:
+    """True when the transcript already contains an assistant tool-call.
+
+    That is the precise condition under which Gemini's OpenAI-compatible
+    endpoint rejects the request, so it is the precise condition for excluding
+    it -- not merely "tools were offered". A first turn that offers tools is
+    fine on any provider; only continuing a tool loop is not.
+    """
+    return any(
+        m.get("role") == "assistant" and m.get("tool_calls") for m in messages
+    )
+
+
 def _ordered_chain(chain: list[ProviderConfig]) -> list[tuple[int, ProviderConfig]]:
     """Chain order, with recently rate-limited models moved to the back.
 
@@ -238,7 +267,21 @@ def chat(
     cap = settings.llm_max_tokens if max_tokens is None else max_tokens
     last_error: Exception | None = None
 
+    # Drop models that cannot continue this particular transcript. Doing it up
+    # front matters: reached mid-run, Gemini raises a 400 that aborts the whole
+    # agent turn, so a rate-limited Groq chain turned a recoverable slowdown
+    # into a failed task. Two evaluation cases failed exactly that way. If the
+    # filter would leave nothing, keep the chain as it is -- an attempt that
+    # might fail still beats refusing to call anyone.
+    #
+    # Filtering the ordered list rather than the chain keeps `provider_index`
+    # measured against the configured chain, so `fell_back` still means "not
+    # the configured primary" even when the primary is the one removed.
     order = _ordered_chain(chain)
+    if _replays_tool_calls_required(messages):
+        usable = [entry for entry in order if entry[1].replays_tool_calls]
+        if usable:
+            order = usable
 
     for position, (provider_index, cfg) in enumerate(order):
         # max_retries=0: retries are handled below so their cost is observable.

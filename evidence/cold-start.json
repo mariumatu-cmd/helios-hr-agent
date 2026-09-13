@@ -1,0 +1,8 @@
+{
+  "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
+  "measured_at": "2026-09-13T15:04:18Z",
+  "idle_seconds_before": 1020,
+  "cold_healthz_ms": 52502,
+  "warm_healthz_ms": 363,
+  "warm_health_ms": 526
+}
