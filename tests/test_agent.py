@@ -45,6 +45,9 @@ class FakeResponse:
     text: str | None = None
     latency_ms: float = 1.0
     fell_back: bool = False
+    service_ms: float = 1.0
+    throttle_ms: float = 0.0
+    attempts: int = 1
 
 
 def tool_step(calls: list[tuple[str, dict]], text: str = "") -> FakeResponse:

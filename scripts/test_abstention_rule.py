@@ -5,7 +5,7 @@ cosine similarity, BM25, or raw term coverage -- separates in-corpus questions
 from out-of-corpus ones on this corpus. But the *identity* of the unmatched
 terms does separate them:
 
-    out of corpus   sabbatical, tuition, pet, stock, revenue, rooftop
+    out of corpus   sabbatical, volunteer, pet, stock, revenue, rooftop
                     -> topic nouns; the system holds nothing about them
     in corpus       maya, rodriguez, weber, brazil, wants, starting, blackouts
                     -> entity names, which live in the HR database rather than

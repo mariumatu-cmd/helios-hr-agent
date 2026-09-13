@@ -64,7 +64,7 @@ where the measurements did not support the design and the design had to change.
 │            │                          │                                 │
 │   ┌────────▼──────────────┐  ┌────────▼─────────────────┐               │
 │   │ RAG index  rag/index/ │  │ Mock HR data  mock_data/ │               │
-│   │  embeddings.npy 133×384│  │  employees.json          │               │
+│   │  embeddings.npy 184×384│  │  employees.json          │               │
 │   │  bm25.pkl              │  │  pto_balances.json       │               │
 │   │  metadata.jsonl        │  │  benefits_elections.json │               │
 │   │                        │  │  international_work_*.json│              │
@@ -99,7 +99,7 @@ The layers, and what each is allowed to know:
 ### Corpus
 
 Twelve HR policy documents for the fictional **Helios Dynamics**, written for
-this project, totalling 133 chunks.
+this project, totalling 184 chunks.
 
 | Document | ID | Format |
 |---|---|---|
@@ -196,7 +196,7 @@ Chosen over a hosted embedding API for three reasons, in order of importance:
 3. **Determinism.** The index is byte-reproducible, which is what lets the
    fingerprint test be meaningful.
 
-384 dimensions over 768 was a size trade: 133 × 384 floats is 200 KB, and on a
+384 dimensions over 768 was a size trade: 184 × 384 floats is 276 KB, and on a
 corpus this small the retrieval measurements (§10) show recall@6 of 1.00 — there
 is no headroom that a larger model could recover.
 
@@ -204,7 +204,7 @@ is no headroom that a larger model could recover.
 
 **A NumPy array.** Not Chroma, not FAISS.
 
-133 vectors × 384 dimensions is a 200 KB matrix. An exhaustive cosine similarity
+184 vectors × 384 dimensions is a 276 KB matrix. An exhaustive cosine similarity
 over it is a single `numpy.dot` taking well under a millisecond. An approximate
 nearest-neighbour index exists to avoid exhaustive search; below roughly 10⁴
 vectors it adds a dependency, a build step, a persistence format, and an
@@ -730,7 +730,7 @@ Regenerate with `python -m evaluation.run_retrieval_eval`.
 |---|---|---|---|---|---|
 | **hybrid + both gates (shipped)** | **0.88** | **1.00** | **0.938** | **0/8** | **0/16** |
 | dense only | 0.88 | 1.00 | 0.938 | 0/8 | 0/16 |
-| bm25 only | 0.81 | 0.94 | 0.856 | 0/8 | 0/16 |
+| bm25 only | 0.69 | 0.94 | 0.797 | 0/8 | 0/16 |
 | hybrid, similarity gate only | 0.88 | 1.00 | 0.938 | **8/8** | 0/16 |
 | hybrid, lexical gate only | 0.88 | 1.00 | 0.938 | 0/8 | 0/16 |
 | hybrid, no gates | 0.88 | 1.00 | 0.938 | **8/8** | 0/16 |
@@ -767,10 +767,10 @@ would be worse than reporting their absence.
 
 | Metric | Value | Source |
 |---|---|---|
-| Corpus | 12 documents, 133 chunks, 4 formats | `rag/index/index_info.json` |
-| Index build | 31.4 s, deterministic (fingerprinted) | same |
+| Corpus | 16 documents, 184 chunks, 4 formats, ~36 pages | `rag/index/index_info.json` |
+| Index build | 65.1 s, deterministic (fingerprinted) | same |
 | Embedding | 384-dim, local ONNX | same |
-| Retrieval latency | < 1 ms per query (exhaustive over 133×384) | — |
+| Retrieval latency | < 1 ms per query (exhaustive over 184×384) | — |
 | Memory, steady state | 343.1 MB / 512 MB | `evaluation/results/memory_footprint.txt` |
 | Cold start | ~50 s (free-tier spin-up) | `deployed.md` |
 | Tests | 143 passing, 1 skipped | `pytest -q` |

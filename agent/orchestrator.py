@@ -52,6 +52,13 @@ class Step:
     fell_back: bool = False
     thought: str = ""
     tool_calls: list[ToolInvocation] = field(default_factory=list)
+    # Wall-clock latency includes time spent waiting out provider rate limits,
+    # which on a free tier can exceed the model's own work. Kept separate so a
+    # latency figure can be read as a property of the system rather than of the
+    # quota it happened to be running under.
+    service_ms: float = 0.0
+    throttle_ms: float = 0.0
+    attempts: int = 1
 
 
 @dataclass
@@ -64,6 +71,10 @@ class Trace:
     citations: list[str] = field(default_factory=list)
     tools_used: list[str] = field(default_factory=list)
     total_ms: float = 0.0
+    # `total_ms` minus every provider rate-limit wait: the latency this system
+    # would exhibit on an unthrottled quota. Reported alongside, never instead.
+    total_service_ms: float = 0.0
+    throttle_ms: float = 0.0
     provider: str = ""
     model: str = ""
     fell_back: bool = False
@@ -144,6 +155,9 @@ async def run_agent(
             trace.steps.append(Step(
                 index=index, kind="final", provider=response.provider, model=response.model,
                 latency_ms=round(response.latency_ms, 1), fell_back=response.fell_back,
+                service_ms=round(response.service_ms, 1),
+                throttle_ms=round(response.throttle_ms, 1),
+                attempts=response.attempts,
             ))
             trace.answer = (response.text or "").strip()
             break
@@ -152,6 +166,9 @@ async def run_agent(
             index=index, kind="tool_calls", provider=response.provider, model=response.model,
             latency_ms=round(response.latency_ms, 1), fell_back=response.fell_back,
             thought=(response.text or "").strip(),
+            service_ms=round(response.service_ms, 1),
+            throttle_ms=round(response.throttle_ms, 1),
+            attempts=response.attempts,
         )
 
         # The assistant turn must be echoed back verbatim (with its tool_calls)
@@ -225,4 +242,6 @@ async def run_agent(
 
     trace.citations = citations
     trace.total_ms = round((time.perf_counter() - started) * 1000.0, 1)
+    trace.throttle_ms = round(sum(s.throttle_ms for s in trace.steps), 1)
+    trace.total_service_ms = round(trace.total_ms - trace.throttle_ms, 1)
     return trace

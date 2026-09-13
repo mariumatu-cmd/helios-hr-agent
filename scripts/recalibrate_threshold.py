@@ -54,7 +54,7 @@ REAL = [
 TOPICAL = [
     "What does the Helios pet insurance policy cover?",
     "How do I enrol in the Helios company car scheme?",
-    "What is the tuition reimbursement cap for an MBA?",
+    "How many paid volunteer days does Helios provide each year?",
     "What was Helios's Q3 revenue?",
     "Which Helios office has a rooftop swimming pool?",
     "What is the sabbatical policy after ten years of service?",

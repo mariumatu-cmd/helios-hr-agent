@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     # `qwen/qwen3.8-27b` also works and is the obvious fallback within Groq.
     groq_model: str = "openai/gpt-oss-120b"
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    # Verified against the live catalogue on 2026-09-13. The 2.x Flash models
+    # are now 404 "no longer available to new users", so a stale default here
+    # would turn the fallback provider into a second point of failure rather
+    # than a mitigation for the first.
+    gemini_model: str = "gemini-3.5-flash"
 
     # -- Agent ----------------------------------------------------------------
     agent_max_steps: int = 8

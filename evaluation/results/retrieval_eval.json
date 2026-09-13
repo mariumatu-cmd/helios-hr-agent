@@ -2,21 +2,25 @@
   "index": {
     "model": "BAAI/bge-small-en-v1.5",
     "dimensions": 384,
-    "chunks": 133,
-    "documents": 12,
+    "chunks": 184,
+    "documents": 16,
     "doc_ids": [
       "POL-BEN-001",
       "POL-CONDUCT-001",
+      "POL-PAY-001",
       "POL-EQUIP-001",
+      "POL-GRIEV-001",
       "POL-HOL-001",
       "POL-SEC-001",
       "POL-INTL-001",
+      "POL-LEARN-001",
       "POL-ONBOARD-001",
       "POL-LEAVE-002",
       "POL-PERF-001",
       "POL-PTO-001",
       "POL-REMOTE-001",
-      "POL-EXP-001"
+      "POL-EXP-001",
+      "POL-SAFE-001"
     ],
     "source_formats": [
       "html",
@@ -30,10 +34,10 @@
       "max_tokens": 420,
       "overlap_tokens": 60
     },
-    "corpus_fingerprint": "3b17d327e011abb42048058157b23ccf4973253bbdacc713294e14bc554c9894",
+    "corpus_fingerprint": "f385be85e39f5596d7158842ffac2f48ae65e426d7a9f35bd8f85043432dfe72",
     "seed": 42,
-    "built_at": "2026-09-12T11:35:09Z",
-    "build_seconds": 31.45
+    "built_at": "2026-09-13T09:56:34Z",
+    "build_seconds": 65.09
   },
   "k": 6,
   "configurations": [
@@ -73,7 +77,9 @@
           ],
           "retrieved": [
             "POL-HOL-001",
-            "POL-REMOTE-001"
+            "POL-REMOTE-001",
+            "POL-PAY-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -101,8 +107,9 @@
           ],
           "retrieved": [
             "POL-EXP-001",
-            "POL-SEC-001",
-            "POL-INTL-001"
+            "POL-SAFE-001",
+            "POL-INTL-001",
+            "POL-SEC-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -115,8 +122,9 @@
             "POL-EQUIP-001"
           ],
           "retrieved": [
+            "POL-EQUIP-001",
             "POL-SEC-001",
-            "POL-EQUIP-001"
+            "POL-SAFE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -129,8 +137,7 @@
           ],
           "retrieved": [
             "POL-PTO-001",
-            "POL-LEAVE-002",
-            "POL-CONDUCT-001"
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -143,8 +150,8 @@
           ],
           "retrieved": [
             "POL-INTL-001",
-            "POL-REMOTE-001",
-            "POL-SEC-001"
+            "POL-SEC-001",
+            "POL-REMOTE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -158,7 +165,8 @@
           "retrieved": [
             "POL-PTO-001",
             "POL-INTL-001",
-            "POL-ONBOARD-001"
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -172,8 +180,7 @@
           "retrieved": [
             "POL-LEAVE-002",
             "POL-BEN-001",
-            "POL-REMOTE-001",
-            "POL-CONDUCT-001"
+            "POL-SAFE-001"
           ],
           "rank": 2,
           "grounded": true,
@@ -202,6 +209,7 @@
           "retrieved": [
             "POL-REMOTE-001",
             "POL-INTL-001",
+            "POL-SAFE-001",
             "POL-PTO-001"
           ],
           "rank": 2,
@@ -243,7 +251,7 @@
           "retrieved": [
             "POL-BEN-001",
             "POL-ONBOARD-001",
-            "POL-LEAVE-002"
+            "POL-LEARN-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -270,9 +278,9 @@
           "retrieved": [
             "POL-EQUIP-001",
             "POL-BEN-001",
-            "POL-ONBOARD-001",
+            "POL-PAY-001",
             "POL-EXP-001",
-            "POL-REMOTE-001"
+            "POL-ONBOARD-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -288,22 +296,22 @@
         {
           "question": "How do I enrol in the Helios company car scheme?",
           "grounded": false,
-          "best_similarity": 0.697
+          "best_similarity": 0.698
         },
         {
-          "question": "What is the tuition reimbursement cap for an MBA?",
+          "question": "How many paid volunteer days does Helios provide each year?",
           "grounded": false,
-          "best_similarity": 0.6639
+          "best_similarity": 0.7394
         },
         {
           "question": "What was Helios's Q3 revenue?",
           "grounded": false,
-          "best_similarity": 0.6547
+          "best_similarity": 0.6834
         },
         {
           "question": "Which Helios office has a rooftop swimming pool?",
           "grounded": false,
-          "best_similarity": 0.5903
+          "best_similarity": 0.6121
         },
         {
           "question": "What is the sabbatical policy after ten years of service?",
@@ -345,7 +353,8 @@
             "POL-PTO-001"
           ],
           "retrieved": [
-            "POL-PTO-001"
+            "POL-PTO-001",
+            "POL-LEARN-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -358,6 +367,7 @@
           ],
           "retrieved": [
             "POL-HOL-001",
+            "POL-PAY-001",
             "POL-REMOTE-001",
             "POL-EXP-001",
             "POL-PERF-001"
@@ -412,7 +422,8 @@
             "POL-PTO-001"
           ],
           "retrieved": [
-            "POL-PTO-001"
+            "POL-PTO-001",
+            "POL-LEARN-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -523,9 +534,9 @@
           ],
           "retrieved": [
             "POL-BEN-001",
+            "POL-PAY-001",
             "POL-REMOTE-001",
-            "POL-INTL-001",
-            "POL-EXP-001"
+            "POL-INTL-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -568,22 +579,22 @@
         {
           "question": "How do I enrol in the Helios company car scheme?",
           "grounded": false,
-          "best_similarity": 0.697
+          "best_similarity": 0.698
         },
         {
-          "question": "What is the tuition reimbursement cap for an MBA?",
+          "question": "How many paid volunteer days does Helios provide each year?",
           "grounded": false,
-          "best_similarity": 0.6639
+          "best_similarity": 0.7394
         },
         {
           "question": "What was Helios's Q3 revenue?",
           "grounded": false,
-          "best_similarity": 0.6547
+          "best_similarity": 0.6834
         },
         {
           "question": "Which Helios office has a rooftop swimming pool?",
           "grounded": false,
-          "best_similarity": 0.5903
+          "best_similarity": 0.6121
         },
         {
           "question": "What is the sabbatical policy after ten years of service?",
@@ -609,9 +620,9 @@
       "threshold": 0.56,
       "k": 6,
       "graded_queries": 16,
-      "recall_at_1": 0.8125,
+      "recall_at_1": 0.6875,
       "recall_at_6": 0.9375,
-      "mrr": 0.8562,
+      "mrr": 0.7969,
       "empty_results_on_graded": 0,
       "grounded_on_graded": 16,
       "false_refusal_rate": 0.0,
@@ -628,7 +639,7 @@
             "POL-PTO-001",
             "POL-HOL-001",
             "POL-LEAVE-002",
-            "POL-REMOTE-001",
+            "POL-LEARN-001",
             "POL-BEN-001"
           ],
           "rank": 1,
@@ -671,13 +682,12 @@
             "POL-EXP-001"
           ],
           "retrieved": [
-            "POL-CONDUCT-001",
             "POL-PTO-001",
             "POL-SEC-001",
-            "POL-ONBOARD-001",
+            "POL-CONDUCT-001",
             "POL-EXP-001"
           ],
-          "rank": 5,
+          "rank": 4,
           "grounded": true,
           "best_similarity": 0.76
         },
@@ -688,12 +698,13 @@
             "POL-EQUIP-001"
           ],
           "retrieved": [
+            "POL-SAFE-001",
             "POL-EQUIP-001",
-            "POL-SEC-001",
-            "POL-PERF-001",
-            "POL-REMOTE-001"
+            "POL-PAY-001",
+            "POL-LEARN-001",
+            "POL-SEC-001"
           ],
-          "rank": 1,
+          "rank": 2,
           "grounded": true,
           "best_similarity": 0.7328
         },
@@ -704,8 +715,10 @@
           ],
           "retrieved": [
             "POL-PTO-001",
-            "POL-CONDUCT-001",
-            "POL-LEAVE-002"
+            "POL-GRIEV-001",
+            "POL-SAFE-001",
+            "POL-LEAVE-002",
+            "POL-PAY-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -719,9 +732,9 @@
           "retrieved": [
             "POL-INTL-001",
             "POL-SEC-001",
-            "POL-REMOTE-001",
             "POL-EQUIP-001",
-            "POL-PERF-001"
+            "POL-PERF-001",
+            "POL-REMOTE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -735,8 +748,8 @@
           "retrieved": [
             "POL-PTO-001",
             "POL-LEAVE-002",
-            "POL-REMOTE-001",
             "POL-INTL-001",
+            "POL-REMOTE-001",
             "POL-HOL-001"
           ],
           "rank": 1,
@@ -751,9 +764,9 @@
           "retrieved": [
             "POL-LEAVE-002",
             "POL-BEN-001",
-            "POL-CONDUCT-001",
+            "POL-SAFE-001",
             "POL-REMOTE-001",
-            "POL-EXP-001"
+            "POL-CONDUCT-001"
           ],
           "rank": 2,
           "grounded": true,
@@ -783,9 +796,8 @@
           "retrieved": [
             "POL-ONBOARD-001",
             "POL-BEN-001",
-            "POL-PTO-001",
-            "POL-HOL-001",
-            "POL-SEC-001"
+            "POL-SAFE-001",
+            "POL-PTO-001"
           ],
           "rank": null,
           "grounded": true,
@@ -841,10 +853,10 @@
             "POL-PTO-001"
           ],
           "retrieved": [
-            "POL-PTO-001",
-            "POL-HOL-001"
+            "POL-HOL-001",
+            "POL-PTO-001"
           ],
-          "rank": 1,
+          "rank": 2,
           "grounded": true,
           "best_similarity": 0.7014
         },
@@ -855,9 +867,10 @@
           ],
           "retrieved": [
             "POL-EQUIP-001",
-            "POL-ONBOARD-001",
+            "POL-SAFE-001",
             "POL-BEN-001",
-            "POL-CONDUCT-001"
+            "POL-LEARN-001",
+            "POL-GRIEV-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -873,22 +886,22 @@
         {
           "question": "How do I enrol in the Helios company car scheme?",
           "grounded": false,
-          "best_similarity": 0.697
+          "best_similarity": 0.698
         },
         {
-          "question": "What is the tuition reimbursement cap for an MBA?",
+          "question": "How many paid volunteer days does Helios provide each year?",
           "grounded": false,
-          "best_similarity": 0.6639
+          "best_similarity": 0.7394
         },
         {
           "question": "What was Helios's Q3 revenue?",
           "grounded": false,
-          "best_similarity": 0.6547
+          "best_similarity": 0.6834
         },
         {
           "question": "Which Helios office has a rooftop swimming pool?",
           "grounded": false,
-          "best_similarity": 0.5903
+          "best_similarity": 0.6121
         },
         {
           "question": "What is the sabbatical policy after ten years of service?",
@@ -945,7 +958,9 @@
           ],
           "retrieved": [
             "POL-HOL-001",
-            "POL-REMOTE-001"
+            "POL-REMOTE-001",
+            "POL-PAY-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -973,8 +988,9 @@
           ],
           "retrieved": [
             "POL-EXP-001",
-            "POL-SEC-001",
-            "POL-INTL-001"
+            "POL-SAFE-001",
+            "POL-INTL-001",
+            "POL-SEC-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -987,8 +1003,9 @@
             "POL-EQUIP-001"
           ],
           "retrieved": [
+            "POL-EQUIP-001",
             "POL-SEC-001",
-            "POL-EQUIP-001"
+            "POL-SAFE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1001,8 +1018,7 @@
           ],
           "retrieved": [
             "POL-PTO-001",
-            "POL-LEAVE-002",
-            "POL-CONDUCT-001"
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1015,8 +1031,8 @@
           ],
           "retrieved": [
             "POL-INTL-001",
-            "POL-REMOTE-001",
-            "POL-SEC-001"
+            "POL-SEC-001",
+            "POL-REMOTE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1030,7 +1046,8 @@
           "retrieved": [
             "POL-PTO-001",
             "POL-INTL-001",
-            "POL-ONBOARD-001"
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1044,8 +1061,7 @@
           "retrieved": [
             "POL-LEAVE-002",
             "POL-BEN-001",
-            "POL-REMOTE-001",
-            "POL-CONDUCT-001"
+            "POL-SAFE-001"
           ],
           "rank": 2,
           "grounded": true,
@@ -1074,6 +1090,7 @@
           "retrieved": [
             "POL-REMOTE-001",
             "POL-INTL-001",
+            "POL-SAFE-001",
             "POL-PTO-001"
           ],
           "rank": 2,
@@ -1115,7 +1132,7 @@
           "retrieved": [
             "POL-BEN-001",
             "POL-ONBOARD-001",
-            "POL-LEAVE-002"
+            "POL-LEARN-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1142,9 +1159,9 @@
           "retrieved": [
             "POL-EQUIP-001",
             "POL-BEN-001",
-            "POL-ONBOARD-001",
+            "POL-PAY-001",
             "POL-EXP-001",
-            "POL-REMOTE-001"
+            "POL-ONBOARD-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1160,22 +1177,22 @@
         {
           "question": "How do I enrol in the Helios company car scheme?",
           "grounded": true,
-          "best_similarity": 0.697
+          "best_similarity": 0.698
         },
         {
-          "question": "What is the tuition reimbursement cap for an MBA?",
+          "question": "How many paid volunteer days does Helios provide each year?",
           "grounded": true,
-          "best_similarity": 0.6639
+          "best_similarity": 0.7394
         },
         {
           "question": "What was Helios's Q3 revenue?",
           "grounded": true,
-          "best_similarity": 0.6547
+          "best_similarity": 0.6834
         },
         {
           "question": "Which Helios office has a rooftop swimming pool?",
           "grounded": true,
-          "best_similarity": 0.5903
+          "best_similarity": 0.6121
         },
         {
           "question": "What is the sabbatical policy after ten years of service?",
@@ -1232,7 +1249,9 @@
           ],
           "retrieved": [
             "POL-HOL-001",
-            "POL-REMOTE-001"
+            "POL-REMOTE-001",
+            "POL-PAY-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1260,8 +1279,9 @@
           ],
           "retrieved": [
             "POL-EXP-001",
-            "POL-SEC-001",
-            "POL-INTL-001"
+            "POL-SAFE-001",
+            "POL-INTL-001",
+            "POL-SEC-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1274,8 +1294,9 @@
             "POL-EQUIP-001"
           ],
           "retrieved": [
+            "POL-EQUIP-001",
             "POL-SEC-001",
-            "POL-EQUIP-001"
+            "POL-SAFE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1288,8 +1309,7 @@
           ],
           "retrieved": [
             "POL-PTO-001",
-            "POL-LEAVE-002",
-            "POL-CONDUCT-001"
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1302,8 +1322,8 @@
           ],
           "retrieved": [
             "POL-INTL-001",
-            "POL-REMOTE-001",
-            "POL-SEC-001"
+            "POL-SEC-001",
+            "POL-REMOTE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1317,7 +1337,8 @@
           "retrieved": [
             "POL-PTO-001",
             "POL-INTL-001",
-            "POL-ONBOARD-001"
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1331,8 +1352,7 @@
           "retrieved": [
             "POL-LEAVE-002",
             "POL-BEN-001",
-            "POL-REMOTE-001",
-            "POL-CONDUCT-001"
+            "POL-SAFE-001"
           ],
           "rank": 2,
           "grounded": true,
@@ -1361,6 +1381,7 @@
           "retrieved": [
             "POL-REMOTE-001",
             "POL-INTL-001",
+            "POL-SAFE-001",
             "POL-PTO-001"
           ],
           "rank": 2,
@@ -1402,7 +1423,7 @@
           "retrieved": [
             "POL-BEN-001",
             "POL-ONBOARD-001",
-            "POL-LEAVE-002"
+            "POL-LEARN-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1429,9 +1450,9 @@
           "retrieved": [
             "POL-EQUIP-001",
             "POL-BEN-001",
-            "POL-ONBOARD-001",
+            "POL-PAY-001",
             "POL-EXP-001",
-            "POL-REMOTE-001"
+            "POL-ONBOARD-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1447,22 +1468,22 @@
         {
           "question": "How do I enrol in the Helios company car scheme?",
           "grounded": false,
-          "best_similarity": 0.697
+          "best_similarity": 0.698
         },
         {
-          "question": "What is the tuition reimbursement cap for an MBA?",
+          "question": "How many paid volunteer days does Helios provide each year?",
           "grounded": false,
-          "best_similarity": 0.6639
+          "best_similarity": 0.7394
         },
         {
           "question": "What was Helios's Q3 revenue?",
           "grounded": false,
-          "best_similarity": 0.6547
+          "best_similarity": 0.6834
         },
         {
           "question": "Which Helios office has a rooftop swimming pool?",
           "grounded": false,
-          "best_similarity": 0.5903
+          "best_similarity": 0.6121
         },
         {
           "question": "What is the sabbatical policy after ten years of service?",
@@ -1519,7 +1540,9 @@
           ],
           "retrieved": [
             "POL-HOL-001",
-            "POL-REMOTE-001"
+            "POL-REMOTE-001",
+            "POL-PAY-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1547,8 +1570,9 @@
           ],
           "retrieved": [
             "POL-EXP-001",
-            "POL-SEC-001",
-            "POL-INTL-001"
+            "POL-SAFE-001",
+            "POL-INTL-001",
+            "POL-SEC-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1561,8 +1585,9 @@
             "POL-EQUIP-001"
           ],
           "retrieved": [
+            "POL-EQUIP-001",
             "POL-SEC-001",
-            "POL-EQUIP-001"
+            "POL-SAFE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1575,8 +1600,7 @@
           ],
           "retrieved": [
             "POL-PTO-001",
-            "POL-LEAVE-002",
-            "POL-CONDUCT-001"
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1589,8 +1613,8 @@
           ],
           "retrieved": [
             "POL-INTL-001",
-            "POL-REMOTE-001",
-            "POL-SEC-001"
+            "POL-SEC-001",
+            "POL-REMOTE-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1604,7 +1628,8 @@
           "retrieved": [
             "POL-PTO-001",
             "POL-INTL-001",
-            "POL-ONBOARD-001"
+            "POL-ONBOARD-001",
+            "POL-LEAVE-002"
           ],
           "rank": 1,
           "grounded": true,
@@ -1618,8 +1643,7 @@
           "retrieved": [
             "POL-LEAVE-002",
             "POL-BEN-001",
-            "POL-REMOTE-001",
-            "POL-CONDUCT-001"
+            "POL-SAFE-001"
           ],
           "rank": 2,
           "grounded": true,
@@ -1648,6 +1672,7 @@
           "retrieved": [
             "POL-REMOTE-001",
             "POL-INTL-001",
+            "POL-SAFE-001",
             "POL-PTO-001"
           ],
           "rank": 2,
@@ -1689,7 +1714,7 @@
           "retrieved": [
             "POL-BEN-001",
             "POL-ONBOARD-001",
-            "POL-LEAVE-002"
+            "POL-LEARN-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1716,9 +1741,9 @@
           "retrieved": [
             "POL-EQUIP-001",
             "POL-BEN-001",
-            "POL-ONBOARD-001",
+            "POL-PAY-001",
             "POL-EXP-001",
-            "POL-REMOTE-001"
+            "POL-ONBOARD-001"
           ],
           "rank": 1,
           "grounded": true,
@@ -1734,22 +1759,22 @@
         {
           "question": "How do I enrol in the Helios company car scheme?",
           "grounded": true,
-          "best_similarity": 0.697
+          "best_similarity": 0.698
         },
         {
-          "question": "What is the tuition reimbursement cap for an MBA?",
+          "question": "How many paid volunteer days does Helios provide each year?",
           "grounded": true,
-          "best_similarity": 0.6639
+          "best_similarity": 0.7394
         },
         {
           "question": "What was Helios's Q3 revenue?",
           "grounded": true,
-          "best_similarity": 0.6547
+          "best_similarity": 0.6834
         },
         {
           "question": "Which Helios office has a rooftop swimming pool?",
           "grounded": true,
-          "best_similarity": 0.5903
+          "best_similarity": 0.6121
         },
         {
           "question": "What is the sabbatical policy after ten years of service?",

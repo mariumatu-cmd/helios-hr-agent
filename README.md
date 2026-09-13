@@ -30,7 +30,7 @@ structured data.
 
 | Capability | Where |
 |---|---|
-| Hybrid RAG (dense + BM25 + reciprocal rank fusion) over 12 policy documents in 4 file formats | `rag/` |
+| Hybrid RAG (dense + BM25 + reciprocal rank fusion) over 16 policy documents in 4 file formats | `rag/` |
 | 12 MCP tools over policy search, employee records, PTO, benefits, travel history, and ticketing | `mcp_server/` |
 | Hand-written agent loop with full step-by-step tracing and provider fallback | `agent/` |
 | FastAPI chat app that renders every tool call, argument, and result | `app/` |
@@ -66,7 +66,7 @@ structured data.
                               ┌─────────▼──────┐  ┌──────▼────────────┐
                               │ RAG index      │  │ Mock HR data      │
                               │ numpy + BM25   │  │ 6 JSON datasets   │
-                              │ 133 chunks     │  │ + rule engine     │
+                              │ 184 chunks     │  │ + rule engine     │
                               └────────────────┘  └───────────────────┘
 ```
 
@@ -123,10 +123,10 @@ The index is committed, so this is only needed if you change the corpus:
 python -m rag.ingest.build_index
 ```
 
-It parses all 12 documents (Markdown, HTML, plain text, and PDF), chunks them on
+It parses all 16 documents (Markdown, HTML, plain text, and PDF), chunks them on
 heading boundaries, embeds them with `BAAI/bge-small-en-v1.5` running locally via
 ONNX, and writes `rag/index/`. Takes about 30 seconds. Deterministic — the same
-corpus always produces the same 133 chunks, verified by a fingerprint in
+corpus always produces the same 184 chunks, verified by a fingerprint in
 `rag/index/index_info.json`.
 
 ---

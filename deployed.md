@@ -117,7 +117,7 @@ Returns `503` when any of those is missing.
   "rag_index": {
     "ok": true,
     "model": "BAAI/bge-small-en-v1.5",
-    "chunks": 133,
+    "chunks": 184,
     "documents": 12,
     "built_at": "2026-09-12T11:35:09Z"
   },
@@ -147,7 +147,7 @@ BASE=https://<service>.onrender.com
 curl -s $BASE/healthz                       # 200, immediately once awake
 curl -s $BASE/health   | python -m json.tool # full readiness detail
 curl -s $BASE/tools    | python -m json.tool # 12 MCP tools, discovered live
-curl -s $BASE/documents| python -m json.tool # 12 documents, 133 chunks
+curl -s $BASE/documents| python -m json.tool # 16 documents, 184 chunks
 
 curl -s -X POST $BASE/chat \
   -H 'content-type: application/json' \
