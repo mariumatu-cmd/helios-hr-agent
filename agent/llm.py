@@ -46,6 +46,40 @@ class NoProviderConfigured(RuntimeError):
     """Raised when no provider has an API key set."""
 
 
+class MalformedToolCall(RuntimeError):
+    """The model emitted a tool call the provider rejected as invalid.
+
+    Groq validates tool-call arguments server-side against the schema we sent
+    and returns `400 tool_use_failed` when they do not match. Two variants were
+    observed, both from the weaker fallback models the free tier pushes work
+    onto under load: a boolean written as the string `"False"`, and a call cut
+    off mid-argument by the token cap.
+
+    It is worth a distinct exception because the usual responses are both
+    wrong. Retrying the identical request cannot help -- the request was fine,
+    the model's output was not -- and rotating to another model merely pays for
+    the same mistake somewhere else while burning a second model's daily quota.
+    The orchestrator recovers instead by telling the model what it got wrong,
+    which is cheap, keeps the run on the model that has context, and is the
+    difference between a failed task and a corrected one.
+    """
+
+    def __init__(self, message: str, failed_generation: str = "") -> None:
+        super().__init__(message)
+        self.failed_generation = failed_generation
+
+
+def _malformed_tool_call(exc: APIStatusError) -> MalformedToolCall | None:
+    """Recognise a server-side tool-argument rejection, or return None."""
+    body = getattr(exc, "body", None)
+    error = body.get("error") if isinstance(body, dict) else None
+    if not isinstance(error, dict) or error.get("code") != "tool_use_failed":
+        return None
+    return MalformedToolCall(
+        str(error.get("message") or exc), str(error.get("failed_generation") or "")
+    )
+
+
 @dataclass(frozen=True)
 class ProviderConfig:
     name: str
@@ -313,6 +347,13 @@ def chat(
                 break
             except APIStatusError as exc:
                 last_error = exc
+                if exc.status_code == 400:
+                    malformed = _malformed_tool_call(exc)
+                    if malformed is not None:
+                        # Not a transport failure: the request was valid and
+                        # the model's own output was not. Surface it so the
+                        # caller can correct the model rather than rotating.
+                        raise malformed from exc
                 if exc.status_code == 429:
                     # Observed, not predicted: this model has just told us its
                     # bucket is empty, so stop leading with it until it refills.

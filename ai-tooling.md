@@ -41,7 +41,7 @@ the original design, which is the point of having them.
 
 **Volume with structure.** Twelve policy documents across four file formats,
 twenty internally consistent employee records, six cross-referenced JSON
-datasets, and 143 tests are more artifact than the timebox allowed by hand. The
+datasets, and 186 tests are more artifact than the timebox allowed by hand. The
 corpus in particular benefited: the documents needed *interlocking rules* —
 international work depending on tenure and visa class and a rolling day count —
 and generating them together kept them consistent in a way that writing them

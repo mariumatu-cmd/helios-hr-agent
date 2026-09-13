@@ -107,7 +107,7 @@ cp .env.example .env
 | Variable | Where to get it | Notes |
 |---|---|---|
 | `GROQ_API_KEY` | https://console.groq.com/keys | Primary. Fast, free tier. |
-| `GEMINI_API_KEY` | https://aistudio.google.com/apikey | Last-resort fallback. |
+| `GEMINI_API_KEY` | https://aistudio.google.com/apikey | Last-resort fallback, for single-shot calls only — Gemini's OpenAI-compatible endpoint cannot replay a tool call (see `design-and-evaluation.md` §6), so multi-step agent turns are carried by the Groq models. |
 
 Set either one, or both. With neither, the app still starts and every non-LLM
 endpoint works — `/health` reports `degraded` and the chat endpoint says plainly
@@ -221,7 +221,7 @@ default because it keeps the free-tier deployment to a single service.
 ## Tests and checks
 
 ```bash
-pytest -q                                # 143 tests, ~50 s
+pytest -q                                # 186 tests, ~50 s
 ruff check .                             # lint
 python scripts/validate_mock_data.py     # referential integrity of the mock data
 python scripts/check_rules.py            # hand-verified rule-engine edge cases
@@ -283,7 +283,7 @@ mock_data/       6 JSON datasets: employees, PTO, benefits, travel, offices, tic
 rag/             chunking, indexing, hybrid retrieval, abstention vocabulary
 evaluation/      28 scored cases, deterministic scorer, harnesses, results
 scripts/         calibration, diagnostics, validation, smoke tests
-tests/           154 tests
+tests/           186 tests
 ```
 
 ## A note on the `mcp_server/` directory name

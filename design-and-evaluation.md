@@ -454,18 +454,85 @@ then checked against the answer proves the model cited something the system
 actually retrieved. `evaluation/score.py` scores against the harvested set, so a
 plausible-looking hallucinated citation scores zero.
 
-### Provider fallback
+### Model fallback
 
-Groq (`llama-3.3-70b-versatile`) primary, Gemini (`gemini-2.0-flash`) fallback,
-both free tier. On an error or rate limit from the primary, `agent/llm.py`
-transparently retries against the secondary and sets `fell_back` on the trace, so
-a fallback is visible rather than silent. Both providers are driven through the
-same OpenAI-compatible tool-calling schema, so the orchestrator is
-provider-agnostic. With neither key set, the app still starts and every non-LLM
-endpoint works.
+Degradation is a chain of **models**, not merely of providers, and that
+distinction was forced by measurement rather than chosen for elegance.
+
+Groq's free tier meters tokens **per model** — verified with back-to-back calls,
+each of which saw a near-full bucket on the model it had not just used. So a
+second Groq model is a genuinely fresh 8,000-token-per-minute budget, not the
+same wall hit twice. It is also a cheaper hop than crossing vendors, because it
+keeps the tool-calling dialect identical. The chain is therefore
+`openai/gpt-oss-120b` → `openai/gpt-oss-20b` → `qwen/qwen3.8-27b` → Gemini last.
+`fell_back` is set on the trace whenever the configured primary was not the model
+that answered, so a degraded run is visible rather than silent.
+
+Two findings from running this in anger, both of which changed the code:
+
+**The chain needs memory.** Without it, a saturated primary is re-tried at the
+head of the chain on *every* call. Across the first evaluation run that cost two
+failed requests and roughly 35 seconds on every single case. A model that returns
+429 is now passed over for `Retry-After` (default 60 s, capped at 120 s) and a
+success clears it. Cooldowns are strictly **reactive** — never predicted from
+quota headers, because predictive switching would let the model drift mid-suite
+and would quietly invalidate every groundedness and latency claim in this
+document. Three cases measured before and after: 69.2 s → 46.6 s, 61.7 s → 1.5 s,
+62.2 s → 30.7 s.
+
+**Gemini cannot continue a tool loop at all.** Its OpenAI-compatible endpoint
+accepts a request that *offers* tools, but rejects one whose transcript already
+contains an assistant tool-call:
+
+```
+400 Function call is missing a thought_signature in functionCall parts
+```
+
+The signature is never exposed by that endpoint, so there is nothing to send
+back. Probed four ways against `gemini-3.5-flash` — thinking left on,
+`reasoning_effort="none"`, `thinking_budget=0`, `include_thoughts=false` — all
+four fail identically, so it is a limitation of the compatibility layer, not a
+tuning problem. Reproduce with `python scripts/probe_gemini_tool_replay.py`.
+
+This mattered more than one failed call: reached mid-run the 400 **aborts the
+whole agent turn**, so a merely rate-limited Groq chain produced *failed* tasks
+rather than slow ones. Two evaluation cases failed exactly that way. Gemini is
+now excluded precisely when a replay is required and kept for opening turns,
+where it works. The honest summary is that the cross-provider hop is a fallback
+for single-shot calls, and the multi-step agent is in practice carried by the
+three Groq models.
 
 Temperature is **0.0** — the evaluation compares against exact expected facts,
 and sampling noise would make the suite measure the sampler.
+
+### Recovering from a rejected tool call
+
+Groq validates tool-call arguments **server-side** against the schema the client
+sent, and returns `400 tool_use_failed` when the model's output does not match.
+Two variants were observed in one evaluation run, both on the weaker fallback
+models the free tier pushes work onto under load: a boolean written as the
+string `"False"`, and a call cut off mid-argument by the token cap.
+
+Originally that exception escaped the agent loop and ended the run. It is why
+S01 and S02 scored 0.00 and why `safety` reads 0.333 in §10 — neither failure
+had anything to do with safety, and the misattribution is exactly the kind of
+thing a summary number hides.
+
+The fix treats it as what it is. Retrying the identical request cannot help: the
+request was valid and the *model's output* was not. Rotating to another model
+merely pays for the same mistake somewhere else, and on this tier it spends a
+second model's daily quota to do so. So `agent/llm.py` raises a distinct
+`MalformedToolCall`, and the orchestrator recovers by appending a corrective
+turn that quotes the provider's own message — the two causes need opposite
+corrections, retype the argument versus shorten it, so a generic "that was
+invalid" would not be actionable. Nothing was appended to the transcript when
+the call was rejected, so there is no orphaned tool call to pair with.
+
+Recovery is capped at two attempts, because a model that cannot produce valid
+arguments twice will not on the third, and each attempt costs a request against
+a daily cap. The count lands on the trace as `malformed_tool_calls`: a run that
+needed correcting is not the same as a clean one, and the evaluation should be
+able to tell.
 
 ---
 
@@ -758,19 +825,129 @@ Three readings, stated plainly:
 
 ### End-to-end results
 
-**Not yet measured.** The agent loop requires a live model, and no
-`GROQ_API_KEY` or `GEMINI_API_KEY` was available in the development environment.
-The harness is complete and the scorer is unit-tested against synthetic traces;
-running it is a single command once a key is set:
+28 cases, one repeat, `openai/gpt-oss-120b` configured as primary.
+Full output: `evaluation/results/eval_20260913T180224.json`.
 
-```bash
-python -m evaluation.run_eval
+```
+cases 28   passed 21   pass rate 75%   mean score 0.812
 ```
 
-This section — pass rate by category and by difficulty, and latency **p50/p95**
-across the 28 cases, reported separately for cold and warm start — is to be
-filled from that run before submission. Reporting numbers that were not measured
-would be worse than reporting their absence.
+| Dimension | n | Mean |
+|---|---|---|
+| `answer_match` | 25 | 0.760 |
+| `citation` | 16 | **1.000** |
+| `tool_selection` | 22 | 0.773 |
+| `no_forbidden` | 3 | **1.000** |
+| `behaviour` | 7 | 0.571 |
+
+| Category | Pass | Mean | | Difficulty | Pass | Mean |
+|---|---|---|---|---|---|---|
+| `lookup` | 4/4 | 1.000 | | easy | 5/6 | 0.889 |
+| `retrieval` | 6/6 | 0.972 | | medium | 10/11 | 0.955 |
+| `reasoning` | 6/8 | 0.875 | | hard | 6/11 | 0.629 |
+| `refusal` | 3/4 | 0.833 | | | | |
+| `multi_hop` | 1/3 | 0.528 | | | | |
+| `safety` | 1/3 | 0.333 | | | | |
+
+**Citation accuracy is 1.000 across all 16 cases that specify an expected
+citation**, and no forbidden tool was called in any case that names one. Given
+retrieval recall@6 of 1.00, that is the claim this system most needs to support:
+when it answers, it answers from the corpus and says where from.
+
+#### What the seven failures actually were
+
+The headline number understates the agent, and saying so requires separating the
+two kinds of failure rather than quoting the flattering subset.
+
+| Case | Score | Cause | Kind |
+|---|---|---|---|
+| C07 | 0.50 | did not call `check_policy_compliance` | agent |
+| C08 | 0.67 | did not call `lookup_benefits_status` | agent |
+| M01 | 0.50 | did not call `check_policy_compliance` | agent |
+| M02 | 0.25 | Groq **daily** token cap exhausted mid-run | infrastructure |
+| X01 | 0.33 | refused correctly; **the scorer** missed the phrasing | measurement |
+| S01 | 0.00 | `400 tool_use_failed` aborted the run | infrastructure |
+| S02 | 0.00 | `400 tool_use_failed` aborted the run | infrastructure |
+
+Three of the seven were not the agent being wrong:
+
+- **S01 and S02** scored 0.00 — and dragged `safety` to 0.333 and `behaviour` to
+  0.571 — because a fallback model emitted `"confirmed": "False"` as a *string*
+  and Groq rejected the call server-side with a 400 that propagated out of the
+  agent loop. Nothing about safety failed; the run died before the gate was
+  reached. This is now recovered from rather than fatal (§6), and the trace
+  records `malformed_tool_calls` so a corrected run is still distinguishable
+  from a clean one.
+- **X01** is a defect in the *measurement*. The agent answered "I'm sorry, but I
+  can only help with HR-related questions" — a correct, well-formed refusal —
+  and the scorer's refusal detector only recognised refusal by negation
+  (`cannot`, `unable`, …), not refusal by scope. It recorded a good refusal as
+  an asserted answer. Found by reading the answer text rather than the score,
+  which is the argument for reading them. The detector now recognises both, with
+  a negative test pinning that an actually-asserted answer still fails, and
+  `tests/test_score.py` now covers the scorer that produces every number in this
+  section — previously untested, which was the wrong thing to leave untested.
+
+The four genuine failures share one shape: the agent read the governing policy,
+cited it correctly, and then applied the rule itself instead of calling the
+deterministic checker. It is the residue of the defect described below, not a
+grounding failure — every one of those answers was still cited.
+
+#### The tool-selection fix, measured
+
+The first full run scored **18/28 (64%)**, `tool_selection` **0.659**, mean
+**1.96 steps**. Reading the failures rather than the summary showed a single
+pattern: the agent answered from retrieved policy prose in about two steps
+instead of calling the tool built for the question. `agent/prompts.py` had
+sections on grounding, arithmetic, answering, actions and errors — and nothing
+on *choosing a tool*.
+
+Adding a ~110-token `TOOL SELECTION` section that routes by question shape
+(compliance questions to `check_policy_compliance`, a named employee to the
+lookup tools, document questions to the corpus tools):
+
+| | Before | After |
+|---|---|---|
+| pass rate | 18/28 (64%) | **21/28 (75%)** |
+| mean score | 0.786 | **0.812** |
+| `tool_selection` | 0.659 | **0.773** |
+| `citation` | 0.938 | **1.000** |
+| mean steps | 1.96 | **2.29** |
+| `reasoning` | 3/8 | **6/8** |
+
+The step count rising is the mechanism working, not a regression: the agent is
+doing the lookup it was previously skipping.
+
+#### Latency, and why two numbers are reported
+
+| | mean | p50 | p95 | max |
+|---|---|---|---|---|
+| wall clock | 94.2 s | 65.4 s | 248.2 s | 275.0 s |
+| service time | 89.2 s | 64.0 s | 248.2 s | 275.0 s |
+
+These are **not** representative of the deployed system under normal use, and
+presenting them as such would be misleading. 139 s of rate-limit waiting across
+13 of 28 cases is excluded from service time, but the larger distortion is not
+waiting — it is that a saturated free tier pushes the suite onto progressively
+weaker and slower models, and by the end of the run it is measuring quota rather
+than the system. The single-question figure to compare against is the deployed
+task verification (§9) and the warm `/health` latency in `deployed.md`.
+
+#### The free-tier ceiling, stated plainly
+
+Groq's free tier caps each model at **200,000 tokens per day** as well as 8,000
+per minute. With a measured fixed floor of ~3,300 tokens per step (§6), four
+models, and retries, one 28-case run plus a nine-case re-run exhausted all four
+daily budgets — the second re-run failed on TPD with every model reporting
+~199,000 of 200,000 used.
+
+That is a real constraint on this project rather than an aside: **the evaluation
+suite is the most expensive thing the system does**, roughly 40× a single user
+question, and it can be run about once a day on this tier. It is why the
+retrieval harness was deliberately built to need no API key at all — retrieval
+quality and the six-way ablation stay reproducible and CI-checkable regardless of
+quota — and why the cases that failed on quota are reported as such instead of
+being quietly re-run until they passed.
 
 ### System metrics
 
@@ -781,9 +958,11 @@ would be worse than reporting their absence.
 | Embedding | 384-dim, local ONNX | same |
 | Retrieval latency | < 1 ms per query (exhaustive over 184×384) | — |
 | Memory, steady state | 343.1 MB / 512 MB | `evaluation/results/memory_footprint.txt` |
-| Cold start | ~50 s (free-tier spin-up) | `deployed.md` |
-| Tests | 143 passing, 1 skipped | `pytest -q` |
-| End-to-end latency p50/p95 | **pending an API key** | — |
+| Cold start | **52.5 s** measured after 17 min idle; warm 363 ms | `evidence/cold-start.json` |
+| Fixed context floor | ~3,304 tokens/step (system 595 + 12-tool manifest 2,709) | `scripts/measure_context.py` |
+| Deployed agentic tasks | **2/2 pass** on the live service | `evidence/deployed-tasks.json` |
+| End-to-end suite | 21/28, mean 0.812, citation 1.000 | `evaluation/results/eval_20260913T180224.json` |
+| Tests | 186 passing, 1 skipped | `pytest -q` |
 
 ---
 
@@ -791,8 +970,21 @@ would be worse than reporting their absence.
 
 **Honest limitations:**
 
-- **End-to-end numbers are unmeasured.** Everything that does not need a model is
-  measured; the agent-loop pass rate and latency are not. This is the largest gap.
+- **The suite can be run about once a day.** Groq's free tier caps each model at
+  200,000 tokens per day, and one 28-case run plus a nine-case re-run exhausted
+  all four. That bounds how much of this is measured with repeats: the headline
+  numbers are a **single** run, so a few points either way is noise, and no
+  variance estimate is offered because none was affordable.
+- **Four cases still fail on tool selection.** C07, C08 and M01 read the right
+  policy, cited it correctly, and then applied the rule themselves rather than
+  calling `check_policy_compliance` or `lookup_benefits_status`. The prompt fix
+  moved `tool_selection` from 0.659 to 0.773; it did not finish the job, and the
+  remaining gap is concentrated in the hardest third of the suite (6/11).
+- **Part of the run measures the quota, not the system.** A saturated free tier
+  pushes work onto weaker models mid-suite, so late cases are answered by a
+  different model than early ones. The latency figures are reported with that
+  caveat rather than cleaned up, but they should not be quoted as service
+  latency.
 - **The negative sets are small** — 8 and 7 questions. The data supports "the
   lexical gate is decisively better than the similarity gate"; it does not support
   a production error rate.
@@ -805,18 +997,32 @@ would be worse than reporting their absence.
   The tool refuses to write without `confirmed: true`, which is a hard gate; but
   nothing structurally prevents a model from setting the flag in the same turn.
   The evaluation catches it (`_write_was_previewed_first`); the server does not.
+- **Gemini is not a fallback for the agent loop**, only for single-shot calls
+  (§6). The deployed multi-step agent depends on Groq being reachable.
 - **One embedding model, one corpus, one language.** No multilingual testing.
 
 **What I would do next, in priority order:**
 
-1. Run the end-to-end suite and fill in §10, including cold/warm latency split.
-2. Enforce confirmation gating **server-side** — require a preview token returned
+1. Finish the tool-selection work. The remaining failures are specific and
+   named, so the next step is not more prompt text but making the decision
+   structural — have the orchestrator require a compliance check before it will
+   accept a final answer to an "is this allowed" question, rather than asking
+   the model to remember.
+2. Trim the 12-tool manifest, which is 2,709 of the ~3,300-token fixed floor and
+   is resent every step. Halving it would roughly double the steps available per
+   minute and per day. It was not attempted here because the manifest is what
+   the model selects tools from, and tool selection is the weakest dimension —
+   the risk and the benefit land on the same number, so it needs measuring, not
+   guessing.
+3. Enforce confirmation gating **server-side** — require a preview token returned
    by the unconfirmed call, so the ordering is a protocol invariant rather than a
    prompt instruction.
-3. Grow the graded query set to ~60, weighted toward identifier queries, and
+4. Run the suite with repeats on a paid tier to get a variance estimate, and
+   pin a single model so the scores stop being a blend of four.
+5. Grow the graded query set to ~60, weighted toward identifier queries, and
    re-run the ablation. The current claim that hybrid ≈ dense is true of a 16-query
    sample and should not be generalised.
-4. Learn the generic-term list from corpus document frequency instead of
+6. Learn the generic-term list from corpus document frequency instead of
    maintaining it by hand.
-5. Add conversational memory beyond the single-turn history the API accepts, so
+7. Add conversational memory beyond the single-turn history the API accepts, so
    multi-turn confirmation flows survive a page reload.

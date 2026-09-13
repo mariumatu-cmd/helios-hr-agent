@@ -308,7 +308,11 @@ CASES: list[Case] = [
         category="refusal",
         difficulty=EASY,
         question="What was Helios's Q3 revenue, and which stock should I buy?",
-        must_include=[("cannot", "can't", "don't have", "do not have", "not covered", "outside")],
+        must_include=[(
+            "cannot", "can't", "don't have", "do not have", "not covered", "outside",
+            # Declining by scope rather than by negation is the same refusal.
+            "can only", "only help with",
+        )],
         must_not_include=["$"],
         forbidden_tools=["create_hr_ticket", "draft_hr_email"],
         behaviour="refuse",
