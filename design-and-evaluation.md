@@ -439,9 +439,37 @@ Details that matter:
   could not finish and reports what it established, rather than producing a
   confident answer from an incomplete investigation.
 - **Everything is captured in a `Trace`**: per step, the provider, model,
-  latency, whether it fell back, the model's stated reasoning, and every tool
+  latency, whether it fell back, a one-line operational summary, and every tool
   invocation with arguments, result, error flag, and latency. The UI renders it;
   the evaluation scores it.
+- **The trace is operational by construction, not by filtering.** The brief asks
+  for visible steps — selected tools, arguments, outputs, sources, answer basis —
+  and explicitly *not* for chain-of-thought. The step originally recorded the
+  model's free-text preamble to its own tool call, which is precisely
+  chain-of-thought: the model narrating its intent, in whatever register and at
+  whatever length it chose. `_describe_tool_step()` now derives the line from
+  the decision instead — *"selected 2 tools in parallel: check_pto_balance,
+  check_policy_compliance"* — and the final step reports what the answer rests
+  on: *"answer synthesised from 3 cited sources"*.
+
+  This is not merely compliance. Narration is a *claim* about what the model is
+  doing; the tool names are what it actually did, and the two can disagree. A
+  derived summary cannot drift from the truth the way narration can. The model's
+  preamble now has no path into the trace at all, which a test asserts by
+  serialising the whole trace and searching for it.
+- **Reasoning tokens are stripped at the provider boundary**, which is a
+  separate hole in the same guarantee. Two fallback models — `qwen/qwen3.8-27b`
+  and `qwen/qwen3.6-27b` — are reasoning models that can wrap a scratchpad in
+  `<think>` tags, and the chain reaches them whenever a rate limit is hit. So
+  the failure mode was not "a model behaves oddly" but "an infrastructure event
+  the user never sees starts leaking private reasoning into the answer". Groq
+  can be asked to hide reasoning per request, but that parameter is
+  model-specific and *silently ignored* by models that do not support it —
+  exactly the wrong property for a chain deliberately built from mixed model
+  families. `llm.strip_reasoning()` removes it on the way out instead, so the
+  guarantee covers every model in the chain and any later addition, and it runs
+  before the transcript is stored so the scratchpad cannot re-enter through the
+  next turn's context either.
 
 ### Citations are harvested, not parsed
 
@@ -538,7 +566,7 @@ able to tell.
 
 ## 7. Safety guardrails
 
-Six layers, each addressing a failure actually observed during development.
+Seven layers, each addressing a failure actually observed during development.
 
 **1. Grounding is enforced at the tool boundary, not requested in the prompt.**
 When retrieval is not grounded, the tool returns `grounded: false` plus an
@@ -573,6 +601,15 @@ hybrid, and an answer that omits that is scored as wrong.
 and which stock should I buy?"* — are declined. This is a remit boundary, and it
 is one of the four seeded demo tasks precisely because a system that never
 refuses is not trustworthy.
+
+**7. Policy and advice are separated in words.** Guardrail 5 requires the
+assistant to offer alternatives when it blocks a request, which creates the
+problem this one solves: the answer now contains both quoted rules and the
+assistant's own suggestions. A citation marks provenance but not force, so an
+uncited suggestion sitting between two cited bullets still reads as policy. The
+prompt therefore requires the distinction to be stated — *"the policy does not
+require this, but"* — rather than left to be inferred from which sentences
+happen to carry a citation.
 
 **Pinned `as_of_date`.** All date arithmetic evaluates against `2026-09-12`,
 matching the mock-data snapshot, and the date is injected into the system prompt.

@@ -65,9 +65,11 @@ function renderTrace(trace) {
         )
         .join("");
 
+      // The summary leads, then the per-tool detail. It is an operational line
+      // -- which tools were selected -- never the model's own narration.
       const body =
-        calls ||
-        `<p class="muted">${escape(step.thought || (step.kind === "final" ? "final answer produced" : step.kind))}</p>`;
+        (step.summary ? `<p class="muted">${escape(step.summary)}</p>` : "") +
+        (calls || (step.summary ? "" : `<p class="muted">${escape(step.kind)}</p>`));
 
       return `
       <div class="step">

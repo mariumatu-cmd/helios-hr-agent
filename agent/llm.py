@@ -26,6 +26,7 @@ This is the documented graceful-degradation path required by project req. §4
 from __future__ import annotations
 
 import logging
+import re
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -284,6 +285,39 @@ def _retry_after_seconds(exc: APIStatusError, attempt: int) -> float:
     return min(2.0 ** attempt, MAX_BACKOFF_SECONDS)
 
 
+# Reasoning models wrap their scratchpad in these. Groq can be asked to hide it
+# per-request, but the parameter is model-specific and silently ignored by the
+# models that do not support it, so it cannot be relied on across a rotation
+# chain that mixes reasoning and non-reasoning models.
+_REASONING_BLOCK = re.compile(
+    r"<\s*(think|thinking|reasoning)\s*>.*?<\s*/\s*\1\s*>",
+    re.DOTALL | re.IGNORECASE,
+)
+_UNCLOSED_REASONING = re.compile(r"<\s*(think|thinking|reasoning)\s*>.*", re.DOTALL | re.IGNORECASE)
+
+
+def strip_reasoning(text: str | None) -> str:
+    """Remove a reasoning model's scratchpad from assistant text.
+
+    The trace is shown to the user, and the project brief is explicit that it
+    must carry concise operational detail rather than chain-of-thought. Two of
+    the Groq fallback models are reasoning models, so without this a rotation
+    triggered by a rate limit -- an infrastructure event the user never sees --
+    would start rendering raw private reasoning in the UI.
+
+    Stripping the text here rather than in the view layer means the transcript
+    replayed to the provider on the next turn is also clean, so the scratchpad
+    cannot re-enter through the context either. An unterminated block is
+    dropped to the end: a scratchpad truncated by the token cap has no answer
+    after it to preserve.
+    """
+    if not text:
+        return ""
+    cleaned = _REASONING_BLOCK.sub("", text)
+    cleaned = _UNCLOSED_REASONING.sub("", cleaned)
+    return cleaned.strip()
+
+
 def chat(
     messages: list[dict[str, Any]],
     tools: list[dict[str, Any]] | None = None,
@@ -396,7 +430,7 @@ def chat(
             model=cfg.model,
             message=msg,
             tool_calls=list(msg.tool_calls or []),
-            text=msg.content,
+            text=strip_reasoning(msg.content),
             latency_ms=latency_ms,
             fell_back=provider_index > 0,
             service_ms=service_ms,
