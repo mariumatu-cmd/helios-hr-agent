@@ -124,9 +124,11 @@ def _parse_date(value: str, label: str) -> dt.date:
 def resolve_employee(identifier: str) -> dict | None:
     """Find an employee by id, email, full name, or unambiguous partial name.
 
-    Tools are called with whatever the user typed ("Maya", "E-1041"), so
+    Tools are called with whatever the user typed ("Jonas", "E-1041"), so
     resolution is forgiving -- but an ambiguous partial name returns a
-    disambiguation error rather than a guess.
+    disambiguation error rather than a guess. "Maya" is deliberately such a
+    case: the roster carries two, so this branch is exercised by the tests and
+    by evaluation case A01 rather than being unreachable.
     """
     query = (identifier or "").strip()
     if not query:

@@ -38,7 +38,7 @@ def main() -> int:
          "excluded": [(r["record_id"], r["excluded_because"]) for r in usage["excluded_records"]]})
     expect(usage["days_used"] == 12, "Maya has used 12 days, not 24 (Spain trip aged out of window)")
 
-    intl = data.check_international_request("Maya", "Portugal", "2026-10-05", "2026-11-15")
+    intl = data.check_international_request("E-1041", "Portugal", "2026-10-05", "2026-11-15")
     show("Maya 6-week Portugal request", {
         "compliant": intl["compliant"],
         "blocking_reasons": intl["blocking_reasons"],
