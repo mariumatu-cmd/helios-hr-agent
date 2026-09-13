@@ -144,6 +144,28 @@ def test_demo_tasks_are_available(client):
     assert all(t["question"] and t["label"] for t in tasks)
 
 
+def test_the_two_required_agentic_tasks_are_reachable_from_the_deployed_demo(client):
+    """The assignment requires two completed agentic workflows *in the deployed
+    demo*, not merely in the evaluation suite.
+
+    Asserting on the ids rather than the count is the point: a future edit that
+    renames or drops one of them would still leave `len(tasks) >= 3` true, and
+    the requirement would break silently.
+    """
+    tasks = {t["id"]: t for t in client.get("/demo-tasks").json()["tasks"]}
+    for required in ("international", "pto"):
+        assert required in tasks, f"the {required} workflow is not offered in the UI"
+        assert len(tasks[required]["question"]) > 40, (
+            "a one-click task must carry the full scenario, or the demo is not "
+            "exercising multi-step reasoning"
+        )
+
+
+def test_a_write_action_task_is_offered_so_the_gate_can_be_demonstrated(client):
+    tasks = {t["id"]: t for t in client.get("/demo-tasks").json()["tasks"]}
+    assert "ticket" in tasks
+
+
 def test_chat_rejects_an_empty_message(client):
     assert client.post("/chat", json={"message": ""}).status_code == 422
 

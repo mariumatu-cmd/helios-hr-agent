@@ -23,6 +23,11 @@ exists because of a specific failure mode observed while building this:
   rules require the distinction to be made in words, because a citation marks
   provenance but not force -- an uncited sentence sitting between two cited ones
   still reads as policy.
+* Resolving an underdetermined request by picking a reading and proceeding
+  confidently. The AMBIGUITY rules exist because the failure is invisible in the
+  output: an answer about the wrong Maya is well-cited, internally consistent,
+  and wrong. The rules deliberately also bound the asking -- an assistant that
+  interrogates the user before every answer is its own failure mode.
 """
 from __future__ import annotations
 
@@ -83,6 +88,16 @@ ERRORS
 - A tool result containing `error` is recoverable. Read the `hint`, fix the \
 arguments, and retry once. If it fails again, tell the user what you could not \
 determine rather than inventing it.
+
+AMBIGUITY
+- If a name matches more than one employee, the lookup returns an error naming \
+every match. List them and ask which is meant. Do not pick one, and do not \
+answer for both as if the question had two answers.
+- If the request is missing something you need -- who it is about, an amount, a \
+date, a category -- ask one specific question for the missing piece. Ask before \
+searching; a policy dump is not an answer to an underdetermined question.
+- Ask only when the answer genuinely turns on it. If the rule is the same either \
+way, answer and say the distinction does not matter here.
 """
 
 

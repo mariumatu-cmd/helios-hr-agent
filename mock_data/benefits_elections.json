@@ -100,6 +100,27 @@
       "pending_dependent_verification": false
     },
     {
+      "employee_id": "E-1073",
+      "benefits_eligible": true,
+      "medical_plan": "Helios Core (PPO)",
+      "medical_coverage_effective": "2025-09-10",
+      "dental": true,
+      "vision": false,
+      "coverage_tier": "employee_only",
+      "hsa_annual_election_usd": 0,
+      "hsa_employer_contribution_usd": 0,
+      "fsa_annual_election_usd": 1200,
+      "retirement_deferral_pct": 5,
+      "match_eligible": true,
+      "match_vested": false,
+      "life_add": true,
+      "short_term_disability": true,
+      "long_term_disability": true,
+      "parental_leave_eligible": true,
+      "dependents_on_file": 0,
+      "pending_dependent_verification": false
+    },
+    {
       "employee_id": "E-1120",
       "benefits_eligible": true,
       "medical_plan": "Helios Core (PPO)",

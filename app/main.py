@@ -61,6 +61,17 @@ DEMO_TASKS = [
         "label": "Out-of-scope question (refusal)",
         "question": "What was our Q3 revenue and which stock should I buy?",
     },
+    {
+        # The only seeded task that asks the agent to *act* rather than answer.
+        # It is deliberately a two-turn task: the first click returns a preview
+        # and a request for confirmation, and nothing is written until the user
+        # replies. Surfaced as a button because a confirmation gate that is
+        # never exercised in the demo is indistinguishable from one that does
+        # not work.
+        "id": "ticket",
+        "label": "File an HR ticket (asks before acting)",
+        "question": "Open an HR ticket for Jonas Weber about his PTO shortfall.",
+    },
 ]
 
 

@@ -111,6 +111,22 @@
       "floating_holidays_remaining": 1
     },
     {
+      "employee_id": "E-1073",
+      "eligible": true,
+      "years_of_service": 1.09,
+      "annual_accrual_days": 15,
+      "accrual_rate_hours_per_period": 5.0,
+      "accrual_cap_hours": 180.0,
+      "carryover_hours": 12.0,
+      "accrued_ytd_hours": 85.0,
+      "used_ytd_hours": 40.0,
+      "balance_hours": 57.0,
+      "scheduled_future_hours": 8.0,
+      "available_hours": 49.0,
+      "floating_holidays_total": 2,
+      "floating_holidays_remaining": 2
+    },
+    {
       "employee_id": "E-1120",
       "eligible": true,
       "years_of_service": 0.32,

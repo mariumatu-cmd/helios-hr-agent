@@ -18,7 +18,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 # --- resolution ------------------------------------------------------------
 @pytest.mark.parametrize("identifier", ["E-1041", "maya.rodriguez@helios.example.com",
-                                        "Maya Rodriguez", "maya"])
+                                        "Maya Rodriguez", "rodriguez"])
 def test_employee_resolves_by_several_identifiers(identifier):
     assert data.resolve_employee(identifier)["employee_id"] == "E-1041"
 
@@ -30,14 +30,18 @@ def test_unknown_employee_raises():
 
 def test_ambiguous_partial_name_refuses_to_guess():
     """Silently picking one of several matches would attach a correct-looking
-    answer to the wrong person."""
-    people = data.employees()
-    first_names = [e["full_name"].split()[0] for e in people]
-    ambiguous = next((n for n in first_names if first_names.count(n) > 1), None)
-    if ambiguous is None:
-        pytest.skip("no ambiguous first name in the dataset")
-    with pytest.raises(LookupError):
-        data.resolve_employee(ambiguous)
+    answer to the wrong person.
+
+    The dataset carries a deliberate collision (two Mayas) so this branch is
+    exercised rather than skipped; asserting on it directly keeps the test
+    honest if that collision is ever removed.
+    """
+    with pytest.raises(LookupError) as excinfo:
+        data.resolve_employee("Maya")
+    message = str(excinfo.value)
+    assert "E-1041" in message and "E-1073" in message, (
+        "the error must name every match, or the agent cannot offer the choice"
+    )
 
 
 # --- POL-INTL-001 §2: rolling 12-month window ------------------------------

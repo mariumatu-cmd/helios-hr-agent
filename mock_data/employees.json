@@ -3,7 +3,7 @@
     "dataset": "employees",
     "description": "SYNTHETIC employee records for Helios Systems, Inc. Every person, email, and identifier is fabricated for this academic project. No real employee data is present.",
     "as_of_date": "2026-09-12",
-    "record_count": 16,
+    "record_count": 17,
     "field_notes": {
       "employment_type": "full_time | part_time | temporary | intern | contractor (drives POL-BEN-001 eligibility)",
       "work_arrangement": "onsite | hybrid | remote (POL-REMOTE-001 s2)",
@@ -144,6 +144,28 @@
       "on_pip": false,
       "work_authorization": "local_national",
       "has_corporate_card": true
+    },
+    {
+      "employee_id": "E-1073",
+      "full_name": "Maya Osei",
+      "email": "maya.osei@helios.example.com",
+      "title": "Support Engineer I",
+      "department": "Customer Support",
+      "role_family": "Customer Support",
+      "employment_type": "full_time",
+      "weekly_hours": 40,
+      "hire_date": "2025-08-11",
+      "manager_id": "E-1032",
+      "office_location": "NYC",
+      "work_city": "New York",
+      "work_state": "NY",
+      "work_country": "United States",
+      "work_arrangement": "hybrid",
+      "remote_eligible_role": true,
+      "latest_performance_rating": "Meets Expectations",
+      "on_pip": false,
+      "work_authorization": "citizen",
+      "has_corporate_card": false
     },
     {
       "employee_id": "E-1120",
