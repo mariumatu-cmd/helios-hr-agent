@@ -140,7 +140,12 @@ jobs:
   deploy:
     name: Deploy to Render
     needs: [quality, container]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Deploy on pushes to main, and allow a manual redeploy via the Actions tab
+    # without needing an empty commit -- useful when only a Render environment
+    # variable changed.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -163,7 +168,7 @@ jobs:
           RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
         run: |
           if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVICE_ID" ]; then
-            echo "Render credentials are not set; skipping deploy."
+            echo "::warning title=Deploy skipped::RENDER_API_KEY or RENDER_SERVICE_ID is unset, so no deploy was triggered."
             exit 0
           fi
           deploy_id=$(curl -fsS -X POST \
@@ -210,7 +215,7 @@ jobs:
           APP_URL: ${{ vars.APP_URL }}
         run: |
           if [ -z "$APP_URL" ]; then
-            echo "APP_URL repository variable is not set; skipping verification."
+            echo "::warning title=Verification skipped::APP_URL variable is unset, so the live deployment was not verified."
             exit 0
           fi
           for attempt in $(seq 1 40); do

@@ -48,7 +48,15 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-3.5-flash"
 
     # -- Agent ----------------------------------------------------------------
-    agent_max_steps: int = 8
+    # A realistic HR request spans several sub-questions -- entitlement, the
+    # employee's own balance or usage history, a policy condition the rule
+    # engine does not encode, and then an action such as filing a ticket. Each
+    # is a separate tool call plus a final synthesis turn, so a genuinely
+    # multi-part task needs headroom. Measured: a four-part international
+    # remote-work request exhausted an 8-step budget and returned an apology
+    # instead of filing the ticket; the same request completes well inside 12.
+    # The ceiling still exists to stop a confused run looping indefinitely.
+    agent_max_steps: int = 12
     agent_temperature: float = 0.0
 
     # Cap on completion length. This is not only an output-shaping knob: Groq

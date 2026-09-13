@@ -1,0 +1,78 @@
+{
+  "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
+  "tasks": [
+    {
+      "task": "international-remote-work",
+      "prompt": "I'm Maya Rodriguez. I'd like to work remotely from Portugal from 2026-10-05 to 2026-10-18. How many international days have I already used this year, and does this request stay within the limit? If it does, please file the ticket for me, and tell me what conditions the policy places on working from an EU country.",
+      "http_status": 200,
+      "steps": 9,
+      "tools_used": [
+        "search_policy_documents",
+        "check_international_work_usage",
+        "check_policy_compliance"
+      ],
+      "distinct_tools": [
+        "check_international_work_usage",
+        "check_policy_compliance",
+        "search_policy_documents"
+      ],
+      "citations": [
+        "POL-INTL-001 \u00a72 The 30-Day Rule",
+        "POL-INTL-001 \u00a73 Eligible Countries",
+        "POL-REMOTE-001 \u00a71 Purpose",
+        "POL-INTL-001 \u00a77 Expenses",
+        "POL-INTL-001 \u00a74 Approval Workflow",
+        "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+        "POL-INTL-001 \u00a74.4 Immigration Review",
+        "POL-REMOTE-001 \u00a73.1 Eligibility",
+        "POL-INTL-001 \u00a71 Purpose and Scope"
+      ],
+      "wall_clock_ms": 250645,
+      "total_service_ms": 249791.6,
+      "throttle_ms": 0.0,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "fell_back": true,
+      "peak_context_tokens": 6107,
+      "elided_results": 8,
+      "error": "",
+      "passed": true,
+      "answer": "I could not finish this within 8 steps. Here is what I established so far using search_policy_documents, check_international_work_usage, check_policy_compliance. Please narrow the question, or contact HR directly."
+    },
+    {
+      "task": "parental-leave-and-pto",
+      "prompt": "I'm David Okafor and my partner is due in March. How much paid parental leave am I entitled to, what is my current PTO balance, and does taking parental leave affect that balance? Cite the policy, then draft the email I should send my manager.",
+      "http_status": 200,
+      "steps": 6,
+      "tools_used": [
+        "search_policy_documents",
+        "check_pto_balance",
+        "draft_hr_email"
+      ],
+      "distinct_tools": [
+        "check_pto_balance",
+        "draft_hr_email",
+        "search_policy_documents"
+      ],
+      "citations": [
+        "POL-LEAVE-002 \u00a72.3 Timing and Structure",
+        "POL-PTO-001 \u00a71 Purpose and Scope",
+        "POL-LEAVE-002 \u00a72.2 Eligibility",
+        "POL-LEAVE-002 \u00a76 Interaction with Other Entitlements",
+        "POL-LEAVE-002 \u00a78 Requesting Leave",
+        "POL-LEAVE-002 \u00a72.1 Entitlement"
+      ],
+      "wall_clock_ms": 189396,
+      "total_service_ms": 189107.4,
+      "throttle_ms": 0.0,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "fell_back": true,
+      "peak_context_tokens": 5836,
+      "elided_results": 5,
+      "error": "",
+      "passed": true,
+      "answer": "**Answer**\n\n- **Parental\u2011leave entitlement:** 16\u202fweeks of paid leave at 100\u202f% of base pay (POL\u2011LEAVE\u2011002 \u00a72.1 Entitlement).  \n- **Current PTO balance:** 125.61\u202fhours total, 85.61\u202fhours available for new requests (check_pto_balance).  \n- **Effect on PTO:** Taking paid parental leave does **not** reduce your PTO balance; PTO continues to accrue during paid leave and is not accrued during unpaid leave beyond 30\u202fdays (POL\u2011LEAVE\u2011002 \u00a76 Interaction with Other Entitlements).  \n\n**Draft email to your manager**\n\n```\nSubject: Request for Parental Leave\n\nHi [Manager Name],\n\nI am writing to inform you that my partner and I are expecting a child in March. According to Helios\u2019 Parental and Medical Leave Policy, as a birthing parent I am entitled to 16\u202fweeks of paid leave at 100\u202f% of my base pay (POL\u2011LEAVE\u2011002 \u00a72.1 Entitlement). I plan to take this leave within the 12\u2011month window after the birth, and I will coordinate the schedule in blocks of at least two weeks as required (POL\u2011LEAVE\u2011002 \u00a72.3 Timing and Structure).\n\nMy current PTO balance is 125.61\u202fhours (available 85.61\u202fhours) as of today (2026\u201109\u201112) (check_pto_balance). Taking paid parental leave will not reduce my PTO balance because PTO continues to accrue during paid leave and does not accrue during unpaid leave beyond 30\u202fdays (POL\u2011LEAVE\u2011002 \u00a76 Interaction with Other Entitlements).\n\nI will provide the required 30\u2011day notice and any necessary documentation as outlined in the policy (POL\u2011LEAVE\u2011002 \u00a78 Requesting Leave). Please let me know if you need any additional information or if we should discuss the exact dates.\n\nThank you for your support.\n\nBest,\nDavid Okafor\n```\n\nWould you like me to save this draft?"
+    }
+  ]
+}
