@@ -71,8 +71,13 @@ COPY evaluation ./evaluation
 COPY scripts ./scripts
 
 # Non-root: the container writes nothing outside /tmp, so there is no reason to
-# run it with more privilege than it needs.
-RUN useradd --create-home --uid 10001 helios && chown -R helios:helios /app
+# run it with more privilege than it needs. The model cache must be owned by the
+# runtime user too: huggingface_hub writes lock and tree-cache files beside the
+# weights, and if it cannot, it treats the baked cache as corrupt and silently
+# re-downloads the model from HuggingFace on every embedder init -- which is the
+# exact cost the builder stage exists to avoid.
+RUN useradd --create-home --uid 10001 helios \
+    && chown -R helios:helios /app /opt/fastembed_cache
 USER helios
 
 EXPOSE 8000

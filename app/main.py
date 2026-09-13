@@ -81,15 +81,11 @@ async def lifespan(app: FastAPI):
         log.error("MCP unavailable at startup: %s", exc)
 
     if settings.warm_embedder:
-        # Same failure philosophy as MCP: a cold embedder degrades latency, it
-        # does not justify refusing to start.
-        try:
-            from rag.retrieve import warm
-
-            warm()
-            log.info("embedding model warmed at startup")
-        except Exception as exc:  # noqa: BLE001
-            log.error("embedder warmup failed, falling back to lazy load: %s", exc)
+        # Deliberately *not* warmed here. This process never embeds a query:
+        # retrieval runs inside the MCP server subprocess, which warms its own
+        # embedder at startup. Loading the weights here too would put a second
+        # ~100 MB copy in a 512 MB instance and buy nothing.
+        log.info("embedder warmup delegated to the MCP server process")
 
     yield
     await app.state.mcp.aclose()

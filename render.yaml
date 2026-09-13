@@ -37,7 +37,11 @@ services:
         value: "true"
       - key: LOG_LEVEL
         value: INFO
+      # Must match the Dockerfile's bake location. Pointing this at a path the
+      # builder stage did not populate sends fastembed back to HuggingFace on
+      # the first query of every cold start -- the exact failure the two-stage
+      # build exists to prevent.
       - key: FASTEMBED_CACHE_PATH
-        value: /app/.fastembed_cache
+        value: /opt/fastembed_cache
       - key: PYTHONUNBUFFERED
         value: "1"

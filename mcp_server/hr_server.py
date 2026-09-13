@@ -407,4 +407,17 @@ if __name__ == "__main__":
             f"MCP_TRANSPORT={transport!r} is not supported; "
             f"use stdio, sse or streamable-http"
         )
+
+    if settings.warm_embedder:
+        # This server is a separate process from the web app, so the app's
+        # startup warmup does nothing for it. `search_policy_documents` is
+        # usually the first tool the agent reaches for, and loading the
+        # embedder lazily puts a multi-second model load -- and a second
+        # resident copy of the weights -- inside the first user request.
+        try:
+            retrieve.warm()
+        except Exception as exc:  # noqa: BLE001
+            print(f"embedder warmup failed, falling back to lazy load: {exc}",
+                  file=sys.stderr)
+
     mcp.run(transport=transport)

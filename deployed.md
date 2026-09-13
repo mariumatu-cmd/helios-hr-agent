@@ -55,7 +55,7 @@ Set in the Render dashboard, never committed.
 | `GROQ_API_KEY` | one of the two | Groq free-tier key. Primary provider. |
 | `GEMINI_API_KEY` | one of the two | Google AI Studio free-tier key. Automatic fallback. |
 | `LLM_PROVIDER` | no | `groq` (default) |
-| `WARM_EMBEDDER` | set to `true` | Loads the embedder at startup rather than on the first user request. |
+| `WARM_EMBEDDER` | set to `true` | Loads the embedder in the MCP server subprocess at startup rather than on the first user request. |
 | `PORT` | no | Supplied by Render. |
 | `LOG_LEVEL` | no | `INFO` |
 
@@ -82,7 +82,10 @@ Two design choices exist specifically to bound the cold path:
   would also include a ~133 MB fetch.
 - **`WARM_EMBEDDER=true` loads the model during startup**, not on the first
   query. The ~10 s / ~164 MB load happens while Render is still bringing the
-  service up, rather than landing on a live user.
+  service up, rather than landing on a live user. The warmup runs in the **MCP
+  server subprocess**, which is the only process that embeds queries; the web
+  app never does, so loading the weights there as well would put a second
+  ~164 MB copy into a 512 MB instance and exhaust it.
 
 **For the demo and for graders:** open `/healthz` once and wait for it to return
 before using the chat UI. That absorbs the cold start on a URL where the wait is

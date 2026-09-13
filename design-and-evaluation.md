@@ -570,9 +570,18 @@ answer different questions and must not share an endpoint.
 ### Startup and cold start
 
 The Docker image **bakes in the ONNX embedding weights** at build time, so
-startup performs no network I/O and cannot fail on a model download. The app then
-warms the embedder during the lifespan startup (`WARM_EMBEDDER=true`), moving the
-~164 MB / ~10 s first-load cost off the first user request.
+startup performs no network I/O and cannot fail on a model download. The MCP
+server subprocess then warms the embedder as it starts (`WARM_EMBEDDER=true`),
+moving the ~164 MB / ~10 s first-load cost off the first user request.
+
+The warmup belongs to the MCP process specifically. Retrieval only ever runs
+behind the `search_policy_documents` tool, so the web app never embeds a query;
+warming there as well would hold a second ~164 MB copy of the weights in a
+512 MB instance. Two further details only surface in the container: the baked
+cache must be owned by the non-root runtime user, or `huggingface_hub` cannot
+write its lock files, declares the cache corrupt and silently re-downloads the
+model on every embedder init; and both effects are invisible in local
+development, where the cache is writable and memory is not capped.
 
 Free-tier instances spin down after ~15 minutes idle. Cold start is roughly 50 s.
 Documented in [`deployed.md`](deployed.md) and shown in the demo.
