@@ -66,6 +66,13 @@ def _compact_tool_content(content: str, keep: int = ELIDED_RESULT_CHARS) -> str:
     Citations are preserved verbatim because the answer is required to cite what
     the system actually retrieved; dropping them during compaction would make a
     long run silently less grounded than a short one.
+
+    The note deliberately tells the model *not* to repeat the call. An earlier
+    version invited it to "re-call the tool for the full text", which turned
+    compaction into a loop: the elided result prompted a repeat call, the repeat
+    re-inflated the context, that forced another elision, and the run burned its
+    whole step budget re-fetching what it already had. Compaction has to read as
+    a settled summary, not as a retry instruction.
     """
     citations: list[str] = []
     try:
@@ -75,12 +82,16 @@ def _compact_tool_content(content: str, keep: int = ELIDED_RESULT_CHARS) -> str:
 
     head = content[:keep]
     note = (
-        f"[Earlier tool output truncated to fit the model's context budget; "
-        f"{len(content) - len(head)} characters elided."
+        f"[Earlier output from this tool, condensed to fit the context budget; "
+        f"{len(content) - len(head)} characters omitted."
     )
     if citations:
         note += " Citations: " + "; ".join(citations[:12]) + "."
-    note += " Re-call the tool for the full text.]"
+    note += (
+        " This summary is the record of that call -- do not repeat it. If the"
+        " detail you need is not here, continue with what you have or say so."
+        "]"
+    )
     return f"{head}\n\n{note}" if head else note
 
 

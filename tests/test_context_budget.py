@@ -117,3 +117,24 @@ def test_the_tool_manifest_counts_against_the_budget():
     _, without, _ = orchestrator.fit_context(messages, None, budget=10_000)
     _, with_tools, _ = orchestrator.fit_context(messages, tools, budget=10_000)
     assert with_tools > without + 1000
+
+
+def test_compaction_does_not_invite_the_agent_to_repeat_the_call():
+    """A condensed result must read as a settled summary, not a retry prompt.
+
+    An earlier version ended the elision note with "Re-call the tool for the
+    full text." That turned compaction into a loop on the deployed service: the
+    condensed result prompted a repeat call, the repeat re-inflated the context,
+    that forced another elision, and a four-part request burned its entire step
+    budget re-fetching what it already had instead of answering.
+    """
+    body = json.dumps({"hits": [{"text": "y" * 4000, "citation": "POL-PTO-001 s2"}]})
+
+    for keep in (orchestrator.ELIDED_RESULT_CHARS, orchestrator.MINIMAL_RESULT_CHARS):
+        note = orchestrator._compact_tool_content(body, keep=keep)
+        lowered = note.lower()
+        assert "re-call" not in lowered
+        assert "call the tool again" not in lowered
+        assert "do not repeat it" in lowered
+        # The grounding must survive even when no prose does.
+        assert "POL-PTO-001 s2" in note
