@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 
 from config import settings
+from rag.ingest.build_index import corpus_fingerprint
 from rag.ingest.chunk import MAX_TOKENS, chunk_corpus, chunk_document
 from rag.ingest.parse import load_corpus
 
@@ -83,3 +84,31 @@ def test_source_prefixed_files_are_excluded():
     would duplicate POL-EXP-001 and double-count it in retrieval."""
     names = {d.source_file for d in load_corpus(settings.corpus_dir)}
     assert not any(n.startswith("_source_") for n in names)
+
+
+def test_corpus_fingerprint_ignores_line_endings(tmp_path):
+    """The fingerprint must describe the corpus, not the checkout.
+
+    Git rewrites CRLF under `core.autocrlf`, so a byte-exact fingerprint made
+    the committed index look stale on every Linux checkout -- CI, Docker and
+    Render -- while the parsed chunks were in fact identical.
+    """
+    crlf_dir = tmp_path / "crlf"
+    lf_dir = tmp_path / "lf"
+    body = "# Title\r\n\r\nSection one.\r\nSection two.\r\n"
+    for directory, text in ((crlf_dir, body), (lf_dir, body.replace("\r\n", "\n"))):
+        directory.mkdir()
+        (directory / "policy.md").write_bytes(text.encode("utf-8"))
+
+    assert corpus_fingerprint(crlf_dir) == corpus_fingerprint(lf_dir)
+
+
+def test_corpus_fingerprint_still_detects_real_edits(tmp_path):
+    original = tmp_path / "a"
+    edited = tmp_path / "b"
+    for directory, text in ((original, "# Title\n\nCap is 10 days.\n"),
+                            (edited, "# Title\n\nCap is 15 days.\n")):
+        directory.mkdir()
+        (directory / "policy.md").write_text(text, encoding="utf-8")
+
+    assert corpus_fingerprint(original) != corpus_fingerprint(edited)
