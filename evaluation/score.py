@@ -60,6 +60,18 @@ CLARIFY_MARKERS = (
     "more than one", "multiple", "several", "did you mean", "do you mean",
     "please specify", "specify which", "let me know which", "tell me which",
     "i need to know", "ambiguous",
+    # A request for the missing information is a clarification regardless of
+    # how politely it is phrased. The first measured A02 run produced "could
+    # you please provide your name or employee ID, along with details about
+    # what you would like to expense" -- the exact behaviour the case was
+    # written to reward -- and scored 0.0, because the list above only knew how
+    # to recognise clarification-by-naming-the-ambiguity. This is the same
+    # defect as the refusal detector that only recognised refusal by negation,
+    # and it fails in the same direction: it makes the agent look worse than it
+    # is, by measuring phrasing rather than behaviour.
+    "could you", "can you provide", "can you tell", "would you", "please provide",
+    "please share", "please confirm", "provide your", "need a bit more",
+    "to help you", "in order to help",
 )
 
 
