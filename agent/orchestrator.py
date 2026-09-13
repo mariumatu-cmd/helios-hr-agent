@@ -198,6 +198,27 @@ def _tool_call_correction(exc: llm.MalformedToolCall) -> str:
     return note
 
 
+def _describe_tool_step(tool_calls: list[Any]) -> str:
+    """One operational line for a step that selected tools.
+
+    This replaces what used to be recorded here -- the model's free-text
+    preamble to its own tool call. The brief asks for a concise operational
+    trace and explicitly not for chain-of-thought, and that preamble is the
+    latter: it is the model narrating its intent, in whatever register it
+    chose, at whatever length it chose.
+
+    Describing the *decision* instead is both compliant and more honest. The
+    model's narration is a claim about what it is doing; the tool names are
+    what it actually did, and the two can disagree.
+    """
+    names = [c.function.name for c in tool_calls]
+    if not names:
+        return "no tools selected"
+    if len(names) == 1:
+        return f"selected 1 tool: {names[0]}"
+    return f"selected {len(names)} tools in parallel: {', '.join(names)}"
+
+
 @dataclass
 class ToolInvocation:
     step: int
@@ -216,7 +237,13 @@ class Step:
     model: str = ""
     latency_ms: float = 0.0
     fell_back: bool = False
-    thought: str = ""
+    # A one-line operational description of what the step did -- tools selected,
+    # answer produced, error encountered. Deliberately *not* the model's own
+    # narration: the brief asks for a concise operational trace and specifically
+    # not for chain-of-thought, and an assistant's free-text preamble to a tool
+    # call is the latter. It is derived from what the step actually did, so it
+    # cannot drift from the truth the way narration can.
+    summary: str = ""
     tool_calls: list[ToolInvocation] = field(default_factory=list)
     # Wall-clock latency includes time spent waiting out provider rate limits,
     # which on a free tier can exceed the model's own work. Kept separate so a
@@ -323,7 +350,7 @@ async def run_agent(
                 "No language model is configured. Set GROQ_API_KEY or GEMINI_API_KEY "
                 "and restart the service."
             )
-            trace.steps.append(Step(index=index, kind="error", thought=str(exc)))
+            trace.steps.append(Step(index=index, kind="error", summary=str(exc)))
             break
         except llm.MalformedToolCall as exc:
             # The provider rejected the model's own tool call. Recoverable, and
@@ -338,14 +365,14 @@ async def run_agent(
                     "I could not complete this request: the model repeatedly produced "
                     "a tool call the provider rejected as malformed."
                 )
-                trace.steps.append(Step(index=index, kind="error", thought=trace.error))
+                trace.steps.append(Step(index=index, kind="error", summary=trace.error))
                 break
             log.warning("malformed tool call at step %d; asking the model to correct it", index)
             messages.append({"role": "user", "content": _tool_call_correction(exc)})
             trace.steps.append(Step(
                 index=index,
                 kind="error",
-                thought=f"provider rejected the tool call: {exc}. Asked the model to re-send it.",
+                summary=f"provider rejected the tool call: {exc}. Asked the model to re-send it.",
                 context_tokens=context_tokens,
                 elided_results=elided,
             ))
@@ -357,7 +384,7 @@ async def run_agent(
                 "The language model is unavailable right now, so I could not complete "
                 "this request. Everything else in the system is still running; please retry."
             )
-            trace.steps.append(Step(index=index, kind="error", thought=trace.error))
+            trace.steps.append(Step(index=index, kind="error", summary=trace.error))
             break
 
         trace.provider, trace.model = response.provider, response.model
@@ -367,6 +394,8 @@ async def run_agent(
             trace.steps.append(Step(
                 index=index, kind="final", provider=response.provider, model=response.model,
                 latency_ms=round(response.latency_ms, 1), fell_back=response.fell_back,
+                summary=f"answer synthesised from {len(citations)} cited "
+                        f"{'source' if len(citations) == 1 else 'sources'}",
                 service_ms=round(response.service_ms, 1),
                 throttle_ms=round(response.throttle_ms, 1),
                 attempts=response.attempts,
@@ -379,7 +408,7 @@ async def run_agent(
         step = Step(
             index=index, kind="tool_calls", provider=response.provider, model=response.model,
             latency_ms=round(response.latency_ms, 1), fell_back=response.fell_back,
-            thought=(response.text or "").strip(),
+            summary=_describe_tool_step(response.tool_calls),
             service_ms=round(response.service_ms, 1),
             throttle_ms=round(response.throttle_ms, 1),
             attempts=response.attempts,

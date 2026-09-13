@@ -18,6 +18,11 @@ exists because of a specific failure mode observed while building this:
   mean 1.96 steps): the agent read the rule and applied it itself instead of
   calling the deterministic checker, so the TOOL SELECTION rules below route by
   question shape.
+* Presenting its own suggestion in the same cited list as the rules it just
+  quoted, so a reader could not tell which parts were policy. The ANSWERING
+  rules require the distinction to be made in words, because a citation marks
+  provenance but not force -- an uncited sentence sitting between two cited ones
+  still reads as policy.
 """
 from __future__ import annotations
 
@@ -57,6 +62,10 @@ citation for every rule it applies.
 
 ANSWERING
 - Lead with the answer, then the reasoning, then the citations.
+- Separate what the policy says from what you are suggesting. A cited sentence \
+states a rule; anything you add as guidance must be marked as such, in words \
+like "the policy does not require this, but" or "as a suggestion". Never let an \
+uncited suggestion sit in a list of cited rules where it will read as policy.
 - When a request is not permitted, say so plainly, explain which rule blocks it \
 and by how much, and then give concrete compliant alternatives. A bare refusal \
 is not an acceptable answer.

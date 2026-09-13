@@ -380,4 +380,75 @@ async def test_a_corrected_run_is_visible_in_the_trace(monkeypatch):
     trace = await orchestrator.run_agent("q", FakeClient())
 
     assert json.loads(json.dumps(trace.to_dict()))["malformed_tool_calls"] == 1
-    assert any(s.kind == "error" and "rejected" in s.thought for s in trace.steps)
+    assert any(s.kind == "error" and "rejected" in s.summary for s in trace.steps)
+
+
+# --- the trace is operational, not chain-of-thought -------------------------
+# The brief asks for a visible trace of selected tools, arguments, outputs and
+# sources, and explicitly not for chain-of-thought. The step used to record the
+# model's free-text preamble to its own tool call, which is exactly that. These
+# pin the replacement: the step describes the decision, and the narration has
+# no path into the trace at all.
+
+@pytest.mark.asyncio
+async def test_model_narration_never_reaches_the_trace(scripted):
+    narration = "Let me think. First I should figure out whether she is eligible, then check dates."
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto"})], text=narration),
+        final_step("15 days (POL-PTO-001 SS2.1)."),
+    ])
+    trace = await orchestrator.run_agent("How much PTO?", FakeClient())
+
+    serialised = json.dumps(trace.to_dict())
+    assert narration not in serialised
+    assert "Let me think" not in serialised
+
+
+@pytest.mark.asyncio
+async def test_step_summary_names_the_tools_it_selected(scripted):
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto"})], text="ignored narration"),
+        final_step("done"),
+    ])
+    trace = await orchestrator.run_agent("q", FakeClient())
+
+    step = next(s for s in trace.steps if s.kind == "tool_calls")
+    assert step.summary == "selected 1 tool: search_policy_documents"
+
+
+@pytest.mark.asyncio
+async def test_parallel_selection_is_described_as_parallel(scripted):
+    scripted([
+        tool_step([
+            ("search_policy_documents", {"query": "pto"}),
+            ("check_policy_compliance", {"employee_id": "E-1042"}),
+        ]),
+        final_step("done"),
+    ])
+    trace = await orchestrator.run_agent("q", FakeClient())
+
+    step = next(s for s in trace.steps if s.kind == "tool_calls")
+    assert step.summary == (
+        "selected 2 tools in parallel: search_policy_documents, check_policy_compliance"
+    )
+
+
+@pytest.mark.asyncio
+async def test_final_step_reports_how_many_sources_the_answer_rests_on(scripted):
+    """The answer's basis is part of the operational trace, per the brief."""
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto"})]),
+        final_step("15 days."),
+    ])
+    client = FakeClient(results={
+        "search_policy_documents": {
+            "results": [
+                {"citation": "POL-PTO-001 SS2.1"},
+                {"citation": "POL-HOL-001 SS3"},
+            ]
+        }
+    })
+    trace = await orchestrator.run_agent("q", client)
+
+    step = next(s for s in trace.steps if s.kind == "final")
+    assert step.summary == "answer synthesised from 2 cited sources"
