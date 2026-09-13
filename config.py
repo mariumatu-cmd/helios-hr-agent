@@ -30,6 +30,16 @@ class Settings(BaseSettings):
     # verified to emit well-formed tool calls against this project's schemas.
     # `qwen/qwen3.8-27b` also works and is the obvious fallback within Groq.
     groq_model: str = "openai/gpt-oss-120b"
+    # Groq meters tokens-per-minute *per model*, so each entry here is a
+    # genuinely separate budget rather than the same wall hit twice. That
+    # matters more than it sounds: at ~6,000 tokens per request against an
+    # 8,000 TPM bucket, a single model allows roughly one agent step per
+    # minute, which is not enough to finish a multi-step task. Rotating across
+    # several models multiplies the available budget. Comma-separated, tried in
+    # order after `groq_model`; every entry must support tool calling
+    # (verified against the live catalogue -- Groq's `compound` models reject a
+    # caller-supplied tool manifest with HTTP 400 and cannot drive this agent).
+    groq_fallback_models: str = "openai/gpt-oss-20b,qwen/qwen3.8-27b,qwen/qwen3.6-27b"
     gemini_api_key: str = ""
     # Verified against the live catalogue on 2026-09-13. The 2.x Flash models
     # are now 404 "no longer available to new users", so a stale default here
@@ -40,6 +50,34 @@ class Settings(BaseSettings):
     # -- Agent ----------------------------------------------------------------
     agent_max_steps: int = 8
     agent_temperature: float = 0.0
+
+    # Cap on completion length. This is not only an output-shaping knob: Groq
+    # reserves `max_tokens` against the per-minute budget whether or not the
+    # model uses them, so every 1,000 here is 1,000 fewer available for the
+    # prompt. 1,200 tokens is roughly 900 words -- ample for a cited HR answer
+    # -- and buys back a meaningful slice of an 8,000 TPM bucket.
+    llm_max_tokens: int = 1200
+
+    # Groq's free tier meters tokens-per-minute, and that bucket covers the
+    # prompt *and* the completion. A single request larger than the bucket can
+    # therefore never succeed: retrying it waits for a refill that is already
+    # big enough, and switching model just relocates the same failure. Because
+    # every agent step resends the whole tool manifest plus every prior tool
+    # result, an unbounded four-step run reliably grows past the limit and
+    # stalls. The orchestrator compacts the oldest tool results to keep each
+    # request under this budget.
+    #
+    # The value is derived, not guessed. Measured by `scripts/measure_context.py`:
+    #
+    #     system prompt        ~  595 tokens
+    #     12-tool MCP manifest ~2,709 tokens   (resent every single step)
+    #     fixed floor          ~3,304 tokens
+    #
+    # Budget + `llm_max_tokens` must clear the 8,000 TPM ceiling with room for
+    # estimation error: 6,200 + 1,200 = 7,400. That leaves ~2,900 tokens of
+    # transcript per step, which fits one full retrieval plus several structured
+    # tool results before compaction has to discard anything.
+    context_token_budget: int = 6200
 
     # -- Retrieval ------------------------------------------------------------
     embed_model: str = "BAAI/bge-small-en-v1.5"

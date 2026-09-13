@@ -3,10 +3,21 @@
 Both Groq and Google Gemini expose OpenAI-compatible chat-completions endpoints,
 so a single client shape covers them; only `base_url`, key and model differ.
 
-The primary provider is configured by `LLM_PROVIDER`; the other is used as an
-automatic fallback on rate-limit / server errors. That fallback is not just
-convenience -- it is the documented graceful-degradation path required by
-project req. §4 (handle failures gracefully) and is surfaced in the agent trace.
+Degradation is a chain of *models*, not merely of providers. Groq meters its
+free tier per model -- measured directly: two back-to-back calls to different
+Groq models each reported `x-ratelimit-remaining-tokens` against a full 8,000
+bucket rather than a shared, cumulatively drained one. A second Groq model is
+therefore a genuinely fresh budget, and rotating to it costs one request where
+waiting out a 429 costs tens of seconds. The cross-provider hop to Gemini sits
+behind it as the last resort.
+
+Rotation is strictly reactive: it happens because a call failed, never because
+a quota header looked close. Predictive switching would make the agent
+non-deterministic, and an evaluation whose model silently drifts mid-suite
+cannot support a groundedness or latency claim.
+
+This is the documented graceful-degradation path required by project req. §4
+(handle failures gracefully) and is surfaced in the agent trace.
 """
 from __future__ import annotations
 
@@ -50,14 +61,39 @@ def _provider_config(name: str) -> ProviderConfig | None:
 
 
 def provider_chain() -> list[ProviderConfig]:
-    """Configured providers, primary first. Empty if nothing is configured."""
+    """Configured fallback targets, primary first. Empty if nothing is configured.
+
+    This is a chain of *models*, not just of providers. Groq meters its free
+    tier per model, so a second Groq model is a separate token budget rather
+    than the same wall hit twice -- which makes it a real mitigation and a
+    cheaper one than crossing to another vendor. The cross-provider hop is kept
+    behind it as the last resort.
+    """
     primary = settings.llm_provider.lower().strip()
     order = [primary] + [n for n in _ENDPOINTS if n != primary]
-    return [c for c in (_provider_config(n) for n in order) if c is not None]
+    chain = [c for c in (_provider_config(n) for n in order) if c is not None]
+
+    alternates = [
+        m.strip() for m in settings.groq_fallback_models.split(",") if m.strip()
+    ]
+    if settings.groq_api_key and alternates:
+        # Directly after the primary when Groq leads, otherwise appended: the
+        # point is a fresh budget, not a particular vendor ordering.
+        at = 1 if chain and chain[0].name == "groq" else len(chain)
+        for offset, model in enumerate(m for m in alternates if m != settings.groq_model):
+            chain.insert(
+                at + offset,
+                ProviderConfig("groq", _ENDPOINTS["groq"], settings.groq_api_key, model),
+            )
+    return chain
 
 
 def available_providers() -> list[str]:
-    return [c.name for c in provider_chain()]
+    seen: list[str] = []
+    for cfg in provider_chain():
+        if cfg.name not in seen:
+            seen.append(cfg.name)
+    return seen
 
 
 def active_model() -> str:
@@ -100,7 +136,13 @@ class LLMResponse:
 # than exceptional. They are retried here instead of by the SDK so that the wait
 # can be measured and reported separately -- and so the server's own Retry-After
 # is honoured rather than guessed at with blind exponential backoff.
+#
+# When another model is still available, waiting is the worse option: the next
+# entry in the chain has its own token budget, so rotating to it costs one
+# request instead of tens of seconds. The long retry budget is therefore spent
+# only on the last entry, where there is nowhere else to go.
 MAX_RATE_LIMIT_RETRIES = 5
+RETRIES_BEFORE_ROTATING = 1
 MAX_BACKOFF_SECONDS = 30.0
 
 
@@ -123,9 +165,9 @@ def chat(
     messages: list[dict[str, Any]],
     tools: list[dict[str, Any]] | None = None,
     temperature: float | None = None,
-    max_tokens: int = 1600,
+    max_tokens: int | None = None,
 ) -> LLMResponse:
-    """Call the primary provider, falling back to the next on transient failure."""
+    """Call the primary model, rotating through the chain on transient failure."""
     chain = provider_chain()
     if not chain:
         raise NoProviderConfigured(
@@ -133,6 +175,7 @@ def chat(
         )
 
     temp = settings.agent_temperature if temperature is None else temperature
+    cap = settings.llm_max_tokens if max_tokens is None else max_tokens
     last_error: Exception | None = None
 
     for provider_index, cfg in enumerate(chain):
@@ -142,7 +185,7 @@ def chat(
             "model": cfg.model,
             "messages": messages,
             "temperature": temp,
-            "max_tokens": max_tokens,
+            "max_tokens": cap,
         }
         if tools:
             kwargs["tools"] = tools
@@ -153,8 +196,10 @@ def chat(
         service_ms = 0.0
         completion = None
         started = time.perf_counter()
+        has_next = provider_index + 1 < len(chain)
+        max_retries = RETRIES_BEFORE_ROTATING if has_next else MAX_RATE_LIMIT_RETRIES
 
-        for retry in range(MAX_RATE_LIMIT_RETRIES + 1):
+        for retry in range(max_retries + 1):
             attempts += 1
             call_started = time.perf_counter()
             try:
@@ -163,26 +208,29 @@ def chat(
                 break
             except APIStatusError as exc:
                 last_error = exc
-                if exc.status_code == 429 and retry < MAX_RATE_LIMIT_RETRIES:
+                if exc.status_code == 429 and retry < max_retries:
                     wait = _retry_after_seconds(exc, retry)
                     log.info(
-                        "provider %s rate-limited; waiting %.1fs (attempt %d)",
-                        cfg.name, wait, attempts,
+                        "%s/%s rate-limited; waiting %.1fs (attempt %d)",
+                        cfg.name, cfg.model, wait, attempts,
                     )
                     time.sleep(wait)
                     throttle_s += wait
                     continue
-                if (
-                    exc.status_code in (408, 429, 500, 502, 503, 504)
-                    and provider_index + 1 < len(chain)
-                ):
-                    log.warning("provider %s failed (%s); falling back", cfg.name, exc.status_code)
+                if exc.status_code in (408, 429, 500, 502, 503, 504) and has_next:
+                    log.warning(
+                        "%s/%s failed (%s); rotating to the next model",
+                        cfg.name, cfg.model, exc.status_code,
+                    )
                     break
                 raise
             except Exception as exc:  # network / timeout
                 last_error = exc
-                if provider_index + 1 < len(chain):
-                    log.warning("provider %s errored (%s); falling back", cfg.name, exc)
+                if has_next:
+                    log.warning(
+                        "%s/%s errored (%s); rotating to the next model",
+                        cfg.name, cfg.model, exc,
+                    )
                     break
                 raise
 
@@ -204,4 +252,4 @@ def chat(
             attempts=attempts,
         )
 
-    raise RuntimeError(f"all LLM providers failed: {last_error}")
+    raise RuntimeError(f"every model in the fallback chain failed: {last_error}")
