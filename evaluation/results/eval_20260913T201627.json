@@ -1,0 +1,174 @@
+{
+  "generated_at": "20260913T201627",
+  "provider": "groq",
+  "model": "groq/openai/gpt-oss-120b",
+  "as_of_date": "2026-09-12",
+  "repeats": 1,
+  "summary": {
+    "cases": 1,
+    "passed": 1,
+    "pass_rate": 1.0,
+    "mean_score": 1.0,
+    "dimensions": {
+      "answer_match": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "citation": {
+        "n": 0,
+        "mean": 0.0
+      },
+      "tool_selection": {
+        "n": 0,
+        "mean": 0.0
+      },
+      "no_forbidden": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "behaviour": {
+        "n": 1,
+        "mean": 1.0
+      }
+    },
+    "by_category": {
+      "ambiguous": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      }
+    },
+    "by_difficulty": {
+      "hard": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": 111028.2,
+      "p50": 111028.2,
+      "p95": 111028.2,
+      "min": 111028.2,
+      "max": 111028.2,
+      "samples": [
+        111028.2
+      ]
+    },
+    "service_latency_ms": {
+      "mean": 111028.2,
+      "p50": 111028.2,
+      "p95": 111028.2,
+      "min": 111028.2,
+      "max": 111028.2,
+      "samples": [
+        111028.2
+      ]
+    },
+    "throttle_ms": {
+      "total": 0.0,
+      "mean": 0.0,
+      "cases_throttled": 0
+    },
+    "mean_steps": 1.0
+  },
+  "per_run_summary": [
+    {
+      "cases": 1,
+      "passed": 1,
+      "pass_rate": 1.0,
+      "mean_score": 1.0,
+      "dimensions": {
+        "answer_match": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "citation": {
+          "n": 0,
+          "mean": 0.0
+        },
+        "tool_selection": {
+          "n": 0,
+          "mean": 0.0
+        },
+        "no_forbidden": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "behaviour": {
+          "n": 1,
+          "mean": 1.0
+        }
+      },
+      "by_category": {
+        "ambiguous": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        }
+      },
+      "by_difficulty": {
+        "hard": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        }
+      },
+      "latency_ms": {
+        "mean": 111028.2,
+        "p50": 111028.2,
+        "p95": 111028.2,
+        "min": 111028.2,
+        "max": 111028.2,
+        "samples": [
+          111028.2
+        ]
+      },
+      "service_latency_ms": {
+        "mean": 111028.2,
+        "p50": 111028.2,
+        "p95": 111028.2,
+        "min": 111028.2,
+        "max": 111028.2,
+        "samples": [
+          111028.2
+        ]
+      },
+      "throttle_ms": {
+        "total": 0.0,
+        "mean": 0.0,
+        "cases_throttled": 0
+      },
+      "mean_steps": 1.0
+    }
+  ],
+  "cases": [
+    [
+      {
+        "case_id": "A02",
+        "category": "ambiguous",
+        "difficulty": "hard",
+        "score": 1.0,
+        "answer_match": 1.0,
+        "citation": null,
+        "tool_selection": null,
+        "no_forbidden": 1.0,
+        "behaviour": 1.0,
+        "passed": true,
+        "failures": [],
+        "tools_used": [],
+        "citations": [],
+        "latency_ms": 111028.2,
+        "service_ms": 111028.2,
+        "throttle_ms": 0.0,
+        "steps": 1,
+        "answer": "To help you with this, could you please provide your name or employee ID, and let me know what specific item or service you are looking to expense (along with the approximate amount)?",
+        "error": ""
+      }
+    ]
+  ]
+}

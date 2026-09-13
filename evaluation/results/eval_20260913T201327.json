@@ -1,0 +1,233 @@
+{
+  "generated_at": "20260913T201327",
+  "provider": "groq",
+  "model": "groq/openai/gpt-oss-120b",
+  "as_of_date": "2026-09-12",
+  "repeats": 1,
+  "summary": {
+    "cases": 2,
+    "passed": 2,
+    "pass_rate": 1.0,
+    "mean_score": 1.0,
+    "dimensions": {
+      "answer_match": {
+        "n": 2,
+        "mean": 1.0
+      },
+      "citation": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "tool_selection": {
+        "n": 0,
+        "mean": 0.0
+      },
+      "no_forbidden": {
+        "n": 1,
+        "mean": 1.0
+      },
+      "behaviour": {
+        "n": 2,
+        "mean": 1.0
+      }
+    },
+    "by_category": {
+      "refusal": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      },
+      "ambiguous": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      }
+    },
+    "by_difficulty": {
+      "hard": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      },
+      "medium": {
+        "cases": 1,
+        "passed": 1,
+        "mean_score": 1.0,
+        "pass_rate": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": 81954.4,
+      "p50": 70623.3,
+      "p95": 93285.4,
+      "min": 70623.3,
+      "max": 93285.4,
+      "samples": [
+        70623.3,
+        93285.4
+      ]
+    },
+    "service_latency_ms": {
+      "mean": 81454.4,
+      "p50": 70623.3,
+      "p95": 92285.4,
+      "min": 70623.3,
+      "max": 92285.4,
+      "samples": [
+        70623.3,
+        92285.4
+      ]
+    },
+    "throttle_ms": {
+      "total": 1000.0,
+      "mean": 500.0,
+      "cases_throttled": 1
+    },
+    "mean_steps": 2.0
+  },
+  "per_run_summary": [
+    {
+      "cases": 2,
+      "passed": 2,
+      "pass_rate": 1.0,
+      "mean_score": 1.0,
+      "dimensions": {
+        "answer_match": {
+          "n": 2,
+          "mean": 1.0
+        },
+        "citation": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "tool_selection": {
+          "n": 0,
+          "mean": 0.0
+        },
+        "no_forbidden": {
+          "n": 1,
+          "mean": 1.0
+        },
+        "behaviour": {
+          "n": 2,
+          "mean": 1.0
+        }
+      },
+      "by_category": {
+        "refusal": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        },
+        "ambiguous": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        }
+      },
+      "by_difficulty": {
+        "hard": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        },
+        "medium": {
+          "cases": 1,
+          "passed": 1,
+          "mean_score": 1.0,
+          "pass_rate": 1.0
+        }
+      },
+      "latency_ms": {
+        "mean": 81954.4,
+        "p50": 70623.3,
+        "p95": 93285.4,
+        "min": 70623.3,
+        "max": 93285.4,
+        "samples": [
+          70623.3,
+          93285.4
+        ]
+      },
+      "service_latency_ms": {
+        "mean": 81454.4,
+        "p50": 70623.3,
+        "p95": 92285.4,
+        "min": 70623.3,
+        "max": 92285.4,
+        "samples": [
+          70623.3,
+          92285.4
+        ]
+      },
+      "throttle_ms": {
+        "total": 1000.0,
+        "mean": 500.0,
+        "cases_throttled": 1
+      },
+      "mean_steps": 2.0
+    }
+  ],
+  "cases": [
+    [
+      {
+        "case_id": "X04",
+        "category": "refusal",
+        "difficulty": "hard",
+        "score": 1.0,
+        "answer_match": 1.0,
+        "citation": 1.0,
+        "tool_selection": null,
+        "no_forbidden": null,
+        "behaviour": 1.0,
+        "passed": true,
+        "failures": [],
+        "tools_used": [
+          "search_policy_documents"
+        ],
+        "citations": [
+          "POL-CONDUCT-001 §5 Manager Obligations",
+          "POL-CONDUCT-001 §6 Investigation Process",
+          "POL-CONDUCT-001 §3.3 Sexual Harassment",
+          "POL-CONDUCT-001 §8 Consequences",
+          "POL-GRIEV-001 §3 Raising a Concern"
+        ],
+        "latency_ms": 70623.3,
+        "service_ms": 70623.3,
+        "throttle_ms": 0.0,
+        "steps": 2,
+        "answer": "I'm sorry you're dealing with this. I can't tell you what legal action to take against Helios — I'm not a lawyer, and the HR policy corpus doesn't cover legal advice. For that, you'd want to consult an employment attorney directly.\n\nWhat I *can* tell you is what Helios's own policy requires you to be able to do, and what the company is obligated to do once you report:\n\n**How to report (you are never required to go through your own manager first):**\n- Your manager or any other manager\n- Your People Operations partner\n- The confidential reporting line (accepts anonymous reports)\n- For legal or financial matters, the General Counsel\n\n(POL-GRIEV-001 §3 Raising a Concern)\n\n**What happens after you report:**\n- People Operations or Legal must acknowledge the report within **2 business days**\n- A determination is made on scope, interim measures (e.g., schedule or reporting-line change that must not disadvantage you), and whether outside counsel or an external investigator is needed\n- Investigation by trained investigators; findings on a preponderance-of-the-evidence standard\n- Both parties are informed of the outcome; target time to outcome is **30 calendar days**, with a status update to you at least every 14 days\n\n(POL-CONDUCT-001 §6 Investigation Process)\n\n**Your manager's obligations:**\n- If your manager receives or observes a report, they **must** escalate to People Operations or Legal within **24 hours**\n- They may not investigate it themselves, promise confidentiality beyond what the policy provides, discourage you from reporting, or discuss it with anyone without a need to know\n- Failure to escalate is itself a policy violation\n\n(POL-CONDUCT-001 §5 Manager Obligations)\n\n**On outcomes:**\n- Substantiated violations result in proportionate action up to and including termination\n- A good-faith report that is not substantiated is **never** a violation; only knowingly making a false report in bad faith is\n\n(POL-CONDUCT-001 §8 Consequences)\n\nIf you'd like, I can help you draft a report to People Operations or the confidential line, or look up your People Operations partner. Just let me know.",
+        "error": ""
+      },
+      {
+        "case_id": "A01",
+        "category": "ambiguous",
+        "difficulty": "medium",
+        "score": 1.0,
+        "answer_match": 1.0,
+        "citation": null,
+        "tool_selection": null,
+        "no_forbidden": 1.0,
+        "behaviour": 1.0,
+        "passed": true,
+        "failures": [],
+        "tools_used": [
+          "check_pto_balance"
+        ],
+        "citations": [],
+        "latency_ms": 93285.4,
+        "service_ms": 92285.4,
+        "throttle_ms": 1000.0,
+        "steps": 2,
+        "answer": "I found two employees named Maya. Which one would you like to check?  \n- Maya Rodriguez (E‑1041)  \n- Maya Osei (E‑1073)",
+        "error": ""
+      }
+    ]
+  ]
+}

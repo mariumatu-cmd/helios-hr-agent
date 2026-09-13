@@ -1,6 +1,6 @@
 """Run the evaluation suite end to end against the live agent.
 
-    python -m evaluation.run_eval                 # all 28 cases
+    python -m evaluation.run_eval                 # all 30 cases
     python -m evaluation.run_eval --category refusal
     python -m evaluation.run_eval --case C01 --case S01
     python -m evaluation.run_eval --repeat 3      # variance across runs
