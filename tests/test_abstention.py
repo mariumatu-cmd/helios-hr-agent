@@ -17,7 +17,7 @@ from rag.vocabulary import proper_nouns, unknown_terms
 OUT_OF_CORPUS = [
     "What does the Helios pet insurance policy cover?",
     "How do I enrol in the Helios company car scheme?",
-    "What is the tuition reimbursement cap for an MBA?",
+    "How many paid volunteer days does Helios provide each year?",
     "What was Helios's Q3 revenue?",
     "Which Helios office has a rooftop swimming pool?",
     "What is the sabbatical policy after ten years of service?",
@@ -101,7 +101,7 @@ def test_known_employees_are_not_flagged_as_unknown():
 def test_proper_nouns_are_exempt_but_do_not_mask_a_missing_topic():
     """A capitalised name is exempt; a lowercase topic noun beside it is not."""
     assert "brazil" not in unknown_terms("Can I work from Brazil for a month?")
-    assert "tuition" in unknown_terms("What is the tuition cap for an MBA?")
+    assert "volunteer" in unknown_terms("What is the paid volunteer day allowance?")
 
 
 def test_sentence_initial_words_are_not_treated_as_names():

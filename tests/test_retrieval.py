@@ -5,6 +5,8 @@ meaningful if the index is rebuilt.
 """
 from __future__ import annotations
 
+import pathlib
+
 import pytest
 
 from rag import retrieve
@@ -99,6 +101,18 @@ def test_empty_query_is_rejected():
 
 
 def test_document_catalogue_covers_the_corpus():
+    """Every source file is indexed, and the corpus stays inside the brief's range.
+
+    Derived from the filesystem rather than hard-coded: a literal count here has
+    already gone stale once when the corpus grew, and a catalogue test that
+    needs editing whenever a document is added is testing the wrong thing.
+    """
+    corpus_dir = pathlib.Path(__file__).resolve().parents[1] / "corpus"
+    # `_source_*` is the markdown the PDF is generated from, not a corpus entry.
+    sources = [p for p in corpus_dir.iterdir()
+               if p.is_file() and not p.name.startswith("_source_")]
+
     documents = retrieve.list_documents()
-    assert len(documents) == 12
+    assert len(documents) == len(sources)
+    assert 5 <= len(documents) <= 20  # project brief: 5-20 documents
     assert all(d["chunks"] > 0 and d["sections"] for d in documents)

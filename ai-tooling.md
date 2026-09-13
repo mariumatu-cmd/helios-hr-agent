@@ -92,7 +92,7 @@ found by running things, not by reading them.
 suggested adding components with good reputations — a cross-encoder reranker, a
 vector database, an LLM-as-judge evaluator — without first checking whether any
 measurement justified them. recall@6 is 1.00, so a reranker has no measured error
-to fix; 133 vectors is a 200 KB NumPy array, so Chroma adds a dependency to
+to fix; 184 vectors is a 276 KB NumPy array, so Chroma adds a dependency to
 optimise something already free; the evaluation has known-correct answers, so a
 judge adds variance and cost without information. Each rejection is documented in
 `design-and-evaluation.md`. Each required deliberately asking "what would this

@@ -96,7 +96,16 @@ def test_assert_health_accepts_a_degraded_but_serviceable_payload(client):
 
     payload = client.get("/health").json()
     assert assess(payload, require_llm=False) == []
-    assert assess(payload, require_llm=True) != []  # no key configured in tests
+
+    # Built explicitly rather than read from the live payload: whether a key
+    # happens to sit in the developer's .env must not decide whether this
+    # assertion tests anything.
+    keyless = {**payload, "llm": {**payload.get("llm", {}), "providers_configured": []}}
+    assert assess(keyless, require_llm=False) == []
+    assert assess(keyless, require_llm=True) != []
+
+    keyed = {**payload, "llm": {**payload.get("llm", {}), "providers_configured": ["groq"]}}
+    assert assess(keyed, require_llm=True) == []
 
     broken = {**payload, "mcp": {**payload["mcp"], "connected": False, "error": "boom"}}
     assert assess(broken, require_llm=False) != []
@@ -122,7 +131,10 @@ def test_tool_catalogue_marks_write_tools(client):
 
 def test_documents_endpoint_lists_the_corpus(client):
     body = client.get("/documents").json()
-    assert len(body["documents"]) == 12
+    # Range rather than a literal: the brief asks for 5-20 documents, and that
+    # is the property worth asserting. Exact coverage is checked in
+    # tests/test_retrieval.py against the corpus directory itself.
+    assert 5 <= len(body["documents"]) <= 20
     assert body["index"]["chunks"] > 0
 
 

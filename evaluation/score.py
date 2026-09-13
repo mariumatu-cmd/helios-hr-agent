@@ -83,6 +83,8 @@ class CaseScore:
     tools_used: list[str] = field(default_factory=list)
     citations: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
+    service_ms: float = 0.0
+    throttle_ms: float = 0.0
     steps: int = 0
     answer: str = ""
     error: str = ""
@@ -114,6 +116,12 @@ def score_case(case: Case, trace: Any) -> CaseScore:
         tools_used=tools_used,
         citations=list(getattr(trace, "citations", []) or []),
         latency_ms=float(getattr(trace, "total_ms", 0.0) or 0.0),
+        service_ms=float(
+            getattr(trace, "total_service_ms", 0.0)
+            or getattr(trace, "total_ms", 0.0)
+            or 0.0
+        ),
+        throttle_ms=float(getattr(trace, "throttle_ms", 0.0) or 0.0),
         steps=len(getattr(trace, "steps", []) or []),
         answer=getattr(trace, "answer", "") or "",
         error=error,
@@ -261,8 +269,10 @@ def aggregate(scores: list[CaseScore]) -> dict:
         bucket["pass_rate"] = round(bucket["passed"] / bucket["cases"], 4)
 
     latencies = sorted(s.latency_ms for s in scores)
+    service = sorted(s.service_ms for s in scores)
+    throttles = [s.throttle_ms for s in scores]
 
-    def percentile(p: float) -> float:
+    def percentile(values: list[float], p: float) -> float:
         """Nearest-rank percentile.
 
         Reported as p50/p95 because that is what the project brief asks for.
@@ -271,10 +281,10 @@ def aggregate(scores: list[CaseScore]) -> dict:
         per-case latencies are written to the JSON for anyone who wants to
         recompute it differently.
         """
-        if not latencies:
+        if not values:
             return 0.0
-        rank = max(1, math.ceil(p * len(latencies)))
-        return round(latencies[rank - 1], 1)
+        rank = max(1, math.ceil(p * len(values)))
+        return round(values[rank - 1], 1)
 
     return {
         "cases": len(scores),
@@ -287,13 +297,30 @@ def aggregate(scores: list[CaseScore]) -> dict:
         },
         "by_category": categories,
         "by_difficulty": difficulties,
+        # Wall clock, including any time spent waiting out provider rate limits.
         "latency_ms": {
             "mean": round(sum(latencies) / len(latencies), 1),
-            "p50": percentile(0.50),
-            "p95": percentile(0.95),
+            "p50": percentile(latencies, 0.50),
+            "p95": percentile(latencies, 0.95),
             "min": round(latencies[0], 1),
             "max": round(latencies[-1], 1),
             "samples": latencies,
+        },
+        # The same runs with rate-limit waiting removed. This is the number that
+        # describes the system; the one above describes the free-tier quota it
+        # was measured under. Both are reported, neither is presented alone.
+        "service_latency_ms": {
+            "mean": round(sum(service) / len(service), 1),
+            "p50": percentile(service, 0.50),
+            "p95": percentile(service, 0.95),
+            "min": round(service[0], 1),
+            "max": round(service[-1], 1),
+            "samples": service,
+        },
+        "throttle_ms": {
+            "total": round(sum(throttles), 1),
+            "mean": round(sum(throttles) / len(throttles), 1),
+            "cases_throttled": sum(1 for t in throttles if t > 0),
         },
         "mean_steps": mean([float(s.steps) for s in scores]),
     }

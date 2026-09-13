@@ -107,9 +107,18 @@ def print_summary(summary: dict) -> None:
                   f"pass {stats['passed']}/{stats['cases']}")
 
     latency = summary["latency_ms"]
-    print(f"latency (s)        mean {latency['mean'] / 1000:.1f}   "
+    service = summary["service_latency_ms"]
+    throttle = summary["throttle_ms"]
+    print(f"latency   wall (s)  mean {latency['mean'] / 1000:.1f}   "
           f"p50 {latency['p50'] / 1000:.1f}   "
           f"p95 {latency['p95'] / 1000:.1f}   max {latency['max'] / 1000:.1f}")
+    print(f"        service (s) mean {service['mean'] / 1000:.1f}   "
+          f"p50 {service['p50'] / 1000:.1f}   "
+          f"p95 {service['p95'] / 1000:.1f}   max {service['max'] / 1000:.1f}")
+    if throttle["total"] > 0:
+        print(f"        rate-limit waiting removed above: "
+              f"{throttle['total'] / 1000:.0f}s total across "
+              f"{throttle['cases_throttled']}/{summary['cases']} cases")
     print(f"mean steps         {summary['mean_steps']:.2f}")
     print("=" * 72)
 
