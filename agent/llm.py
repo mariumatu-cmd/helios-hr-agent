@@ -14,7 +14,11 @@ behind it as the last resort.
 Rotation is strictly reactive: it happens because a call failed, never because
 a quota header looked close. Predictive switching would make the agent
 non-deterministic, and an evaluation whose model silently drifts mid-suite
-cannot support a groundedness or latency claim.
+cannot support a groundedness or latency claim. The chain does, however,
+*remember* a failure it already observed -- a model that returns 429 is passed
+over for a cooldown rather than re-tried at the head of the chain on the very
+next call. Without that memory an evaluation suite paid two failed requests and
+roughly 35 seconds of dead time on every single case.
 
 This is the documented graceful-degradation path required by project req. §4
 (handle failures gracefully) and is surfaced in the agent trace.
@@ -145,6 +149,62 @@ MAX_RATE_LIMIT_RETRIES = 5
 RETRIES_BEFORE_ROTATING = 1
 MAX_BACKOFF_SECONDS = 30.0
 
+# How long a model is passed over after it rate-limits. Groq's bucket is
+# per-minute, so a minute is the natural refill horizon; the server's own
+# Retry-After wins when it sends one.
+DEFAULT_COOLDOWN_SECONDS = 60.0
+MAX_COOLDOWN_SECONDS = 120.0
+
+# Models observed to be rate-limited, and when they are worth trying again.
+# Keyed "provider/model".
+#
+# Without this, a saturated primary is re-tried at the head of the chain on
+# *every* call: measured over an evaluation suite, each case burned two failed
+# requests and ~35s before reaching a model that could answer. The chain still
+# rotates only because a call actually failed -- nothing here predicts a limit
+# from a quota header, which would make model choice drift mid-suite and
+# invalidate any latency or groundedness claim. This only stops the system
+# forgetting a failure it already observed.
+_cooldown_until: dict[str, float] = {}
+
+
+def reset_cooldowns() -> None:
+    """Forget every recorded rate-limit. Used by tests to isolate cases."""
+    _cooldown_until.clear()
+
+
+def _cooldown_key(cfg: ProviderConfig) -> str:
+    return f"{cfg.name}/{cfg.model}"
+
+
+def _mark_cooling(cfg: ProviderConfig, seconds: float | None = None) -> None:
+    wait = DEFAULT_COOLDOWN_SECONDS if seconds is None else seconds
+    wait = max(1.0, min(wait, MAX_COOLDOWN_SECONDS))
+    _cooldown_until[_cooldown_key(cfg)] = time.monotonic() + wait
+
+
+def _ordered_chain(chain: list[ProviderConfig]) -> list[tuple[int, ProviderConfig]]:
+    """Chain order, with recently rate-limited models moved to the back.
+
+    Returns (original_index, cfg) so `fell_back` keeps meaning "not the
+    configured primary" rather than "not first after reordering".
+
+    Models still cooling are not dropped -- a cooldown is an informed guess,
+    and if every model is cooling the call must still be attempted. They are
+    just tried last, soonest-to-recover first.
+    """
+    now = time.monotonic()
+    ready: list[tuple[int, ProviderConfig]] = []
+    cooling: list[tuple[float, int, ProviderConfig]] = []
+    for index, cfg in enumerate(chain):
+        until = _cooldown_until.get(_cooldown_key(cfg), 0.0)
+        if until > now:
+            cooling.append((until, index, cfg))
+        else:
+            ready.append((index, cfg))
+    cooling.sort(key=lambda item: item[0])
+    return ready + [(index, cfg) for _, index, cfg in cooling]
+
 
 def _retry_after_seconds(exc: APIStatusError, attempt: int) -> float:
     """How long to wait before retrying, preferring the server's own answer."""
@@ -178,7 +238,9 @@ def chat(
     cap = settings.llm_max_tokens if max_tokens is None else max_tokens
     last_error: Exception | None = None
 
-    for provider_index, cfg in enumerate(chain):
+    order = _ordered_chain(chain)
+
+    for position, (provider_index, cfg) in enumerate(order):
         # max_retries=0: retries are handled below so their cost is observable.
         client = OpenAI(api_key=cfg.api_key, base_url=cfg.base_url, timeout=60.0, max_retries=0)
         kwargs: dict[str, Any] = {
@@ -196,7 +258,7 @@ def chat(
         service_ms = 0.0
         completion = None
         started = time.perf_counter()
-        has_next = provider_index + 1 < len(chain)
+        has_next = position + 1 < len(order)
         max_retries = RETRIES_BEFORE_ROTATING if has_next else MAX_RATE_LIMIT_RETRIES
 
         for retry in range(max_retries + 1):
@@ -208,6 +270,10 @@ def chat(
                 break
             except APIStatusError as exc:
                 last_error = exc
+                if exc.status_code == 429:
+                    # Observed, not predicted: this model has just told us its
+                    # bucket is empty, so stop leading with it until it refills.
+                    _mark_cooling(cfg, _retry_after_seconds(exc, retry))
                 if exc.status_code == 429 and retry < max_retries:
                     wait = _retry_after_seconds(exc, retry)
                     log.info(
@@ -238,6 +304,8 @@ def chat(
             continue  # exhausted this provider; try the next one
 
         latency_ms = (time.perf_counter() - started) * 1000.0
+        # A success proves the bucket has room again, whatever we assumed.
+        _cooldown_until.pop(_cooldown_key(cfg), None)
         msg = completion.choices[0].message
         return LLMResponse(
             provider=cfg.name,
