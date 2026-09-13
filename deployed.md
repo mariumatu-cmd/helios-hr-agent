@@ -4,17 +4,17 @@
 
 | | |
 |---|---|
-| **Application** | `https://<service>.onrender.com` — *to be filled in after the Render deploy* |
-| **Liveness** | `https://<service>.onrender.com/healthz` |
-| **Readiness** | `https://<service>.onrender.com/health` |
-| **Tool manifest** | `https://<service>.onrender.com/tools` |
-| **Corpus manifest** | `https://<service>.onrender.com/documents` |
+| **Application** | <https://helios-hr-assistant-wz3c.onrender.com> |
+| **Liveness** | <https://helios-hr-assistant-wz3c.onrender.com/healthz> |
+| **Readiness** | <https://helios-hr-assistant-wz3c.onrender.com/health> |
+| **Tool manifest** | <https://helios-hr-assistant-wz3c.onrender.com/tools> |
+| **Corpus manifest** | <https://helios-hr-assistant-wz3c.onrender.com/documents> |
 
-> **Status.** The deployment artifacts are complete and verified — `render.yaml`,
-> `Dockerfile`, and a CI job that builds the image, runs it, and asserts health
-> before any deploy is triggered. Creating the Render service requires signing in
-> to a Render account, which is a manual step. The URLs above are filled in at
-> that point, and this file is the only place that needs to change.
+Render service `srv-daj9a0mk1f9s73coho1g`, Free instance type, Oregon.
+
+> **Cold start.** The instance sleeps after ~15 minutes idle. Open `/healthz`
+> once and let it return before using the chat UI — see
+> [Cold starts](#cold-starts) for the measured numbers.
 
 ## Platform and shape
 
@@ -48,21 +48,51 @@ would not fit in 512 MB. Concurrency within the single worker is handled by
 
 ## Environment variables
 
-Set in the Render dashboard, never committed.
+Set in the Render dashboard, never committed. `.env.example` documents the same
+set for local use.
 
-| Variable | Required | Value |
-|---|---|---|
-| `GROQ_API_KEY` | one of the two | Groq free-tier key. Primary provider. |
-| `GEMINI_API_KEY` | one of the two | Google AI Studio free-tier key. Automatic fallback. |
-| `LLM_PROVIDER` | no | `groq` (default) |
-| `WARM_EMBEDDER` | set to `true` | Loads the embedder in the MCP server subprocess at startup rather than on the first user request. |
-| `PORT` | no | Supplied by Render. |
-| `LOG_LEVEL` | no | `INFO` |
+| Variable | Required | Value on the deployed service | Why |
+|---|---|---|---|
+| `GROQ_API_KEY` | one of the two | Groq free-tier key | Primary provider. |
+| `GEMINI_API_KEY` | one of the two | Google AI Studio free-tier key | Cross-provider fallback. |
+| `LLM_PROVIDER` | no | `groq` | Which provider leads the chain. |
+| `GROQ_FALLBACK_MODELS` | no | `openai/gpt-oss-20b,qwen/qwen3.8-27b,qwen/qwen3.6-27b` | Groq meters tokens **per model**, so each extra model is a fresh per-minute budget. This is what keeps a multi-step run alive on the free tier. |
+| `LLM_MAX_TOKENS` | no | `1200` | Groq reserves this against the same per-minute bucket whether the completion uses it or not, so it is a prompt-budget decision, not just an output cap. |
+| `CONTEXT_TOKEN_BUDGET` | no | `6200` | Ceiling on estimated prompt tokens per agent step. With `LLM_MAX_TOKENS` it must clear Groq's 8,000 TPM limit: 6,200 + 1,200 = 7,400. |
+| `WARM_EMBEDDER` | yes | `true` | Loads the embedder during startup rather than on the first user request. |
+| `FASTEMBED_CACHE_PATH` | yes | `/app/.fastembed_cache` | Points at the weights baked into the image, in a writable location. |
+| `MCP_TRANSPORT` | no | `stdio` | The MCP server runs as a subprocess of the web app. |
+| `PYTHONUNBUFFERED` | no | `1` | Makes logs appear in Render's stream immediately. |
+| `LOG_LEVEL` | no | `INFO` | |
+| `PORT` | no | supplied by Render | |
 
-With both keys set, the agent falls back transparently when the primary errors
-or rate-limits, and the fallback is visible in the response trace. With neither,
-the service still starts, `/healthz` returns 200, `/health` reports `degraded`,
-and every non-LLM endpoint keeps working.
+With both API keys set, the agent walks a chain of four Groq models and then
+Gemini, and whichever model answered is reported in the response trace. With
+neither, the service still starts, `/healthz` returns 200, `/health` reports
+`degraded`, and every non-LLM endpoint keeps working.
+
+### Why the free tier needs three of these
+
+Groq's free tier meters **8,000 tokens per minute**, and that bucket covers the
+prompt *and* the completion together. Every agent step resends the full tool
+manifest plus every prior tool result, so an unbounded multi-step run grows
+past the limit and stalls — and a request larger than the bucket can never
+succeed, because retrying only waits for a refill that is already big enough
+and switching model relocates the identical failure.
+
+Measured fixed cost per step (`python scripts/measure_context.py`):
+
+| Component | Tokens |
+|---|---|
+| System prompt | ~595 |
+| 12-tool MCP manifest (resent every step) | ~2,709 |
+| **Fixed floor** | **~3,304** |
+
+`CONTEXT_TOKEN_BUDGET` bounds the prompt, `LLM_MAX_TOKENS` bounds what is
+reserved for the answer, and `GROQ_FALLBACK_MODELS` multiplies the available
+budget across models. Together they are the difference between a multi-step
+task completing and timing out. See `design-and-evaluation.md` for the full
+analysis.
 
 ## Cold starts
 
@@ -121,16 +151,18 @@ Returns `503` when any of those is missing.
     "ok": true,
     "model": "BAAI/bge-small-en-v1.5",
     "chunks": 184,
-    "documents": 12,
-    "built_at": "2026-09-12T11:35:09Z"
+    "documents": 16,
+    "built_at": "2026-09-13T11:36:23Z"
   },
   "llm": {
-    "providers_configured": ["groq"],
+    "providers_configured": ["groq", "gemini"],
     "primary": "groq",
     "ok": true
   }
 }
 ```
+
+*Captured from the live service.*
 
 `/health` never raises. A readiness probe that returns 500 tells you nothing
 about which dependency failed, which is the only reason to call it — so an
@@ -145,18 +177,29 @@ system can do its job.
 ## Verifying the deployment
 
 ```bash
-BASE=https://<service>.onrender.com
+BASE=https://helios-hr-assistant-wz3c.onrender.com
 
-curl -s $BASE/healthz                       # 200, immediately once awake
-curl -s $BASE/health   | python -m json.tool # full readiness detail
-curl -s $BASE/tools    | python -m json.tool # 12 MCP tools, discovered live
-curl -s $BASE/documents| python -m json.tool # 16 documents, 184 chunks
+curl -s $BASE/healthz                        # 200, immediately once awake
+curl -s $BASE/health    | python -m json.tool # full readiness detail
+curl -s $BASE/tools     | python -m json.tool # 12 MCP tools, discovered live
+curl -s $BASE/documents | python -m json.tool # 16 documents, 184 chunks
 
 curl -s -X POST $BASE/chat \
   -H 'content-type: application/json' \
   -d '{"message":"How much notice do I need for three days of PTO?","history":[]}' \
   | python -m json.tool
 ```
+
+To reproduce the two graded end-to-end tasks against the live service:
+
+```bash
+python scripts/verify_deployed_tasks.py            # both tasks
+python scripts/verify_deployed_tasks.py parental   # just one
+```
+
+It asserts each run is multi-step, uses more than one tool, returns citations,
+and did **not** exhaust its step budget, then writes the full traces to
+`evidence/deployed-tasks.json`.
 
 The `/chat` response carries the complete trace — every step, every tool name and
 argument, every result, and the citations harvested from the tool output.
@@ -170,14 +213,32 @@ demonstration that the protocol boundary is real.
 1. Fork or push this repository to GitHub.
 2. In Render: **New → Web Service**, connect the repository. `render.yaml` is
    detected and supplies runtime, region, plan, and health check path.
-3. Add `GROQ_API_KEY` (and/or `GEMINI_API_KEY`) and `WARM_EMBEDDER=true` as
-   environment variables.
+3. Add `GROQ_API_KEY` (and/or `GEMINI_API_KEY`) plus `WARM_EMBEDDER=true` and
+   `FASTEMBED_CACHE_PATH=/app/.fastembed_cache` as environment variables.
 4. Deploy. The first build takes roughly 5–8 minutes; most of it is installing
    dependencies and baking in the embedding weights.
 5. Confirm `/health` returns `200` with `"status": "ok"`.
 
-To enable automatic redeploys from CI, set the repository variable `APP_URL` to
-the deployed URL and the repository secret `RENDER_DEPLOY_HOOK` to the Render
-deploy hook. The `deploy` job in `.github/workflows/ci.yml` then runs on `main`
-after both the test and container jobs pass, and verifies `/health` afterwards.
-Without those two values the job is skipped, so the pipeline is green either way.
+### Continuous deployment
+
+The `deploy` job in `.github/workflows/ci.yml` runs on `main` after both the
+test and container jobs pass. It needs:
+
+| Kind | Name | Value |
+|---|---|---|
+| Secret | `RENDER_API_KEY` | Render account API key |
+| Variable | `RENDER_SERVICE_ID` | `srv-daj9a0mk1f9s73coho1g` |
+| Variable | `APP_URL` | the deployed base URL |
+
+The job calls Render's REST API rather than a deploy hook. That is deliberate:
+Render only fires its own auto-deploy webhook when its GitHub App is installed
+on the repository, and a plain deploy hook returns nothing identifying, so the
+pipeline would have to *assume* the next healthy response belonged to its own
+deploy. The API returns a deploy id, so CI polls **that** deploy to `live` and
+only then asserts `/health` on the running service with `--require-llm`.
+
+If the credentials are absent — on a fork, for example — the job emits a
+GitHub warning annotation and succeeds rather than failing someone else's
+build. The annotation matters: an earlier version logged a plain line, and a
+run where the secrets had not yet been created reported a green "Deploy to
+Render" that had silently deployed nothing.
