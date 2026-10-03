@@ -9,7 +9,9 @@ back to back on the free tier. Scorer 2 passed 4 of 8;
 failure and the change it led to. Older live figures come from the September
 revision and are labelled historical. `evidence/deployed-20261003T163450.json`
 is a later failed check of the international task, described in the same
-section.
+section. After the resulting fixes, both demonstrations passed on build
+`c88530a` (`evidence/deployed-20261003T172000.json` and
+`evidence/deployed-20261003T172114.json`).
 
 `evidence/deployed-tasks.json` is a superseded September capture. Its verifier
 checked tool and step counts, not answers, and so labelled David's
@@ -285,7 +287,7 @@ document, even if the answer did not cite it.
 
 That run recorded wall-clock p50 **65.4 seconds**, p95 **248.2 seconds**.
 Saved deployed workflows took **206.8** and **189.4 seconds**, and a later PTO
-request took about **68 seconds**. Warm chat is not a 2-6 second operation, and
+request took about **68 seconds**, far from a 2-6 second reply, and
 health-endpoint latency must not be substituted for chat latency.
 `evidence/cold-start.json` records a historical 52.5-second platform cold start;
 it is not a measurement of the current code.
@@ -331,6 +333,14 @@ Changes made in response: such a request is evaluated as international remote
 work; errors list each request type with its arguments; a narrow search miss no
 longer overrides an earlier grounded result; section headings count as corpus
 words; and the prompts name each section by number and heading.
+
+Build `c88530a` then passed both demonstrations at the first attempt, one
+request each, on the fallback model `qwen/qwen3.8-27b`
+(`evidence/deployed-20261003T172000.json`, `evidence/deployed-20261003T172114.json`).
+International took 7.4 seconds and PTO 5.4 seconds, six model calls each, with
+no rate-limit waits. The international compliance check succeeded on its first
+call, and confirming the PTO preview created the mock ticket in a separate
+request. Two passing runs show that the workflows can complete, not a success rate.
 
 ### Current offline evidence
 

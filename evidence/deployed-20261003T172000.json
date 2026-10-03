@@ -1,0 +1,443 @@
+{
+  "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
+  "build_sha": "c88530ad684aad84aea4ca9ecb8bd8dd0fdc9d99",
+  "measured_at": "2026-10-03T15:20:00Z",
+  "scorer_version": "3",
+  "summary": {
+    "runs": 1,
+    "passed": 1,
+    "wall_seconds_median": 7.4,
+    "wall_seconds_max": 7.39,
+    "throttle_seconds": 0.0,
+    "api_calls": 6,
+    "tokens": 20113,
+    "stopped_early": null
+  },
+  "tasks": [
+    {
+      "task": "international",
+      "kind": "demo task",
+      "prompt": "Maya Rodriguez wants to work from Portugal for 42 calendar days, 5 October to 15 November 2026. Can she? Check her rolling international usage, run the international remote-work compliance check for Portugal and these dates, then read section 2 of the international remote-work policy (POL-INTL-001), The 30-Day Rule, and section 6 of the remote-work policy (POL-REMOTE-001), Temporary Work Outside the Home Country. Explain the limit and any compliant options, citing both policies.",
+      "trace": {
+        "question": "Maya Rodriguez wants to work from Portugal for 42 calendar days, 5 October to 15 November 2026. Can she? Check her rolling international usage, run the international remote-work compliance check for Portugal and these dates, then read section 2 of the international remote-work policy (POL-INTL-001), The 30-Day Rule, and section 6 of the remote-work policy (POL-REMOTE-001), Temporary Work Outside the Home Country. Explain the limit and any compliant options, citing both policies.",
+        "answer": "**No \u2014 Maya cannot work from Portugal for 42 calendar days as ordinary international remote work.** The request exceeds the 30-day rolling limit.\n\n## The limit\n- An approved employee may work from an eligible country for a **maximum of 30 calendar days per rolling 12-month period, across all countries combined**, counting calendar days present in the country while performing any work, including partial days. (POL-INTL-001 \u00a72 The 30-Day Rule)\n- Working from outside the home country \u2014 for any duration \u2014 is not covered by the standard remote-work policy and requires prior approval under POL-INTL-001, which imposes a separate day limit, tax review, immigration check, and security review. (POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country)\n\n## Maya's numbers\n- Rolling window (12 months back from the 5 Oct 2026 start): **12 days already used** (Ireland, 2\u201313 Mar 2026). Her earlier Spain trip (Aug 2025) falls outside the window and does not count. (POL-INTL-001 \u00a72 Rolling 30-Day Limit)\n- 42 requested days + 12 already used = **54 days against a 30-day limit \u2192 24 days over.** The compliance check returns `compliant: false`, blocked solely by the rolling limit. (POL-INTL-001 \u00a72 Rolling 30-Day Limit)\n- Immigration: **pass** \u2014 she is a US citizen, no immigration review triggered. (POL-INTL-001 \u00a74.4 Immigration Review)\n- Tenure: **pass** \u2014 53 months of service vs. the 6 months required. (POL-REMOTE-001 \u00a73.1 Eligibility)\n\n## Compliant options\nThe policy states that a request exceeding 30 days \"cannot be approved as ordinary international remote work\" and that an employee who needs to work abroad longer than 30 days must do one of the following (POL-INTL-001 \u00a72 The 30-Day Rule):\n1. **Take the excess as approved PTO or unpaid leave, performing no work whatsoever** during that period.\n2. **Pursue a permanent relocation through Global Mobility** \u2014 requires an entity in the destination country, a new employment agreement, and a minimum 90-day lead time.\n3. **Be assigned to a formal short-term international assignment** \u2014 sponsored by the business unit and requiring VP approval.\n\n**Practical cap for this trip:** with 12 days already used in the window, Maya has **18 days remaining** (30 \u2212 12). So she could work from Portugal for up to **18 calendar days** (e.g., 5\u201322 Oct 2026) and take the rest of the 42-day period as PTO/unpaid leave with no work performed, or pursue one of the longer-term options above.\n\nAs a suggestion (not a policy requirement): if she wants the full 42 days in Portugal, the cleanest path is to split it \u2014 work up to 18 days, then take the remaining 24 days as PTO/unpaid leave with no work performed \u2014 or, if the stay is genuinely long-term, start a Global Mobility relocation (90-day lead time) or a VP-approved short-term assignment.\n\nNote: per POL-REMOTE-001 \u00a76, booking travel before receiving approval under POL-INTL-001 is at the employee's own risk.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 1704.2,
+            "fell_back": false,
+            "summary": "selected 1 tool: lookup_employee_profile",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "lookup_employee_profile",
+                "arguments": {
+                  "employee": "Maya Rodriguez"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "full_name": "Maya Rodriguez",
+                  "email": "maya.rodriguez@helios.example.com",
+                  "title": "Senior Software Engineer",
+                  "department": "Engineering",
+                  "role_family": "Engineering",
+                  "employment_type": "full_time",
+                  "weekly_hours": 40,
+                  "hire_date": "2022-03-14",
+                  "manager_id": "E-1007",
+                  "office_location": "AUS",
+                  "work_city": "Austin",
+                  "work_state": "TX",
+                  "work_country": "United States",
+                  "work_arrangement": "remote",
+                  "remote_eligible_role": true,
+                  "latest_performance_rating": "Exceeds Expectations",
+                  "on_pip": false,
+                  "work_authorization": "citizen",
+                  "has_corporate_card": true,
+                  "tenure_months": 53,
+                  "office": {
+                    "office_id": "AUS",
+                    "name": "Austin HQ",
+                    "city": "Austin",
+                    "state": "TX",
+                    "country": "United States",
+                    "timezone": "America/Chicago",
+                    "utc_offset_standard": -6,
+                    "holiday_schedule": "US",
+                    "expense_tier": "us_other",
+                    "entity": "Helios Systems, Inc.",
+                    "hybrid_anchor_days": [
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday"
+                    ]
+                  },
+                  "manager_name": "David Okafor",
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 498.2
+              }
+            ],
+            "service_ms": 1704.2,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3007,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 487.0,
+            "fell_back": false,
+            "summary": "selected 1 tool: check_international_work_usage",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "check_international_work_usage",
+                "arguments": {
+                  "employee": "Maya Rodriguez"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "employee_name": "Maya Rodriguez",
+                  "work_authorization": "citizen",
+                  "as_of_date": "2026-09-12",
+                  "window_start": "2025-09-12",
+                  "window_end": "2026-09-12",
+                  "annual_limit_days": 30,
+                  "days_used": 12,
+                  "days_remaining": 18,
+                  "counted_records": [
+                    {
+                      "record_id": "IRW-2026-0043",
+                      "employee_id": "E-1041",
+                      "country": "Ireland",
+                      "start_date": "2026-03-02",
+                      "end_date": "2026-03-13",
+                      "calendar_days": 12,
+                      "status": "completed",
+                      "approved_by": "E-1007",
+                      "notes": "Co-located with Dublin platform team."
+                    }
+                  ],
+                  "excluded_records": [
+                    {
+                      "record_id": "IRW-2025-0298",
+                      "employee_id": "E-1041",
+                      "country": "Spain",
+                      "start_date": "2025-08-04",
+                      "end_date": "2025-08-15",
+                      "calendar_days": 12,
+                      "status": "completed",
+                      "approved_by": "E-1007",
+                      "notes": "OUTSIDE the current rolling 12-month window as of 2026-09-12; must NOT count toward the limit.",
+                      "excluded_because": "ended 2025-08-15, before the rolling window opened on 2025-09-12"
+                    }
+                  ],
+                  "citation": "POL-INTL-001 \u00a72 Rolling 30-Day Limit"
+                },
+                "is_error": false,
+                "latency_ms": 4.6
+              }
+            ],
+            "service_ms": 487.0,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3429,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 636.7,
+            "fell_back": false,
+            "summary": "selected 1 tool: check_policy_compliance",
+            "tool_calls": [
+              {
+                "step": 3,
+                "name": "check_policy_compliance",
+                "arguments": {
+                  "country": "Portugal",
+                  "employee": "Maya Rodriguez",
+                  "end_date": "2026-11-15",
+                  "request_type": "international_remote_work",
+                  "start_date": "2026-10-05"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "employee_name": "Maya Rodriguez",
+                  "request": {
+                    "country": "Portugal",
+                    "start_date": "2026-10-05",
+                    "end_date": "2026-11-15",
+                    "calendar_days": 42
+                  },
+                  "usage": {
+                    "window_start": "2025-10-05",
+                    "window_end": "2026-10-05",
+                    "days_used": 12,
+                    "days_remaining": 18,
+                    "counted_records": [
+                      {
+                        "record_id": "IRW-2026-0043",
+                        "employee_id": "E-1041",
+                        "country": "Ireland",
+                        "start_date": "2026-03-02",
+                        "end_date": "2026-03-13",
+                        "calendar_days": 12,
+                        "status": "completed",
+                        "approved_by": "E-1007",
+                        "notes": "Co-located with Dublin platform team."
+                      }
+                    ],
+                    "excluded_records": [
+                      {
+                        "record_id": "IRW-2025-0298",
+                        "employee_id": "E-1041",
+                        "country": "Spain",
+                        "start_date": "2025-08-04",
+                        "end_date": "2025-08-15",
+                        "calendar_days": 12,
+                        "status": "completed",
+                        "approved_by": "E-1007",
+                        "notes": "OUTSIDE the current rolling 12-month window as of 2026-09-12; must NOT count toward the limit.",
+                        "excluded_because": "ended 2025-08-15, before the rolling window opened on 2025-10-05"
+                      }
+                    ]
+                  },
+                  "compliant": false,
+                  "requires_review": false,
+                  "findings": [
+                    {
+                      "check": "rolling_limit",
+                      "status": "fail",
+                      "detail": "42 requested days plus 12 already used in the window 2025-10-05 to 2026-10-05 = 54 days against a 30-day limit",
+                      "requested_days": 42,
+                      "days_already_used": 12,
+                      "projected_total_days": 54,
+                      "overage_days": 24,
+                      "citation": "POL-INTL-001 \u00a72 Rolling 30-Day Limit"
+                    },
+                    {
+                      "check": "immigration",
+                      "status": "pass",
+                      "detail": "work authorization is citizen; no immigration review triggered",
+                      "citation": "POL-INTL-001 \u00a74.4 Immigration Review"
+                    },
+                    {
+                      "check": "tenure",
+                      "status": "pass",
+                      "detail": "53 months of service since 2022-03-14; 6 months required",
+                      "citation": "POL-REMOTE-001 \u00a73.1 Eligibility"
+                    }
+                  ],
+                  "blocking_reasons": [
+                    "42 requested days plus 12 already used in the window 2025-10-05 to 2026-10-05 = 54 days against a 30-day limit"
+                  ],
+                  "citations": [
+                    "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+                    "POL-INTL-001 \u00a74.4 Immigration Review",
+                    "POL-REMOTE-001 \u00a73.1 Eligibility"
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 4.4
+              }
+            ],
+            "service_ms": 636.7,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3846,
+            "elided_results": 0
+          },
+          {
+            "index": 4,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 784.3,
+            "fell_back": true,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 4,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-INTL-001",
+                  "section": "2"
+                },
+                "result": {
+                  "doc_id": "POL-INTL-001",
+                  "section": "2",
+                  "passages": [
+                    {
+                      "chunk_id": "c00099",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "The 30-Day Rule",
+                      "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+                      "text": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer than 30\n  days must either:\n\n- take the excess period as approved PTO or unpaid leave, performing no work\n      whatsoever during that period; or\n- pursue a permanent relocation through Global Mobility, which requires an\n      entity in the destination country, a new employment agreement, and a\n      minimum lead time of 90 days ; or\n- be assigned to a formal short-term international assignment, which is\n      sponsored by the business unit and requires VP approval.\n\nA six-week (42-day) request, for example, exceeds the 30-day limit and cannot\n  be approved as ordinary international remote work.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 4.8
+              }
+            ],
+            "service_ms": 784.3,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 4591,
+            "elided_results": 0
+          },
+          {
+            "index": 5,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 616.4,
+            "fell_back": true,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 5,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-REMOTE-001",
+                  "section": "6"
+                },
+                "result": {
+                  "doc_id": "POL-REMOTE-001",
+                  "section": "6",
+                  "passages": [
+                    {
+                      "chunk_id": "c00185",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Work Outside the Home Country",
+                      "citation": "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country",
+                      "text": "Working from outside the employee's home country \u2014 for any duration \u2014 is **not**\ncovered by Section 5. It requires prior approval under `POL-INTL-001`, which\nimposes a separate day limit, tax review, immigration check, and security\nreview. Booking travel before receiving approval under `POL-INTL-001` is at the\nemployee's own risk.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 2.7
+              }
+            ],
+            "service_ms": 616.4,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 5137,
+            "elided_results": 0
+          },
+          {
+            "index": 6,
+            "kind": "final",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 2375.9,
+            "fell_back": true,
+            "summary": "answer uses 5 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 2375.9,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 5490,
+            "elided_results": 0
+          }
+        ],
+        "citations": [
+          "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+          "POL-INTL-001 \u00a74.4 Immigration Review",
+          "POL-REMOTE-001 \u00a73.1 Eligibility",
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country"
+        ],
+        "sources": [
+          {
+            "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "The 30-Day Rule",
+            "snippet": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer th..."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Temporary Work Outside the Home Country",
+            "snippet": "Working from outside the employee's home country \u2014 for any duration \u2014 is **not**\ncovered by Section 5. It requires prior approval under `POL-INTL-001`, which\nimposes a separate day limit, tax review, immigration check, and security\nreview. Booking travel before receiving approval under `POL-INTL-001` is at the\nemployee's own risk."
+          }
+        ],
+        "tools_used": [
+          "lookup_employee_profile",
+          "check_international_work_usage",
+          "check_policy_compliance",
+          "get_policy_section"
+        ],
+        "total_ms": 7127.4,
+        "total_service_ms": 7127.4,
+        "throttle_ms": 0.0,
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true,
+        "grounded": null,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 5490,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+          "POL-INTL-001 \u00a74.4 Immigration Review",
+          "POL-REMOTE-001 \u00a73.1 Eligibility",
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country"
+        ],
+        "pending_actions": [],
+        "api_calls": 6,
+        "prompt_tokens": 18540,
+        "completion_tokens": 1573,
+        "cached": false,
+        "answer_html": "<p><strong>No \u2014 Maya cannot work from Portugal for 42 calendar days as ordinary international remote work.</strong> The request exceeds the 30-day rolling limit.</p>\n<h2>The limit</h2>\n<ul>\n<li>An approved employee may work from an eligible country for a <strong>maximum of 30 calendar days per rolling 12-month period, across all countries combined</strong>, counting calendar days present in the country while performing any work, including partial days. (POL-INTL-001 \u00a72 The 30-Day Rule)</li>\n<li>Working from outside the home country \u2014 for any duration \u2014 is not covered by the standard remote-work policy and requires prior approval under POL-INTL-001, which imposes a separate day limit, tax review, immigration check, and security review. (POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country)</li>\n</ul>\n<h2>Maya's numbers</h2>\n<ul>\n<li>Rolling window (12 months back from the 5 Oct 2026 start): <strong>12 days already used</strong> (Ireland, 2\u201313 Mar 2026). Her earlier Spain trip (Aug 2025) falls outside the window and does not count. (POL-INTL-001 \u00a72 Rolling 30-Day Limit)</li>\n<li>42 requested days + 12 already used = <strong>54 days against a 30-day limit \u2192 24 days over.</strong> The compliance check returns <code>compliant: false</code>, blocked solely by the rolling limit. (POL-INTL-001 \u00a72 Rolling 30-Day Limit)</li>\n<li>Immigration: <strong>pass</strong> \u2014 she is a US citizen, no immigration review triggered. (POL-INTL-001 \u00a74.4 Immigration Review)</li>\n<li>Tenure: <strong>pass</strong> \u2014 53 months of service vs. the 6 months required. (POL-REMOTE-001 \u00a73.1 Eligibility)</li>\n</ul>\n<h2>Compliant options</h2>\n<p>The policy states that a request exceeding 30 days &quot;cannot be approved as ordinary international remote work&quot; and that an employee who needs to work abroad longer than 30 days must do one of the following (POL-INTL-001 \u00a72 The 30-Day Rule):</p>\n<ol>\n<li><strong>Take the excess as approved PTO or unpaid leave, performing no work whatsoever</strong> during that period.</li>\n<li><strong>Pursue a permanent relocation through Global Mobility</strong> \u2014 requires an entity in the destination country, a new employment agreement, and a minimum 90-day lead time.</li>\n<li><strong>Be assigned to a formal short-term international assignment</strong> \u2014 sponsored by the business unit and requiring VP approval.</li>\n</ol>\n<p><strong>Practical cap for this trip:</strong> with 12 days already used in the window, Maya has <strong>18 days remaining</strong> (30 \u2212 12). So she could work from Portugal for up to <strong>18 calendar days</strong> (e.g., 5\u201322 Oct 2026) and take the rest of the 42-day period as PTO/unpaid leave with no work performed, or pursue one of the longer-term options above.</p>\n<p>As a suggestion (not a policy requirement): if she wants the full 42 days in Portugal, the cleanest path is to split it \u2014 work up to 18 days, then take the remaining 24 days as PTO/unpaid leave with no work performed \u2014 or, if the stay is genuinely long-term, start a Global Mobility relocation (90-day lead time) or a VP-approved short-term assignment.</p>\n<p>Note: per POL-REMOTE-001 \u00a76, booking travel before receiving approval under POL-INTL-001 is at the employee's own risk.</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [],
+      "passed": true,
+      "wall_seconds": 7.39,
+      "metrics": {
+        "agent_seconds": 7.1,
+        "throttle_seconds": 0.0,
+        "api_calls": 6,
+        "tokens": 20113,
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true
+      }
+    }
+  ]
+}

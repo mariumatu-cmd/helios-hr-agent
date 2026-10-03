@@ -215,6 +215,7 @@ for it to respond; neither health endpoint calls an LLM.
 A multi-step agent task is slower than a single answer even when the service is
 warm, because each model step waits for the provider's per-minute token budget.
 On 3 October 2026, eight back-to-back requests to the deployed service took a
-median of 15 seconds and at most 47 seconds;
+median of 15 seconds and at most 47 seconds. Sent about a minute apart, the two
+demo tasks on build `c88530a` took 7 and 5 seconds;
 [design-and-evaluation.md](design-and-evaluation.md#deployed-measurement-3-october-2026)
 has the details.

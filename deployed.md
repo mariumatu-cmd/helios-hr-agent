@@ -105,9 +105,10 @@ Free instances may sleep after roughly 15 minutes idle. The historical cold-star
 measurement was **52.5 seconds**; allow a minute or more rather than assuming
 this remains an exact bound.
 
-Warm chat is **not a 2-6 second operation**. On 3 October 2026, eight
-back-to-back requests to build `291b50a` took a median of 15.1 seconds and at
-most 46.9 seconds, the PTO demonstration, with 95.5 seconds in total spent
-waiting on provider rate limits. September's deployed tasks took about 189-207
-seconds. Health response time is a different metric and cannot stand in for
-agent latency.
+Do not plan on a 2-6 second reply. On 3 October 2026, eight back-to-back
+requests to build `291b50a` took a median of 15.1 seconds and at most 46.9
+seconds, the PTO demonstration, with 95.5 seconds in total spent waiting on
+provider rate limits. Sent about a minute apart with no rate-limit waits, the
+two demonstrations on build `c88530a` took 7.4 and 5.4 seconds. September's
+deployed tasks took about 189-207 seconds. Health response time is a different
+metric and cannot stand in for agent latency.

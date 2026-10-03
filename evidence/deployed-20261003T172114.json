@@ -1,0 +1,435 @@
+{
+  "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
+  "build_sha": "c88530ad684aad84aea4ca9ecb8bd8dd0fdc9d99",
+  "measured_at": "2026-10-03T15:21:14Z",
+  "scorer_version": "3",
+  "summary": {
+    "runs": 1,
+    "passed": 1,
+    "wall_seconds_median": 5.4,
+    "wall_seconds_max": 5.44,
+    "throttle_seconds": 0.0,
+    "api_calls": 6,
+    "tokens": 18079,
+    "stopped_early": null
+  },
+  "tasks": [
+    {
+      "task": "pto",
+      "kind": "demo task",
+      "prompt": "Jonas Weber wants three business days of PTO starting 21 September 2026. Check his PTO balance and run the policy compliance check, then read sections 3.1 Notice Requirements and 3.3 Insufficient Balance of the PTO policy (POL-PTO-001). Prepare a mock HR ticket preview asking about the permitted alternatives, but do not create it until I use the confirmation button. Finally, explain both the balance and notice issues with citations.",
+      "trace": {
+        "question": "Jonas Weber wants three business days of PTO starting 21 September 2026. Check his PTO balance and run the policy compliance check, then read sections 3.1 Notice Requirements and 3.3 Insufficient Balance of the PTO policy (POL-PTO-001). Prepare a mock HR ticket preview asking about the permitted alternatives, but do not create it until I use the confirmation button. Finally, explain both the balance and notice issues with citations.",
+        "answer": "Jonas Weber\u2019s 3\u2011day PTO request for 21\u201323 September 2026 is **not compliant** for two reasons:\n\n1. **Insufficient balance** \u2013 He has 13 hours (1.62 days) available, but the request is for 24 hours (3 days), leaving an 11\u2011hour shortfall (POL\u2011PTO-001 \u00a73.3 Insufficient Balance).\n2. **Insufficient notice** \u2013 A 3\u2011consecutive\u2011business\u2011day absence requires 10 business days\u2019 notice; only 6 business days have been given (POL\u2011PTO-001 \u00a73.1 Notice Requirements).\n\n**Permitted alternatives** (POL\u2011PTO-001 \u00a73.3):\n- Reduce the PTO to the 1.62 days available.\n- Request unpaid personal leave (requires skip\u2011level approval).\n- Apply an unused floating holiday (he has 2 remaining).\n\nA mock HR ticket preview has been prepared asking Jonas which alternative he prefers. Please use the confirmation button to create the ticket.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 966.4,
+            "fell_back": false,
+            "summary": "selected 1 tool: check_pto_balance",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "check_pto_balance",
+                "arguments": {
+                  "employee": "Jonas Weber"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "eligible": true,
+                  "years_of_service": 0.86,
+                  "annual_accrual_days": 15,
+                  "accrual_rate_hours_per_period": 5.0,
+                  "accrual_cap_hours": 180.0,
+                  "carryover_hours": 0.0,
+                  "accrued_ytd_hours": 85.0,
+                  "used_ytd_hours": 72.0,
+                  "balance_hours": 13.0,
+                  "scheduled_future_hours": 0.0,
+                  "available_hours": 13.0,
+                  "floating_holidays_total": 2,
+                  "floating_holidays_remaining": 2,
+                  "employee_name": "Jonas Weber",
+                  "employment_type": "full_time",
+                  "available_days": 1.62,
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 5.9
+              }
+            ],
+            "service_ms": 966.4,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 2994,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 689.3,
+            "fell_back": false,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "3.1"
+                },
+                "result": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "3.1",
+                  "passages": [
+                    {
+                      "chunk_id": "c00167",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Notice Requirements",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+                      "text": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted with less than the minimum notice are not automatically\ndenied, but require documented manager approval and a stated business\njustification.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 3.5
+              }
+            ],
+            "service_ms": 689.3,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3244,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 446.6,
+            "fell_back": false,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 3,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "3.3"
+                },
+                "result": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "3.3",
+                  "passages": [
+                    {
+                      "chunk_id": "c00169",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Insufficient Balance",
+                      "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance",
+                      "text": "An employee may not take PTO they have not accrued. If a requested absence\nexceeds the available balance, the employee may:\n\n- reduce the length of the absence to fit the available balance;\n- request unpaid personal leave, which requires skip-level approval; or\n- apply an unused floating holiday (see `POL-HOL-001`, Section 3).\n\nNegative PTO balances are not permitted under any circumstances.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 3.3
+              }
+            ],
+            "service_ms": 446.6,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3645,
+            "elided_results": 0
+          },
+          {
+            "index": 4,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 864.1,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_policy_compliance",
+            "tool_calls": [
+              {
+                "step": 4,
+                "name": "check_policy_compliance",
+                "arguments": {
+                  "days": 3,
+                  "employee": "Jonas Weber",
+                  "request_type": "pto",
+                  "start_date": "2026-09-21"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "employee_name": "Jonas Weber",
+                  "request": {
+                    "start_date": "2026-09-21",
+                    "end_date": "2026-09-23",
+                    "days": 3.0,
+                    "hours": 24.0
+                  },
+                  "as_of_date": "2026-09-12",
+                  "compliant": false,
+                  "findings": [
+                    {
+                      "check": "balance",
+                      "status": "fail",
+                      "detail": "request is 24 hours (3 days); 13 hours (1.62 days) available after 0 hours already scheduled",
+                      "shortfall_hours": 11.0,
+                      "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance"
+                    },
+                    {
+                      "check": "notice",
+                      "status": "fail",
+                      "detail": "6 business days notice given (today 2026-09-12 -> 2026-09-21); 3 consecutive business days requires 10 business days notice (POL-PTO-001 \u00a73.1 Notice Requirements)",
+                      "required_business_days": 10,
+                      "given_business_days": 6,
+                      "exception_path": "Documented manager approval and a business justification are required for shorter notice; it is not an automatic denial.",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements"
+                    },
+                    {
+                      "check": "blackout",
+                      "status": "pass",
+                      "detail": "no blackout period applies to Customer Support for these dates",
+                      "conflicts": [],
+                      "exception_path": null,
+                      "citation": "POL-PTO-001 \u00a74 Blackout Periods"
+                    }
+                  ],
+                  "blocking_reasons": [
+                    "request is 24 hours (3 days); 13 hours (1.62 days) available after 0 hours already scheduled",
+                    "6 business days notice given (today 2026-09-12 -> 2026-09-21); 3 consecutive business days requires 10 business days notice (POL-PTO-001 \u00a73.1 Notice Requirements)"
+                  ],
+                  "citations": [
+                    "POL-PTO-001 \u00a73.1 Notice Requirements",
+                    "POL-PTO-001 \u00a73.3 Insufficient Balance",
+                    "POL-PTO-001 \u00a74 Blackout Periods"
+                  ],
+                  "alternatives": [
+                    {
+                      "detail": "One or two consecutive business days require 3 business days notice.",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements"
+                    },
+                    {
+                      "detail": "Reduce PTO to the available balance, request unpaid leave with skip-level approval, or use an unused floating holiday. A changed request must be checked again before calling it compliant.",
+                      "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance"
+                    }
+                  ],
+                  "notice_bands": [
+                    {
+                      "up_to_business_days": 2,
+                      "required_notice": 3
+                    },
+                    {
+                      "up_to_business_days": 5,
+                      "required_notice": 10
+                    },
+                    {
+                      "up_to_business_days": 10,
+                      "required_notice": 20
+                    },
+                    {
+                      "up_to_business_days": 10000,
+                      "required_notice": 30
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 3.0
+              }
+            ],
+            "service_ms": 864.1,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 4002,
+            "elided_results": 0
+          },
+          {
+            "index": 5,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 622.2,
+            "fell_back": true,
+            "summary": "selected 1 tool: create_hr_ticket",
+            "tool_calls": [
+              {
+                "step": 5,
+                "name": "create_hr_ticket",
+                "arguments": {
+                  "body": "Hi Jonas,\n\nI\u2019ve reviewed your PTO request for 21\u201123 September 2026. Based on the policy, the request exceeds your available balance and does not meet the required notice period. Please let me know which of the following alternatives you would like to pursue:\n\n1. Reduce the PTO to the 1.62 days you have available.\n2. Request unpaid personal leave (requires skip\u2011level approval).\n3. Apply an unused floating holiday.\n\nOnce you decide, I can submit the appropriate ticket.\n\nThank you,\nHR Team",
+                  "category": "PTO",
+                  "confirmed": false,
+                  "employee": "Jonas Weber",
+                  "subject": "PTO Request Alternatives for 21-23 September 2026"
+                },
+                "result": {
+                  "requires_confirmation": true,
+                  "action": "create_hr_ticket",
+                  "preview": {
+                    "employee_id": "E-1088",
+                    "employee_name": "Jonas Weber",
+                    "category": "PTO",
+                    "subject": "PTO Request Alternatives for 21-23 September 2026",
+                    "body": "Hi Jonas,\n\nI\u2019ve reviewed your PTO request for 21\u201123 September 2026. Based on the policy, the request exceeds your available balance and does not meet the required notice period. Please let me know which of the following alternatives you would like to pursue:\n\n1. Reduce the PTO to the 1.62 days you have available.\n2. Request unpaid personal leave (requires skip\u2011level approval).\n3. Apply an unused floating holiday.\n\nOnce you decide, I can submit the appropriate ticket.\n\nThank you,\nHR Team",
+                    "priority": "normal",
+                    "would_route_to": "HR Operations"
+                  },
+                  "instruction": "Show this preview to the user and ask them to confirm. Call again with confirmed=true only if they agree."
+                },
+                "is_error": false,
+                "latency_ms": 5.3
+              }
+            ],
+            "service_ms": 622.2,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 4778,
+            "elided_results": 0
+          },
+          {
+            "index": 6,
+            "kind": "final",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 1258.6,
+            "fell_back": true,
+            "summary": "answer uses 2 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 1258.6,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 5329,
+            "elided_results": 0
+          }
+        ],
+        "citations": [
+          "POL-PTO-001 \u00a73.1 Notice Requirements",
+          "POL-PTO-001 \u00a73.3 Insufficient Balance"
+        ],
+        "sources": [
+          {
+            "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Notice Requirements",
+            "snippet": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted..."
+          },
+          {
+            "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Insufficient Balance",
+            "snippet": "An employee may not take PTO they have not accrued. If a requested absence\nexceeds the available balance, the employee may:\n\n- reduce the length of the absence to fit the available balance;\n- request unpaid personal leave, which requires skip-level approval; or\n- apply an unused floating holiday (see `POL-HOL-001`, Section 3).\n\nNegative PTO balances are not permitted under any circumstances."
+          }
+        ],
+        "tools_used": [
+          "check_pto_balance",
+          "get_policy_section",
+          "check_policy_compliance",
+          "create_hr_ticket"
+        ],
+        "total_ms": 4877.7,
+        "total_service_ms": 4877.7,
+        "throttle_ms": 0.0,
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true,
+        "grounded": null,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 5329,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-PTO-001 \u00a73.1 Notice Requirements",
+          "POL-PTO-001 \u00a73.3 Insufficient Balance",
+          "POL-PTO-001 \u00a74 Blackout Periods"
+        ],
+        "pending_actions": [
+          {
+            "id": "N3ft5RiIDEzMKkYS9JMCLzZwOf8-VLW_",
+            "tool": "create_hr_ticket",
+            "preview": {
+              "employee_id": "E-1088",
+              "employee_name": "Jonas Weber",
+              "category": "PTO",
+              "subject": "PTO Request Alternatives for 21-23 September 2026",
+              "body": "Hi Jonas,\n\nI\u2019ve reviewed your PTO request for 21\u201123 September 2026. Based on the policy, the request exceeds your available balance and does not meet the required notice period. Please let me know which of the following alternatives you would like to pursue:\n\n1. Reduce the PTO to the 1.62 days you have available.\n2. Request unpaid personal leave (requires skip\u2011level approval).\n3. Apply an unused floating holiday.\n\nOnce you decide, I can submit the appropriate ticket.\n\nThank you,\nHR Team",
+              "priority": "normal",
+              "would_route_to": "HR Operations"
+            }
+          }
+        ],
+        "api_calls": 6,
+        "prompt_tokens": 16931,
+        "completion_tokens": 1148,
+        "cached": false,
+        "answer_html": "<p>Jonas Weber\u2019s 3\u2011day PTO request for 21\u201323 September 2026 is <strong>not compliant</strong> for two reasons:</p>\n<ol>\n<li><strong>Insufficient balance</strong> \u2013 He has 13 hours (1.62 days) available, but the request is for 24 hours (3 days), leaving an 11\u2011hour shortfall (POL\u2011PTO-001 \u00a73.3 Insufficient Balance).</li>\n<li><strong>Insufficient notice</strong> \u2013 A 3\u2011consecutive\u2011business\u2011day absence requires 10 business days\u2019 notice; only 6 business days have been given (POL\u2011PTO-001 \u00a73.1 Notice Requirements).</li>\n</ol>\n<p><strong>Permitted alternatives</strong> (POL\u2011PTO-001 \u00a73.3):</p>\n<ul>\n<li>Reduce the PTO to the 1.62 days available.</li>\n<li>Request unpaid personal leave (requires skip\u2011level approval).</li>\n<li>Apply an unused floating holiday (he has 2 remaining).</li>\n</ul>\n<p>A mock HR ticket preview has been prepared asking Jonas which alternative he prefers. Please use the confirmation button to create the ticket.</p>\n"
+      },
+      "confirmation_results": [
+        {
+          "status": "completed",
+          "mock": true,
+          "tool": "create_hr_ticket",
+          "arguments": {
+            "body": "Hi Jonas,\n\nI\u2019ve reviewed your PTO request for 21\u201123 September 2026. Based on the policy, the request exceeds your available balance and does not meet the required notice period. Please let me know which of the following alternatives you would like to pursue:\n\n1. Reduce the PTO to the 1.62 days you have available.\n2. Request unpaid personal leave (requires skip\u2011level approval).\n3. Apply an unused floating holiday.\n\nOnce you decide, I can submit the appropriate ticket.\n\nThank you,\nHR Team",
+            "category": "PTO",
+            "confirmed": false,
+            "employee": "Jonas Weber",
+            "subject": "PTO Request Alternatives for 21-23 September 2026"
+          },
+          "result": {
+            "ticket_id": "HR-2026-9001",
+            "employee_id": "E-1088",
+            "employee_name": "Jonas Weber",
+            "category": "PTO",
+            "subject": "PTO Request Alternatives for 21-23 September 2026",
+            "body": "Hi Jonas,\n\nI\u2019ve reviewed your PTO request for 21\u201123 September 2026. Based on the policy, the request exceeds your available balance and does not meet the required notice period. Please let me know which of the following alternatives you would like to pursue:\n\n1. Reduce the PTO to the 1.62 days you have available.\n2. Request unpaid personal leave (requires skip\u2011level approval).\n3. Apply an unused floating holiday.\n\nOnce you decide, I can submit the appropriate ticket.\n\nThank you,\nHR Team",
+            "status": "open",
+            "priority": "normal",
+            "assigned_team": "HR Operations",
+            "created_at": "2026-09-12T00:00:00Z",
+            "resolved_at": null,
+            "persisted": false,
+            "note": "MOCK ticket. Held in memory for this process only; hr_tickets.json is untouched."
+          },
+          "api_calls": 0
+        }
+      ],
+      "failures": [],
+      "passed": true,
+      "wall_seconds": 5.44,
+      "metrics": {
+        "agent_seconds": 4.9,
+        "throttle_seconds": 0.0,
+        "api_calls": 6,
+        "tokens": 18079,
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true
+      }
+    }
+  ]
+}
