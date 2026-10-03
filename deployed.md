@@ -64,11 +64,15 @@ that pass CI are deployed.
 
 1. Open `/healthz` and wait for the platform to wake, then check `/health` and
    its SHA. Neither endpoint calls an LLM.
-2. Enter the demo code if one is configured. Select **Force live call**, then use
-   the two numbered canonical demo buttons.
-3. The trace shows the tool names, exact arguments and results, source snippets
-   and the answer. For PTO, the preview's confirmation button creates the mock
-   ticket and reports its ID with `api_calls: 0`.
+2. If a demo access code is configured, enter it in the **Demo access code** field.
+   Tick **Run live (skip cache)**, then use the two buttons under
+   **Agentic demo tasks**.
+3. The **Execution trace** panel opens with the final answer basis: outcome,
+   selected tools, cited and retrieved policy sources, evidence check, escalation
+   decision and model usage. Each step below it lists the tool calls with their
+   arguments, an output summary and the full JSON. For PTO, review the ticket
+   preview card and select **Create mock ticket**; the reply gives the ticket ID
+   and reports zero model calls for the confirmation.
 4. After a 429, wait for the provider window to recover before retrying.
    Cached results are labelled and are never presented as live runs.
 

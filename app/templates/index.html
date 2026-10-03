@@ -18,51 +18,70 @@
 <header>
   <div class="brand">
     <h1>Helios HR Assistant</h1>
-    <p class="sub">Agentic RAG over synthetic HR policies &middot; tools served over MCP</p>
+    <p class="sub">Cited answers from HR policies and synthetic employee records &middot; HR tools served over MCP</p>
   </div>
-  <div class="controls">
-    <button id="new-chat" type="button">New conversation</button>
-    <label><input id="fresh" type="checkbox"> Force live call (uses quota)</label>
-    {% if access_code_required %}
-    <label>Demo code <input id="demo-code" type="password" autocomplete="off"></label>
-    {% endif %}
-  </div>
-  <p class="muted">Repeated read-only requests may use a labelled 10-minute cache.
-    Live agent tasks can take minutes. Do not click twice.</p>
-  <div class="status" id="status">
-    <span class="dot" id="status-dot"></span><span id="status-text">checking&hellip;</span>
-  </div>
+  <a class="status" id="status" href="/health" target="_blank" rel="noopener" title="Open the /health readiness JSON">
+    <span class="dot" id="status-dot" aria-hidden="true"></span>
+    <span id="status-text" role="status">Checking service&hellip;</span>
+  </a>
 </header>
 
 <main>
-  <section class="panel chat-panel">
-    <div class="demo-bar">
-      <span class="demo-label">Try:</span>
-      {% for task in demo_tasks %}
-      <button class="demo" data-q="{{ task.question }}">{{ task.label }}</button>
-      {% endfor %}
-    </div>
+  <section class="panel chat-panel" aria-label="Chat">
+    <nav class="demo-bar" aria-label="Demo tasks">
+      <div class="demo-group">
+        <span class="demo-label">Agentic demo tasks</span>
+        {% for task in demo_workflows %}
+        <button type="button" class="demo featured" data-q="{{ task.question }}" title="{{ task.question }}">{{ task.label }}</button>
+        {% endfor %}
+      </div>
+      <div class="demo-group">
+        <span class="demo-label">More examples</span>
+        {% for task in demo_examples %}
+        <button type="button" class="demo" data-q="{{ task.question }}" title="{{ task.question }}">{{ task.label }}</button>
+        {% endfor %}
+      </div>
+    </nav>
 
-    <div id="messages" class="messages">
-      <div class="msg assistant">
-        <p>Ask me about Helios HR policy &mdash; time off, remote work, benefits, expenses,
-        equipment or leave. I answer only from the policy corpus and the HR system of record,
-        and I cite the section I used.</p>
-        <p class="muted">Demo snapshot date: {{ as_of_date }} (not the current date).
-        {{ tool_count }} tools discovered over MCP.</p>
+    <div id="messages" class="messages" aria-live="polite">
+      <div class="msg assistant welcome">
+        <p>I answer Helios HR questions about time off, remote and international work, benefits,
+        expenses, equipment and leave. I use only the policy documents and synthetic employee
+        records, cite the policy sections I rely on, and redirect questions the policies do not
+        cover to People Operations.</p>
+        <p class="muted">Dates are evaluated as of {{ as_of_date }}, the synthetic data snapshot.
+        {{ tool_count }} HR tools discovered from the MCP server. Tickets and email drafts are mock
+        actions: you see a preview first, and nothing is created until you confirm it.</p>
       </div>
     </div>
 
     <form id="composer">
-      <textarea id="input" rows="2" placeholder="e.g. How much notice do I need for three days off?" required></textarea>
-      <button type="submit" id="send">Send</button>
+      <label class="visually-hidden" for="input">Ask a question</label>
+      <textarea id="input" rows="2" placeholder="Ask an HR question, e.g. How much notice do I need for three days off?" required></textarea>
+      <button type="submit" id="send" class="primary">Send</button>
     </form>
+    <div class="composer-options">
+      <label title="Skip the 10-minute answer cache and run the agent again. Uses model quota.">
+        <input id="fresh" type="checkbox"> Run live (skip cache)
+      </label>
+      {% if access_code_required %}
+      <label>Demo access code <input id="demo-code" type="password" autocomplete="off"></label>
+      {% endif %}
+      <button id="new-chat" type="button" class="quiet">New conversation</button>
+    </div>
+    <p class="hint">Enter sends; Shift+Enter adds a line. Multi-step tasks can take a minute or more.
+      A repeated question within 10 minutes may return a labelled cached answer; tick
+      &ldquo;Run live&rdquo; to skip the cache.</p>
   </section>
 
-  <aside class="panel trace-panel">
+  <aside class="panel trace-panel" aria-label="Execution trace">
     <h2>Execution trace</h2>
-    <p class="muted">Every model step and tool call from the last turn.</p>
-    <div id="trace" class="trace"><p class="muted empty">No run yet.</p></div>
+    <p class="muted">Concise operational trace of the last turn: selected tools, arguments, outputs,
+      retrieved policy sources, final answer basis and escalation decision. No hidden
+      chain-of-thought is shown.</p>
+    <div id="trace" class="trace" aria-live="polite">
+      <p class="muted empty">Run a demo task or ask a question to see each tool call here.</p>
+    </div>
   </aside>
 </main>
 

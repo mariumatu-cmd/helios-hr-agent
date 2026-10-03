@@ -42,29 +42,30 @@ logging.basicConfig(level=settings.log_level.upper())
 HERE = pathlib.Path(__file__).resolve().parent
 MARKDOWN = MarkdownIt("commonmark", {"html": False}).enable("table")
 
-DEMO_TASKS = DEMO_WORKFLOWS + [
+DEMO_EXAMPLES = [
     {
         "id": "benefits",
-        "label": "Part-time benefits eligibility",
+        "label": "Benefits eligibility",
         "question": "Is Sofia Marino covered by short-term disability, and why?",
     },
     {
         "id": "out-of-scope",
-        "label": "Out-of-scope question (refusal)",
+        "label": "Out-of-scope refusal",
         "question": "What was our Q3 revenue and which stock should I buy?",
     },
     {
-        # The only seeded task that asks the agent to *act* rather than answer.
-        # It is deliberately a two-turn task: the first click returns a preview
-        # and a request for confirmation, and nothing is written until the user
-        # replies. Surfaced as a button because a confirmation gate that is
-        # never exercised in the demo is indistinguishable from one that does
-        # not work.
+        # The only seeded example that asks the agent to *act* rather than
+        # answer. The agent turn returns a preview only; nothing is written
+        # until the user clicks its confirmation button, which executes the
+        # stored preview without a model call. Surfaced as a button because a
+        # confirmation gate that is never exercised in the demo is
+        # indistinguishable from one that does not work.
         "id": "ticket",
         "label": "File an HR ticket (asks before acting)",
         "question": "Open an HR ticket for Jonas Weber about his PTO shortfall.",
     },
 ]
+DEMO_TASKS = DEMO_WORKFLOWS + DEMO_EXAMPLES
 
 
 class HistoryMessage(BaseModel):
@@ -124,7 +125,8 @@ async def index(request: Request):
         request=request,
         name="index.html",
         context={
-            "demo_tasks": DEMO_TASKS,
+            "demo_workflows": DEMO_WORKFLOWS,
+            "demo_examples": DEMO_EXAMPLES,
             "as_of_date": settings.as_of_date,
             "tool_count": len(request.app.state.mcp.tools),
             "access_code_required": bool(settings.demo_access_code),
@@ -254,10 +256,18 @@ async def chat(request: Request, body: ChatRequest):
         payload = {**state.cache[key]["payload"], "cached": True, "api_calls": 0}
         return _session_response(payload, session, request)
     if state.busy:
-        raise HTTPException(429, "Another chat is running. Wait to preserve the shared API quota.")
+        raise HTTPException(
+            429,
+            "Another request is still running. Wait for it to finish; "
+            "this protects the shared model quota.",
+        )
     state.chat_requests = [t for t in state.chat_requests if t > now - 3600]
     if len(state.chat_requests) >= settings.chat_max_requests_per_hour:
-        raise HTTPException(429, "Hourly chat limit reached. Wait before retrying.")
+        raise HTTPException(
+            429,
+            f"The hourly limit of {settings.chat_max_requests_per_hour} chat requests has been "
+            "reached. Try again later.",
+        )
     state.chat_requests.append(now)
     state.busy = True
     try:

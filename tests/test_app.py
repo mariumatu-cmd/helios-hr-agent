@@ -8,6 +8,7 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+from agent.demo_tasks import DEMO_WORKFLOWS
 from app.main import app
 
 
@@ -22,6 +23,19 @@ def test_index_page_renders(client):
     assert response.status_code == 200
     assert "Helios HR Assistant" in response.text
     assert "Execution trace" in response.text
+
+
+def test_index_puts_both_agentic_tasks_one_click_away(client):
+    """The two required workflows sit in their own group, ahead of the
+    secondary examples, and the page offers a way to skip the answer cache so a
+    demo run is never a cached reply presented as live."""
+    html = client.get("/").text
+    group_start = html.index("Agentic demo tasks")
+    group_end = html.index("More examples")
+    for task in DEMO_WORKFLOWS:
+        position = html.index(task["label"])
+        assert group_start < position < group_end, f"{task['id']} is not in the agentic task group"
+    assert "Run live (skip cache)" in html
 
 
 def test_health_reports_every_dependency(client):

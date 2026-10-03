@@ -16,6 +16,9 @@ actions, all accessed through a real Model Context Protocol (MCP) server.
 
 `/health.build_sha` reports the commit currently deployed.
 
+The free instance sleeps when idle, so the first visit can take about a minute
+while it wakes. See [Cold starts and expected waits](#cold-starts-and-expected-waits).
+
 ## At a glance
 
 - 16 policy documents in Markdown, HTML, PDF and TXT, indexed into 221 chunks.
@@ -60,7 +63,7 @@ snapshot**, not today's date. This prevents the example answers drifting.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /` | Chat, canonical demo buttons, source snippets and operational trace |
+| `GET /` | Chat with demo task buttons, cited source snippets, mock-action previews and an execution trace (answer basis, tool calls, arguments, outputs) |
 | `GET /healthz` | Process liveness; no LLM call |
 | `GET /health` | Configured dependencies, tool count, index, revision and local quota limits; no LLM call |
 | `GET /tools` | Discovered MCP catalogue |
@@ -84,9 +87,9 @@ their trace/timings belong to the original run.
   **8 per turn, 60 per hour and 100 per day**. No automatic same-model 429 retry.
 - Read-only identical requests within the same session/context may reuse a
   labelled **10-minute cache**. Mutating workflows and ticket listings are not cached.
-  **Force live call** bypasses the cache and uses quota.
+  **Run live (skip cache)** bypasses the cache and uses quota.
 - Set `DEMO_ACCESS_CODE` to protect a public deployment from casual quota consumption.
-  Share it privately and enter it in the UI, not the chat.
+  Share it privately; users enter it in the **Demo access code** field, not the chat.
 - Set `LLM_ENABLED=false` to disable all real model calls.
   Chat explicitly reports that calls are disabled; it does not fake an answer.
 
@@ -105,7 +108,7 @@ and deployed verifier:
 2. **PTO and ticket preview:** Jonas's three-day request; retrieve PTO policy,
    check 13 available hours against 24 requested and 6 days' notice against 10,
    explain manager/skip-level exception routes, and show a mock ticket preview.
-   Click its confirmation button to create the in-memory ticket and show its ID.
+   Select **Create mock ticket** on the preview to create the in-memory ticket and show its ID.
 
 Every policy claim, including alternatives, needs evidence. A preview is not a
 completed write, and a tool call alone is not a correct answer.
@@ -146,7 +149,7 @@ mock ticket. It saves the complete response and confirmation result in `evidence
 Current evaluation records contain scorer version, configuration/code fingerprint
 and full traces. A checkpoint from another revision is rejected.
 
-## Architecture and deployment
+## Architecture
 
 ```text
 Browser -> FastAPI -> agent orchestrator -> LLM provider
@@ -158,9 +161,47 @@ Browser -> FastAPI -> agent orchestrator -> LLM provider
              local RAG index   synthetic HR records + rule engine
 ```
 
-Render runs one Docker service and one worker. GitHub Actions checks the code,
-real MCP transport, app startup and container, then deploys **that exact commit**.
-`render.yaml` disables Render's own auto-deploy, so only revisions that pass CI are deployed.
-
 The folder is called `mcp_server/`, not `mcp/`, to avoid shadowing the SDK package.
 All employee data is synthetic; tickets and email drafts disappear on restart.
+
+## Deployment
+
+The live service runs on Render Free as one Docker service with one worker. The
+web app, agent, local vector index, synthetic data and stdio MCP server share the
+container; only the LLM is external. GitHub Actions checks the code, the real MCP
+transport, app startup and the container, then deploys **that exact commit**.
+`render.yaml` disables Render's own auto-deploy, so only revisions that pass CI are deployed.
+
+To deploy your own copy:
+
+1. Fork the repository and create a Render **Blueprint** from `render.yaml`.
+   Render builds the `Dockerfile`, which bakes the embedding model into the image,
+   and the app listens on Render's `$PORT`.
+2. In the Render dashboard, set `GROQ_API_KEY`. `GEMINI_API_KEY` and
+   `DEMO_ACCESS_CODE` are optional; `render.yaml` supplies the other settings.
+3. In GitHub, add the secret `RENDER_API_KEY` and the repository variables
+   `RENDER_SERVICE_ID` (the `srv-…` ID) and `APP_URL` (the service URL).
+4. Push to `main`. CI runs lint, tests, the MCP smoke test and the container check,
+   triggers the Render deploy for that commit, and waits until `/health` reports it.
+
+To run the production image locally with the settings from `.env`:
+
+```powershell
+docker build -t helios-hr .
+docker run --rm -p 8000:8000 --env-file .env helios-hr
+```
+
+[deployed.md](deployed.md) lists every environment variable and the demo steps.
+
+## Cold starts and expected waits
+
+Render's free plan puts the service to sleep after about 15 minutes without
+traffic, and the next request has to wake it. The measured cold start was
+**52.5 seconds**, so allow about a minute. Before a demo, open `/healthz` and wait
+for it to respond; neither health endpoint calls an LLM.
+
+A multi-step agent task is slower than a single answer even when the service is
+warm, because each model step waits for the provider's per-minute token budget.
+Earlier deployed runs of the two tasks took 189–207 seconds. Those measurements
+predate the current code; [deployed.md](deployed.md#cold-starts-and-expected-waits)
+has the details.
