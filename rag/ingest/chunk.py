@@ -137,39 +137,12 @@ def _sections(markdown: str) -> list[dict]:
     return sections
 
 
-def _merge_tiny(sections: list[dict]) -> list[dict]:
-    """Fold a section that is too small to retrieve on its own into its neighbour.
-
-    A two-line section ("See POL-X for details.") is noise in the index: it
-    matches weakly and displaces a real answer. Merging keeps the parent
-    heading's citation, which stays accurate because the merged text is still
-    from that part of the document.
-    """
-    merged: list[dict] = []
-    for section in sections:
-        if (
-            merged
-            and estimate_tokens(section["text"]) < MIN_TOKENS
-            and merged[-1]["heading_path"][:1] == section["heading_path"][:1]
-            and estimate_tokens(merged[-1]["text"]) + estimate_tokens(section["text"]) <= MAX_TOKENS
-        ):
-            previous = merged[-1]
-            previous["text"] = (
-                f"{previous['text']}\n\n"
-                f"{section['section_number'] or ''} {section['section_title']}\n"
-                f"{section['text']}"
-            ).strip()
-            continue
-        merged.append(dict(section))
-    return merged
-
-
 def chunk_document(doc: Document) -> list[dict]:
     """Chunk one parsed document into embeddable records with citation metadata."""
     records: list[dict] = []
     base = doc.metadata
 
-    for section in _merge_tiny(_sections(doc.markdown)):
+    for section in _sections(doc.markdown):
         pieces = (
             [section["text"]]
             if estimate_tokens(section["text"]) <= MAX_TOKENS

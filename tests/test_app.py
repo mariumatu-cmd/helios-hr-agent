@@ -43,6 +43,27 @@ def test_health_status_code_reflects_readiness(client):
     assert response.status_code == (200 if body["status"] == "ok" else 503)
 
 
+def test_health_exposes_revision_and_disabled_quota_state(client, monkeypatch):
+    from app.main import llm, settings
+    from scripts.assert_health import assess
+
+    monkeypatch.setattr(settings, "build_sha", "tested-commit")
+    monkeypatch.setattr(settings, "llm_enabled", False)
+    monkeypatch.setattr(llm, "available_providers", lambda: ["groq"])
+    response = client.get("/health")
+    body = response.json()
+    assert response.status_code == 503
+    assert body["build_sha"] == "tested-commit"
+    assert body["llm"]["enabled"] is False
+    assert body["llm"]["ok"] is False
+    assert body["quota_limits"] == {
+        "per_turn": settings.llm_max_calls_per_turn,
+        "per_hour": settings.llm_max_calls_per_hour,
+        "per_day": settings.llm_max_calls_per_day,
+    }
+    assert "LLM calls are disabled" in assess(body, require_llm=True)
+
+
 def test_health_reports_rather_than_crashes_when_startup_did_not_complete():
     """`/health` must diagnose a failed startup, not 500 on it.
 

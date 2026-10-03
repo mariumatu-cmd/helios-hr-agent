@@ -158,9 +158,8 @@ jobs:
       # returns a deploy id, so the pipeline can wait on *this* deploy rather
       # than assume the next healthy response belongs to it.
       #
-      # Both credentials are optional: when they are absent (for example on a
-      # fork) the job reports that and succeeds, rather than failing a build
-      # for a missing credential.
+      # Missing deployment credentials fail this job instead of claiming a
+      # successful deployment that was never triggered.
       - name: Trigger Render deploy
         id: render
         env:
@@ -168,14 +167,14 @@ jobs:
           RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
         run: |
           if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVICE_ID" ]; then
-            echo "::warning title=Deploy skipped::RENDER_API_KEY or RENDER_SERVICE_ID is unset, so no deploy was triggered."
-            exit 0
+            echo "::error::RENDER_API_KEY or RENDER_SERVICE_ID is unset; deployment cannot be verified."
+            exit 1
           fi
           deploy_id=$(curl -fsS -X POST \
             "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache":"do_not_clear"}' \
+            -d "{\"clearCache\":\"do_not_clear\",\"commitId\":\"$GITHUB_SHA\"}" \
             | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
           echo "Triggered deploy $deploy_id"
           echo "deploy_id=$deploy_id" >> "$GITHUB_OUTPUT"
@@ -211,17 +210,19 @@ jobs:
       # service until it reports every dependency healthy -- including the LLM
       # provider, which unlike in CI must be configured in production.
       - name: Wait for the deployment to report healthy
+        if: steps.render.outputs.deploy_id != ''
         env:
           APP_URL: ${{ vars.APP_URL }}
         run: |
           if [ -z "$APP_URL" ]; then
-            echo "::warning title=Verification skipped::APP_URL variable is unset, so the live deployment was not verified."
-            exit 0
+            echo "::error::APP_URL is unset; live deployment was not verified."
+            exit 1
           fi
           for attempt in $(seq 1 40); do
             if curl -fsS "$APP_URL/health" -o health.json 2>/dev/null; then
               echo "attempt $attempt: /health returned 200"
               python3 scripts/assert_health.py health.json --require-llm
+              python3 -c 'import json,os; p=json.load(open("health.json")); assert p.get("build_sha")==os.environ["GITHUB_SHA"], "Deployed commit differs from the tested commit"'
               exit 0
             fi
             echo "attempt $attempt: not healthy yet"

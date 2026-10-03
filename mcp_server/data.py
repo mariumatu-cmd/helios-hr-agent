@@ -18,6 +18,7 @@ from __future__ import annotations
 import datetime as dt
 import itertools
 import json
+import math
 import threading
 from typing import Any
 
@@ -297,11 +298,13 @@ def check_pto_request(identifier: str, start_date: str, days: float) -> dict:
     employee = employee_profile(identifier)
     start = _parse_date(start_date, "start_date")
     days = float(days)
-    if days <= 0:
-        raise ValueError("days must be greater than zero")
+    if not math.isfinite(days) or days <= 0 or days > 260:
+        raise ValueError("days must be finite and between 0 and 260")
+    if start.weekday() >= 5:
+        raise ValueError("start_date must be a business day")
 
     hours_requested = days * HOURS_PER_DAY
-    end = start + dt.timedelta(days=max(int(round(days)) - 1, 0))
+    end = _shift_business_days(start, math.ceil(days), backwards=False)
     balance = pto_balance(employee["employee_id"])
 
     findings: list[dict] = []
@@ -328,7 +331,7 @@ def check_pto_request(identifier: str, start_date: str, days: float) -> dict:
         "citation": PTO_BALANCE_CITATION,
     })
 
-    notice_required, notice_detail = required_notice_days(int(round(days)))
+    notice_required, notice_detail = required_notice_days(math.ceil(days))
     notice_given = business_days_between(today(), start)
     findings.append({
         "check": "notice",
@@ -339,6 +342,11 @@ def check_pto_request(identifier: str, start_date: str, days: float) -> dict:
         ),
         "required_business_days": notice_required,
         "given_business_days": notice_given,
+        "exception_path": (
+            "Documented manager approval and a business justification are required "
+            "for shorter notice; it is not an automatic denial."
+            if notice_given < notice_required else None
+        ),
         "citation": PTO_NOTICE_CITATION,
     })
 
@@ -383,6 +391,24 @@ def check_pto_request(identifier: str, start_date: str, days: float) -> dict:
         "findings": findings,
         "blocking_reasons": [f["detail"] for f in failures],
         "citations": sorted({f["citation"] for f in findings}),
+        "alternatives": [
+            {
+                "detail": "One or two consecutive business days require 3 business days notice.",
+                "citation": PTO_NOTICE_CITATION,
+            },
+            {
+                "detail": (
+                    "Reduce PTO to the available balance, request unpaid leave with "
+                    "skip-level approval, or use an unused floating holiday. "
+                    "A changed request must be checked again before calling it compliant."
+                ),
+                "citation": PTO_BALANCE_CITATION,
+            },
+        ],
+        "notice_bands": [
+            {"up_to_business_days": maximum, "required_notice": notice}
+            for maximum, notice in PTO_NOTICE_BANDS
+        ],
     }
 
 
@@ -578,6 +604,41 @@ def check_remote_arrangement_change(identifier: str, requested_arrangement: str)
 # ---------------------------------------------------------------------------
 # Benefits
 # ---------------------------------------------------------------------------
+def check_parental_leave(identifier: str, parent_role: str, start_date: str) -> dict:
+    """Apply POL-LEAVE-002 to the stated parenting role, never inferred gender."""
+    if parent_role not in ("birthing", "non_birthing"):
+        raise ValueError("parent_role must be birthing or non_birthing; ask if it is unknown")
+    start = _parse_date(start_date, "start_date")
+    employee = employee_profile(identifier)
+    tenure = months_between(_parse_date(employee["hire_date"], "hire_date"), start)
+    eligible = tenure >= 12 and employee["employment_type"] in ("full_time", "part_time")
+    base_weeks = 16 if parent_role == "birthing" else 8
+    fraction = employee["weekly_hours"] / 40 if employee["employment_type"] == "part_time" else 1
+    return {
+        "employee_id": employee["employee_id"],
+        "employee_name": employee["full_name"],
+        "parent_role": parent_role,
+        "start_date": start_date,
+        "tenure_months_at_start": tenure,
+        "eligible": eligible,
+        "paid_weeks": round(base_weeks * fraction, 2) if eligible else 0,
+        "base_pay_percent": 100 if eligible else 0,
+        "pto_deducted": False,
+        "pto_accrues_during_paid_leave": True,
+        "reason": (
+            f"{parent_role.replace('_', '-')} parent; {tenure} months of service at leave start; "
+            f"{employee['employment_type']}, {employee['weekly_hours']} hours/week. "
+            "Eligibility requires 12 months of service and full-time or part-time employment."
+        ),
+        "citations": [
+            "POL-LEAVE-002 §2.1 Entitlement",
+            "POL-LEAVE-002 §2.2 Eligibility",
+            "POL-LEAVE-002 §1 Purpose",
+            "POL-LEAVE-002 §6 Interaction with Other Entitlements",
+        ],
+    }
+
+
 def benefits_status(identifier: str) -> dict:
     employee = employee_profile(identifier)
     election = _row(benefits_elections(), employee["employee_id"])

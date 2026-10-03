@@ -12,6 +12,7 @@ These tests pin the properties the write-up actually relies on.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any
 
 from evaluation.cases import Case
@@ -99,7 +100,10 @@ def test_any_alternative_in_a_tuple_satisfies_the_requirement():
 def test_tool_selection_is_recall_so_exploring_is_not_penalised():
     case = _case(expected_tools=["check_pto_balance"])
     trace = FakeTrace(
-        answer="ok", tools_used=["search_policy_documents", "check_pto_balance"]
+        answer="ok", tools_used=["search_policy_documents", "check_pto_balance"],
+        steps=[SimpleNamespace(tool_calls=[
+            SimpleNamespace(name="check_pto_balance", is_error=False),
+        ])],
     )
     assert score_case(case, trace).tool_selection == 1.0
 
@@ -122,7 +126,10 @@ def test_a_forbidden_tool_is_binary_not_partial():
 # -- citations ----------------------------------------------------------------
 def test_citations_are_matched_case_insensitively_against_the_tools_output():
     case = _case(expected_citations=["POL-PTO-001 §3.1"])
-    trace = FakeTrace(answer="ok", citations=["pol-pto-001 §3.1 notice requirements"])
+    trace = FakeTrace(
+        answer="10 days (POL-PTO-001 §3.1)",
+        citations=["pol-pto-001 §3.1 notice requirements"],
+    )
     assert score_case(case, trace).citation == 1.0
 
 

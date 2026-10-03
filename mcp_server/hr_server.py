@@ -43,7 +43,7 @@ from mcp.server.mcpserver import MCPServer  # noqa: E402
 from mcp.types import ToolAnnotations  # noqa: E402
 
 from config import settings  # noqa: E402
-from mcp_server import data  # noqa: E402
+from mcp_server import approval, data  # noqa: E402
 from rag import retrieve  # noqa: E402
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
@@ -58,13 +58,14 @@ mcp = MCPServer(
     name="helios-hr",
     version="1.0.0",
     instructions=(
-        "Helios Systems HR assistant tools. Twelve HR policy documents are searchable "
+        "Helios Dynamics HR assistant tools. Sixteen HR policy documents are searchable "
         "with `search_policy_documents`; employee-specific facts come from the mock HR "
         "system via the lookup tools. Always ground a policy claim in a retrieved "
         "passage and quote its `citation`. Use `check_policy_compliance` rather than "
         "doing date or balance arithmetic yourself -- it is deterministic and returns "
         "the citation for every rule it applies. Ticket creation and email drafting are "
-        "mock actions and require an explicit `confirmed=true`."
+        "mock actions. The agent may preview them; only the web confirmation endpoint "
+        "can authorize the exact preview with a signed capability."
     ),
 )
 
@@ -258,6 +259,7 @@ def check_policy_compliance(
     days: float | None = None,
     country: str | None = None,
     arrangement: str | None = None,
+    parent_role: str | None = None,
 ) -> str:
     """Deterministically evaluate a request against every applicable policy rule.
 
@@ -266,19 +268,24 @@ def check_policy_compliance(
     sourced.
 
     Args:
-        request_type: "pto", "international_remote_work", or "remote_arrangement".
+        request_type: "pto", "international_remote_work", "remote_arrangement", or "parental_leave".
         employee: employee id, email, or name.
         start_date: ISO date. Required for "pto" and "international_remote_work".
         end_date: ISO date. Required for "international_remote_work".
         days: number of PTO days. Required for "pto".
         country: destination country. Required for "international_remote_work".
         arrangement: "onsite", "hybrid" or "remote". Required for "remote_arrangement".
+        parent_role: "birthing" or "non_birthing". Required with start_date for parental_leave.
 
     Returns `compliant`, `findings` (one per rule, each pass/fail/review_required),
     `blocking_reasons` and `citations`.
     """
     def run() -> Any:
         kind = (request_type or "").strip().lower()
+        if kind == "parental_leave":
+            if not parent_role or not start_date:
+                raise ValueError("parental_leave requires parent_role and start_date; ask if unknown")
+            return data.check_parental_leave(employee, parent_role, start_date)
         if kind == "pto":
             if not start_date or days is None:
                 raise ValueError("pto requests require start_date and days")
@@ -294,7 +301,7 @@ def check_policy_compliance(
                 raise ValueError("remote_arrangement requires arrangement")
             return data.check_remote_arrangement_change(employee, arrangement)
         raise ValueError(
-            "request_type must be one of: pto, international_remote_work, remote_arrangement"
+            "request_type must be pto, international_remote_work, remote_arrangement, parental_leave"
         )
 
     return _guard(run)
@@ -311,6 +318,7 @@ def create_hr_ticket(
     body: str,
     priority: str = "normal",
     confirmed: bool = False,
+    approval_token: str = "",
 ) -> str:
     """Create a MOCK HR ticket. Requires confirmed=true; otherwise returns a preview.
 
@@ -326,6 +334,7 @@ def create_hr_ticket(
         body: the ticket detail, including the policy citations that justify it.
         priority: low, normal, high or urgent.
         confirmed: must be true to actually create the ticket.
+        approval_token: signed authorization supplied only by the web confirmation endpoint.
 
     Nothing is persisted: the ticket exists in memory for this process only.
     """
@@ -349,13 +358,19 @@ def create_hr_ticket(
                     "with confirmed=true only if they agree."
                 ),
             }
+        approval.consume(settings.mcp_approval_secret, "create_hr_ticket", {
+            "employee": employee, "category": category, "subject": subject,
+            "body": body, "priority": priority,
+        }, approval_token)
         return data.create_ticket(employee, category, subject, body, priority)
 
     return _guard(run)
 
 
 @mcp.tool(annotations=MOCK_WRITE)
-def draft_hr_email(employee: str, subject: str, body: str, confirmed: bool = False) -> str:
+def draft_hr_email(
+    employee: str, subject: str, body: str, confirmed: bool = False, approval_token: str = ""
+) -> str:
     """Draft a MOCK email to an employee. Requires confirmed=true; otherwise returns a preview.
 
     Args:
@@ -363,6 +378,7 @@ def draft_hr_email(employee: str, subject: str, body: str, confirmed: bool = Fal
         subject: email subject line.
         body: email body. Include the policy citations that support it.
         confirmed: must be true to store the draft.
+        approval_token: signed authorization supplied only by the web confirmation endpoint.
 
     No mail is ever sent and no transport is configured; the draft is held in
     memory only.
@@ -378,6 +394,9 @@ def draft_hr_email(employee: str, subject: str, body: str, confirmed: bool = Fal
                     "Show this draft to the user and ask them to confirm before saving it."
                 ),
             }
+        approval.consume(settings.mcp_approval_secret, "draft_hr_email", {
+            "employee": employee, "subject": subject, "body": body,
+        }, approval_token)
         return data.draft_email(employee, subject, body)
 
     return _guard(run)

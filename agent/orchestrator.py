@@ -20,11 +20,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from agent import llm
+from agent.citations import cited_labels, identities, normalize
 from agent.mcp_client import MCPToolClient, ToolCallResult
 from agent.prompts import build_system_prompt
 from config import settings
@@ -130,6 +132,8 @@ def fit_context(
     def compact(index: int, message: dict[str, Any], keep: int) -> None:
         nonlocal total
         if message.get("role") != "tool":
+            return
+        if message.get("name") == "check_policy_compliance":
             return
         content = message.get("content") or ""
         if len(content) <= max(keep, 1):
@@ -292,6 +296,11 @@ class Trace:
     # from. Recorded rather than swallowed: a run that needed correcting is not
     # the same as a clean one, and the evaluation should be able to see it.
     malformed_tool_calls: int = 0
+    retrieved_citations: list[str] = field(default_factory=list)
+    pending_actions: list[dict[str, Any]] = field(default_factory=list)
+    api_calls: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -357,7 +366,78 @@ def _extract_sources(result: Any, into: list[dict], seen: set[str]) -> None:
             _extract_sources(item, into, seen)
 
 
+def _parental_claim_errors(text: str, decisions: list[ToolInvocation], require_weeks: bool) -> list[str]:
+    problems = []
+    for decision in decisions:
+        result = decision.result
+        if not isinstance(result, dict) or "paid_weeks" not in result:
+            continue
+        words = normalize(text).lower()
+        for word, number in (("sixteen", "16"), ("eight", "8")):
+            words = re.sub(rf"\b{word}\b", number, words)
+        weeks = re.findall(r"(\d+(?:\.\d+)?)\s*(?:paid\s+)?weeks", words)
+        entitlement_claims = re.findall(
+            r"(?:entitl\w*|receiv\w*|grant\w*|eligible for|paid parental leave)"
+            r"[^.\n]{0,60}?(\d+(?:\.\d+)?)\s*(?:paid\s+)?weeks",
+            words,
+        )
+        entitlement_claims += re.findall(
+            r"(\d+(?:\.\d+)?)\s*weeks\s+(?:of\s+)?(?:paid|parental)", words
+        )
+        missing = (
+            require_weeks and result.get("eligible", True)
+            and not any(float(w) == result["paid_weeks"] for w in weeks)
+        )
+        if missing or any(float(w) != result["paid_weeks"] for w in entitlement_claims):
+            problems.append(
+                f"Parental entitlement is {result['paid_weeks']:g} weeks for "
+                f"the stated {result['parent_role']} role; do not assert another entitlement."
+            )
+        if result["parent_role"] == "non_birthing" and re.search(r"\bas (?:a|the) birthing parent\b", words):
+            problems.append("The employee is the non-birthing parent, not the birthing parent.")
+    return problems
+
+
+def _notice_claim_errors(text: str, decisions: list[ToolInvocation]) -> list[str]:
+    bands = next((
+        d.result["notice_bands"] for d in decisions
+        if isinstance(d.result, dict) and d.result.get("notice_bands")
+    ), [])
+    if not bands:
+        return []
+    words = normalize(text).lower().replace("-", " ").replace("*", "")
+    for number, word in enumerate(
+        ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+    ):
+        words = re.sub(rf"\b{word}\b", str(number), words)
+    claims = re.findall(
+        r"(\d+)\s+(?:consecutive\s+)?(?:business\s+)?days"
+        r"[^.\n]{0,100}?\brequires?\s+(?:only\s+)?(\d+)\s+business\s+days?[’']?\s+(?:of\s+)?notice",
+        words,
+    )
+    for duration, notice in claims:
+        band = next((b for b in bands if int(duration) <= b["up_to_business_days"]), None)
+        if band and int(notice) != band["required_notice"]:
+            return [
+                f"{duration} business days require {band['required_notice']} business days notice, "
+                f"not {notice}; use the checker's notice_bands."
+            ]
+    return []
+
+
 async def run_agent(
+    question: str,
+    client: MCPToolClient,
+    history: list[dict[str, Any]] | None = None,
+    max_steps: int | None = None,
+) -> Trace:
+    with llm.call_budget() as calls:
+        trace = await _run_agent(question, client, history, max_steps)
+        trace.api_calls = calls[0]
+        return trace
+
+
+async def _run_agent(
     question: str,
     client: MCPToolClient,
     history: list[dict[str, Any]] | None = None,
@@ -377,6 +457,7 @@ async def run_agent(
 
     citations: list[str] = []
     source_labels: set[str] = set()
+    validated_once = False
 
     for index in range(1, max_steps + 1):
         # Bound the request before it is sent. Doing this per step rather than
@@ -387,14 +468,24 @@ async def run_agent(
         )
         trace.elided_results += elided
         trace.peak_context_tokens = max(trace.peak_context_tokens, context_tokens)
+        if context_tokens > settings.context_token_budget:
+            trace.error = "Context budget exceeded; no oversized API request was sent."
+            trace.answer = "Please start a new conversation or narrow the request."
+            trace.steps.append(Step(index=index, kind="error", summary=trace.error))
+            break
 
         try:
             response = await asyncio.to_thread(llm.chat, messages, tools)
+        except llm.QuotaExceeded as exc:
+            trace.error = f"QuotaExceeded: {exc}"
+            trace.answer = str(exc)
+            trace.steps.append(Step(index=index, kind="error", summary=trace.error))
+            break
         except llm.NoProviderConfigured as exc:
             trace.error = str(exc)
             trace.answer = (
-                "No language model is configured. Set GROQ_API_KEY or GEMINI_API_KEY "
-                "and restart the service."
+                "No language model is configured for tool workflows. Set GROQ_API_KEY "
+                "for a supported tool-capable model and restart the service."
             )
             trace.steps.append(Step(index=index, kind="error", summary=str(exc)))
             break
@@ -435,20 +526,55 @@ async def run_agent(
 
         trace.provider, trace.model = response.provider, response.model
         trace.fell_back = trace.fell_back or response.fell_back
+        trace.prompt_tokens += getattr(response, "prompt_tokens", 0)
+        trace.completion_tokens += getattr(response, "completion_tokens", 0)
 
         if not response.tool_calls:
+            answer = (response.text or "").strip()
+            used = identities(answer)
+            available = set().union(*(identities(c) for c in citations)) if citations else set()
+            problems = []
+            if used - available:
+                problems.append("Use only exact section citations returned by tools.")
+            if citations and not used:
+                problems.append("Cite the supporting policy sections inline, or explicitly decline.")
+            decisions = [
+                c for s in trace.steps for c in s.tool_calls
+                if c.name == "check_policy_compliance" and not c.is_error
+            ]
+            if decisions and not trace.sources:
+                problems.append("Retrieve policy passages with search_policy_documents or get_policy_section.")
+            problems.extend(_parental_claim_errors(answer, decisions, require_weeks=True))
+            problems.extend(_notice_claim_errors(answer, decisions))
+            if trace.grounded is False:
+                trace.answer = (
+                    "The retrieved HR policy evidence does not cover this question. "
+                    "Please contact People Operations for clarification."
+                )
+                trace.steps.append(Step(index=index, kind="final", summary="Declined unsupported policy claim"))
+                break
+            if problems and not validated_once:
+                validated_once = True
+                messages.append({"role": "assistant", "content": answer})
+                messages.append({"role": "user", "content": "Evidence check: " + " ".join(problems)})
+                trace.steps.append(Step(index=index, kind="validation", summary="Requested missing evidence"))
+                continue
+            if problems:
+                trace.error = "Final answer failed evidence validation."
+                trace.answer = "I could not verify the policy evidence. Please contact HR or narrow the question."
+                trace.steps.append(Step(index=index, kind="error", summary=trace.error))
+                break
             trace.steps.append(Step(
                 index=index, kind="final", provider=response.provider, model=response.model,
                 latency_ms=round(response.latency_ms, 1), fell_back=response.fell_back,
-                summary=f"answer synthesised from {len(citations)} cited "
-                        f"{'source' if len(citations) == 1 else 'sources'}",
+                summary=f"answer uses {len(cited_labels(answer, citations))} verified citation labels",
                 service_ms=round(response.service_ms, 1),
                 throttle_ms=round(response.throttle_ms, 1),
                 attempts=response.attempts,
                 context_tokens=context_tokens,
                 elided_results=elided,
             ))
-            trace.answer = (response.text or "").strip()
+            trace.answer = answer
             break
 
         step = Step(
@@ -480,7 +606,7 @@ async def run_agent(
             ],
         })
 
-        async def execute(call) -> tuple[Any, ToolCallResult]:
+        async def execute(call, tool_calls=response.tool_calls) -> tuple[Any, ToolCallResult]:
             try:
                 arguments = json.loads(call.function.arguments or "{}")
                 if not isinstance(arguments, dict):
@@ -495,6 +621,33 @@ async def run_agent(
                     },
                     is_error=True,
                 )
+            if call.function.name in ("create_hr_ticket", "draft_hr_email"):
+                decisions = [
+                    c for s in trace.steps for c in s.tool_calls
+                    if c.name == "check_policy_compliance" and not c.is_error
+                ]
+                if any(c.function.name == "check_policy_compliance" for c in tool_calls):
+                    return call, ToolCallResult(
+                        name=call.function.name, arguments=arguments,
+                        content={"error": "Wait for the compliance result before drafting an action."},
+                        is_error=True,
+                    )
+                problems = _parental_claim_errors(
+                    str(arguments.get("body", "")), decisions, require_weeks=False
+                )
+                problems.extend(_notice_claim_errors(str(arguments.get("body", "")), decisions))
+                if problems:
+                    return call, ToolCallResult(
+                        name=call.function.name, arguments=arguments,
+                        content={"error": " ".join(problems), "hint": "Correct the preview before showing it."},
+                        is_error=True,
+                    )
+                if arguments.get("confirmed") or arguments.get("approval_token"):
+                    return call, ToolCallResult(
+                        name=call.function.name, arguments=arguments,
+                        content={"error": "Only the web confirmation button can approve a preview."},
+                        is_error=True,
+                    )
             return call, await client.call(call.function.name, arguments)
 
         for call, result in await asyncio.gather(*(execute(c) for c in response.tool_calls)):
@@ -504,7 +657,7 @@ async def run_agent(
                 trace.tools_used.append(result.name)
             if isinstance(result.content, dict) and "grounded" in result.content:
                 grounded = bool(result.content["grounded"])
-                trace.grounded = grounded if trace.grounded is None else (trace.grounded or grounded)
+                trace.grounded = grounded if trace.grounded is None else (trace.grounded and grounded)
 
             step.tool_calls.append(ToolInvocation(
                 step=index,
@@ -532,7 +685,8 @@ async def run_agent(
             f"question, or contact HR directly."
         )
 
-    trace.citations = citations
+    trace.retrieved_citations = citations
+    trace.citations = cited_labels(trace.answer, citations)
     trace.total_ms = round((time.perf_counter() - started) * 1000.0, 1)
     trace.throttle_ms = round(sum(s.throttle_ms for s in trace.steps), 1)
     trace.total_service_ms = round(trace.total_ms - trace.throttle_ms, 1)

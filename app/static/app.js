@@ -12,16 +12,31 @@ const sendBtn = document.getElementById("send");
 // Only the plain user/assistant turns are kept; tool traffic is reconstructed
 // server-side each turn and would bloat the payload for no benefit.
 let history = [];
+let busy = false;
+
+function headers() {
+  return {
+    "Content-Type": "application/json",
+    "X-Demo-Code": document.getElementById("demo-code")?.value || "",
+  };
+}
+
+function setBusy(value) {
+  busy = value;
+  document.querySelectorAll("button").forEach((button) => {
+    button.disabled = value || button.dataset.completed === "true";
+  });
+}
 
 const escape = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
 
-function addMessage(role, text, citations, sources) {
+function addMessage(role, text, citations, sources, answerHtml) {
   const el = document.createElement("div");
   el.className = `msg ${role}`;
-  el.innerHTML = escape(text)
+  el.innerHTML = answerHtml || escape(text)
     .split(/\n{2,}/)
     .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
     .join("");
@@ -53,7 +68,9 @@ function renderTrace(trace) {
   if (trace.model) tags.push(`<span class="tag">${escape(trace.model)}</span>`);
   tags.push(`<span class="tag">${trace.steps.length} step(s)</span>`);
   tags.push(`<span class="tag">${Math.round(trace.total_ms)} ms</span>`);
-  if (trace.grounded === true) tags.push(`<span class="tag ok">grounded</span>`);
+  tags.push(`<span class="tag">${trace.api_calls ?? 0} API calls this request</span>`);
+  if (trace.cached) tags.push(`<span class="tag warn">Cached result: trace and timings are from the original run</span>`);
+  if (trace.grounded === true) tags.push(`<span class="tag ok">retrieval accepted</span>`);
   if (trace.grounded === false) tags.push(`<span class="tag warn">not grounded</span>`);
   if (trace.fell_back) tags.push(`<span class="tag warn">provider fallback</span>`);
   if (trace.truncated) tags.push(`<span class="tag warn">step limit reached</span>`);
@@ -70,7 +87,7 @@ function renderTrace(trace) {
           <details>
             <summary>arguments &amp; result</summary>
             <pre>${escape(JSON.stringify(call.arguments, null, 1))}</pre>
-            <pre>${escape(JSON.stringify(call.result, null, 1).slice(0, 4000))}</pre>
+            <pre>${escape(JSON.stringify(call.result, null, 1))}</pre>
           </details>
         </div>`
         )
@@ -97,17 +114,20 @@ function renderTrace(trace) {
 }
 
 async function send(question) {
+  if (busy) return;
+  setBusy(true);
   addMessage("user", question);
   const pending = addMessage("assistant", "Working");
   pending.classList.add("typing");
-  sendBtn.disabled = true;
   input.value = "";
 
   try {
     const response = await fetch("/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: question, history }),
+      headers: headers(),
+      body: JSON.stringify({
+        message: question, history, fresh: document.getElementById("fresh").checked,
+      }),
     });
 
     if (!response.ok) {
@@ -117,8 +137,9 @@ async function send(question) {
 
     const trace = await response.json();
     pending.remove();
-    addMessage("assistant", trace.answer || "(no answer returned)", trace.citations, trace.sources);
+    addMessage("assistant", trace.answer || "(no answer returned)", trace.citations, trace.sources, trace.answer_html);
     renderTrace(trace);
+    for (const action of trace.pending_actions || []) renderAction(action);
 
     history.push({ role: "user", content: question });
     history.push({ role: "assistant", content: trace.answer || "" });
@@ -127,7 +148,7 @@ async function send(question) {
     pending.remove();
     addMessage("error", `Could not complete that request: ${err.message}`);
   } finally {
-    sendBtn.disabled = false;
+    setBusy(false);
     input.focus();
   }
 }
@@ -146,8 +167,54 @@ input.addEventListener("keydown", (event) => {
 });
 
 document.querySelectorAll("button.demo").forEach((button) => {
-  button.addEventListener("click", () => send(button.dataset.q));
+  button.addEventListener("click", () => {
+    if (busy) return;
+    history = [];
+    send(button.dataset.q);
+  });
 });
+
+document.getElementById("new-chat").addEventListener("click", () => {
+  if (busy) return;
+  history = [];
+  messagesEl.replaceChildren();
+  traceEl.textContent = "New conversation. No model call made.";
+});
+
+function renderAction(action) {
+  const card = document.createElement("div");
+  card.className = "msg assistant";
+  const title = document.createElement("p");
+  title.textContent = `Mock action preview: ${action.tool}`;
+  const preview = document.createElement("pre");
+  preview.textContent = JSON.stringify(action.preview, null, 2);
+  const button = document.createElement("button");
+  button.textContent = "Confirm this exact mock action (no LLM call)";
+  button.addEventListener("click", async () => {
+    if (busy || button.dataset.completed === "true") return;
+    setBusy(true);
+    try {
+      const response = await fetch(`/actions/${encodeURIComponent(action.id)}/confirm`, {
+        method: "POST", headers: headers(),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(JSON.stringify(result.detail || result));
+      button.dataset.completed = "true";
+      button.textContent = "Mock action completed";
+      addMessage("assistant", JSON.stringify(result, null, 2));
+      history.push({ role: "assistant", content: `Confirmed mock action result: ${JSON.stringify(result.result)}` });
+      history = history.slice(-8);
+    } catch (error) {
+      button.dataset.completed = "true";
+      button.textContent = "Confirmation failed; request a new preview";
+      addMessage("error", error.message);
+    } finally {
+      setBusy(false);
+    }
+  });
+  card.append(title, preview, button);
+  messagesEl.appendChild(card);
+}
 
 (async function pollHealth() {
   const dot = document.getElementById("status-dot");

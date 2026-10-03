@@ -143,13 +143,27 @@ async def test_write_requires_confirmation():
 
 
 async def test_confirmed_write_is_in_memory_only():
+    from agent.mcp_client import MCPToolClient
+
+    client = MCPToolClient()
+    await client.connect()
+    try:
+        result = (await client.confirm("create_hr_ticket", {
+            "employee": "E-1041", "category": "pto", "subject": "s", "body": "b",
+        })).content
+    finally:
+        await client.aclose()
+    assert result["persisted"] is False
+    assert result["ticket_id"].startswith("HR-")
+
+
+async def test_model_supplied_confirmation_is_rejected():
     async with mcp_session() as session:
         result = payload(await session.call_tool("create_hr_ticket", {
             "employee": "E-1041", "category": "pto", "subject": "s", "body": "b",
             "confirmed": True,
         }))
-    assert result["persisted"] is False
-    assert result["ticket_id"].startswith("HR-")
+    assert "error" in result
 
 
 async def test_section_fetch_returns_verbatim_text():

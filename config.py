@@ -96,6 +96,15 @@ class Settings(BaseSettings):
     # -- MCP ------------------------------------------------------------------
     mcp_transport: str = "stdio"
     mcp_server_url: str = "http://127.0.0.1:8765/mcp"
+    mcp_approval_secret: str = Field(default="", exclude=True, repr=False)
+    # Optional shared passcode for the public demo; never sent to the model.
+    demo_access_code: str = Field(default="", exclude=True, repr=False)
+    llm_enabled: bool = True
+    llm_max_calls_per_turn: int = Field(default=8, ge=1, le=30)
+    llm_max_calls_per_hour: int = Field(default=60, ge=1)
+    llm_max_calls_per_day: int = Field(default=100, ge=1)
+    chat_max_requests_per_hour: int = Field(default=12, ge=1)
+    build_sha: str = os.environ.get("RENDER_GIT_COMMIT", "local")
 
     # -- App ------------------------------------------------------------------
     port: int = 8000

@@ -12,19 +12,26 @@ you what is broken.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import logging
 import pathlib
+import secrets
+import time
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from markdown_it import MarkdownIt
 from pydantic import BaseModel, Field
 from starlette.requests import Request
 
 from agent import llm
+from agent.demo_tasks import DEMO_WORKFLOWS
 from agent.mcp_client import MCPToolClient, MCPUnavailable
 from agent.orchestrator import run_agent
 from config import apply_seeds, settings
@@ -33,24 +40,9 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=settings.log_level.upper())
 
 HERE = pathlib.Path(__file__).resolve().parent
+MARKDOWN = MarkdownIt("commonmark", {"html": False}).enable("table")
 
-DEMO_TASKS = [
-    {
-        "id": "international",
-        "label": "International remote work request",
-        "question": (
-            "Maya Rodriguez wants to work from Portugal for six weeks, "
-            "5 October to 15 November. Can she? If not, what are her options?"
-        ),
-    },
-    {
-        "id": "pto",
-        "label": "PTO request with a short balance",
-        "question": (
-            "Jonas Weber wants to take three days off starting 21 September. "
-            "Is that approvable, and what does he need to do?"
-        ),
-    },
+DEMO_TASKS = DEMO_WORKFLOWS + [
     {
         "id": "benefits",
         "label": "Part-time benefits eligibility",
@@ -75,9 +67,15 @@ DEMO_TASKS = [
 ]
 
 
+class HistoryMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=6000)
+
+
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
-    history: list[dict[str, Any]] = Field(default_factory=list)
+    history: list[HistoryMessage] = Field(default_factory=list, max_length=8)
+    fresh: bool = False
 
 
 @asynccontextmanager
@@ -85,6 +83,10 @@ async def lifespan(app: FastAPI):
     apply_seeds()
     app.state.mcp = MCPToolClient()
     app.state.mcp_error = ""
+    app.state.pending = {}
+    app.state.cache = {}
+    app.state.chat_requests = []
+    app.state.busy = False
     try:
         await app.state.mcp.connect()
     except MCPUnavailable as exc:
@@ -125,6 +127,7 @@ async def index(request: Request):
             "demo_tasks": DEMO_TASKS,
             "as_of_date": settings.as_of_date,
             "tool_count": len(request.app.state.mcp.tools),
+            "access_code_required": bool(settings.demo_access_code),
         },
     )
 
@@ -171,8 +174,14 @@ async def health(request: Request):
 
     providers = llm.available_providers()
     payload = {
-        "status": "ok" if (mcp_ok and index_ok and providers) else "degraded",
+        "status": "ok" if (mcp_ok and index_ok and providers and settings.llm_enabled) else "degraded",
         "as_of_date": settings.as_of_date,
+        "build_sha": settings.build_sha,
+        "quota_limits": {
+            "per_turn": settings.llm_max_calls_per_turn,
+            "per_hour": settings.llm_max_calls_per_hour,
+            "per_day": settings.llm_max_calls_per_day,
+        },
         "mcp": {
             "connected": mcp_ok,
             "transport": (client.transport if client else None) or settings.mcp_transport,
@@ -184,7 +193,8 @@ async def health(request: Request):
         "llm": {
             "providers_configured": providers,
             "primary": settings.llm_provider,
-            "ok": bool(providers),
+            "enabled": settings.llm_enabled,
+            "ok": bool(providers) and settings.llm_enabled,
         },
     }
     return JSONResponse(payload, status_code=200 if payload["status"] == "ok" else 503)
@@ -221,6 +231,7 @@ async def demo_tasks():
 @app.post("/chat")
 async def chat(request: Request, body: ChatRequest):
     """Run one agent turn. Returns the answer and the full execution trace."""
+    _authorize(request)
     client: MCPToolClient = request.app.state.mcp
     if client.session is None:
         raise HTTPException(
@@ -231,5 +242,100 @@ async def chat(request: Request, body: ChatRequest):
             ),
         )
 
-    trace = await run_agent(body.message, client, history=body.history)
-    return trace.to_dict()
+    session = request.cookies.get("helios_session") or secrets.token_urlsafe(32)
+    state = request.app.state
+    now = time.monotonic()
+    _expire(state.pending, now)
+    _expire(state.cache, now)
+    key = hashlib.sha256(
+        json.dumps([session, body.message, [m.model_dump() for m in body.history]]).encode()
+    ).hexdigest()
+    if not body.fresh and key in state.cache:
+        payload = {**state.cache[key]["payload"], "cached": True, "api_calls": 0}
+        return _session_response(payload, session, request)
+    if state.busy:
+        raise HTTPException(429, "Another chat is running. Wait to preserve the shared API quota.")
+    state.chat_requests = [t for t in state.chat_requests if t > now - 3600]
+    if len(state.chat_requests) >= settings.chat_max_requests_per_hour:
+        raise HTTPException(429, "Hourly chat limit reached. Wait before retrying.")
+    state.chat_requests.append(now)
+    state.busy = True
+    try:
+        trace = await run_agent(
+            body.message, client, history=[m.model_dump() for m in body.history]
+        )
+    finally:
+        state.busy = False
+    if not trace.error and not trace.truncated:
+        for step in trace.steps:
+            for call in step.tool_calls:
+                result = call.result
+                if (
+                    call.name in ("create_hr_ticket", "draft_hr_email")
+                    and not call.is_error
+                    and isinstance(result, dict)
+                    and result.get("requires_confirmation")
+                ):
+                    action_id = secrets.token_urlsafe(24)
+                    if len(state.pending) >= 100:
+                        raise HTTPException(429, "Too many pending previews; let them expire.")
+                    state.pending[action_id] = {
+                        "session": session, "name": call.name, "arguments": call.arguments,
+                        "expires": time.monotonic() + 600,
+                    }
+                    trace.pending_actions.append({
+                        "id": action_id, "tool": call.name, "preview": result["preview"],
+                    })
+    payload = {**trace.to_dict(), "cached": False, "answer_html": MARKDOWN.render(trace.answer)}
+    if (
+        not trace.error and not trace.truncated and not trace.pending_actions
+        and not set(trace.tools_used) & {"create_hr_ticket", "draft_hr_email", "list_hr_tickets"}
+    ):
+        if len(state.cache) >= 100:
+            del state.cache[next(iter(state.cache))]
+        state.cache[key] = {"expires": time.monotonic() + 600, "payload": payload}
+    return _session_response(payload, session, request)
+
+
+def _authorize(request: Request) -> None:
+    if settings.demo_access_code and not hmac.compare_digest(
+        request.headers.get("X-Demo-Code", ""), settings.demo_access_code
+    ):
+        raise HTTPException(403, "Enter the demo access code to use the shared model quota.")
+
+
+def _expire(store: dict, now: float) -> None:
+    for key in list(store):
+        if store[key]["expires"] <= now:
+            del store[key]
+
+
+def _session_response(payload: dict, session: str, request: Request) -> JSONResponse:
+    response = JSONResponse(payload)
+    response.set_cookie(
+        "helios_session", session, httponly=True, samesite="strict",
+        secure=request.url.scheme == "https", max_age=3600,
+    )
+    return response
+
+
+@app.post("/actions/{action_id}/confirm")
+async def confirm_action(action_id: str, request: Request):
+    """A distinct user action authorizes the stored payload, without an LLM call."""
+    _authorize(request)
+    state = request.app.state
+    _expire(state.pending, time.monotonic())
+    pending = state.pending.get(action_id)
+    if pending is None or pending["session"] != request.cookies.get("helios_session"):
+        raise HTTPException(404, "Preview expired, already used, or belongs to another session.")
+    del state.pending[action_id]
+    result = await state.mcp.confirm(pending["name"], pending["arguments"])
+    if result.is_error:
+        raise HTTPException(502, detail=result.content)
+    # Invalidate cached reads after a mutation.
+    state.cache.clear()
+    return {
+        "status": "completed", "mock": True, "tool": pending["name"],
+        "arguments": {k: v for k, v in pending["arguments"].items() if k != "approval_token"},
+        "result": result.content, "api_calls": 0,
+    }

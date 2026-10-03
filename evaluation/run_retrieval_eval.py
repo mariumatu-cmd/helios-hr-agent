@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import pathlib
 import sys
+from datetime import UTC, datetime
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -208,7 +209,11 @@ def main() -> int:
     path = RESULTS_DIR / "retrieval_eval.json"
     path.write_text(
         json.dumps(
-            {"index": info, "k": k, "configurations": results},
+            {
+                "generated_at": datetime.now(UTC).isoformat(),
+                "metric_note": "recall_at_* fields are document-level hit rates (any expected document)",
+                "index": info, "k": k, "configurations": results,
+            },
             indent=2,
             ensure_ascii=False,
         ),
@@ -218,6 +223,8 @@ def main() -> int:
         f"# Retrieval ablations\n\n"
         f"Index: {info['chunks']} chunks / {info['documents']} documents, "
         f"model `{info['model']}`, k={k}.\n\n"
+        "The legacy recall columns measure document-level hit rate (any expected document), "
+        "not complete multi-document evidence coverage. MRR uses deduplicated documents.\n\n"
         f"{table}\n",
         encoding="utf-8",
     )

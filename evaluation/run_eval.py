@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import pathlib
 import statistics
@@ -31,11 +32,25 @@ from agent.mcp_client import MCPToolClient  # noqa: E402
 from agent.orchestrator import run_agent  # noqa: E402
 from config import apply_seeds, settings  # noqa: E402
 from evaluation.cases import CASES, Case  # noqa: E402
-from evaluation.score import CaseScore, aggregate, score_case  # noqa: E402
-from mcp_server import data  # noqa: E402
+from evaluation.score import SCORER_VERSION, CaseScore, aggregate, score_case  # noqa: E402
 
 RESULTS_DIR = ROOT / "evaluation" / "results"
 CHECKPOINT = RESULTS_DIR / "checkpoint.jsonl"
+_traces: dict[str, dict] = {}
+
+
+def run_fingerprint() -> str:
+    digest = hashlib.sha256()
+    for folder in ("agent", "evaluation", "mcp_server", "rag"):
+        for path in sorted((ROOT / folder).rglob("*.py")):
+            digest.update(path.relative_to(ROOT).as_posix().encode())
+            digest.update(path.read_text(encoding="utf-8").encode())
+    digest.update((settings.index_dir / "index_info.json").read_bytes())
+    config = settings.model_dump(exclude={
+        "groq_api_key", "gemini_api_key", "mcp_approval_secret", "demo_access_code", "root",
+    })
+    digest.update(json.dumps(config, sort_keys=True).encode())
+    return digest.hexdigest()
 
 
 class QuotaExhausted(RuntimeError):
@@ -70,7 +85,11 @@ def load_checkpoint() -> dict[str, CaseScore]:
         if not line:
             continue
         record = json.loads(line)
-        done[record["case_id"]] = CaseScore(**record)
+        if record.get("fingerprint") != run_fingerprint():
+            raise ValueError("Checkpoint belongs to different code/configuration; start a fresh run.")
+        score = record["score"]
+        done[score["case_id"]] = CaseScore(**score)
+        _traces[score["case_id"]] = record["trace"]
     return done
 
 
@@ -88,7 +107,6 @@ def select(args: argparse.Namespace) -> list[Case]:
 
 async def run_once(
     cases: list[Case],
-    client: MCPToolClient,
     checkpoint: bool = False,
     done: dict[str, CaseScore] | None = None,
 ) -> list[CaseScore]:
@@ -106,11 +124,15 @@ async def run_once(
         # Every case starts from the same world. Without this, S01's ticket
         # would still exist when L04 lists tickets, and a passing case would
         # depend on the order the suite happened to run in.
-        data.reset_writes()
-
         print(f"  [{position:>2}/{len(cases)}] {case.id} ({case.category}) ... ", end="", flush=True)
+        _traces.pop(case.id, None)
+        client = MCPToolClient()
         try:
-            trace = await run_agent(case.question, client)
+            await client.connect()
+            try:
+                trace = await run_agent(case.question, client)
+            finally:
+                await client.aclose()
         except Exception as exc:  # noqa: BLE001
             if _is_quota_error(exc):
                 print("QUOTA EXHAUSTED")
@@ -126,15 +148,19 @@ async def run_once(
                 error = f"{type(exc).__name__}: {exc}"
 
             score = score_case(case, _Failed())
+            _traces[case.id] = {"error": score.error}
             scores.append(score)
             if checkpoint:
-                _append_checkpoint(score)
+                _append_checkpoint(score, {})
             continue
 
+        if trace.error and _is_quota_error(RuntimeError(trace.error)):
+            raise QuotaExhausted(trace.error)
+        _traces[case.id] = trace.to_dict()
         score = score_case(case, trace)
         scores.append(score)
         if checkpoint:
-            _append_checkpoint(score)
+            _append_checkpoint(score, trace.to_dict())
         verdict = "PASS" if score.passed else "FAIL"
         print(f"{verdict}  {score.score:.2f}  ({score.latency_ms / 1000:.1f}s)")
         for failure in score.failures:
@@ -142,7 +168,7 @@ async def run_once(
     return scores
 
 
-def _append_checkpoint(score: CaseScore) -> None:
+def _append_checkpoint(score: CaseScore, trace: dict) -> None:
     """Persist one case immediately, so an interruption costs one case, not all.
 
     A full suite costs more tokens than the free daily allowance, so a run that
@@ -150,7 +176,9 @@ def _append_checkpoint(score: CaseScore) -> None:
     """
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     with CHECKPOINT.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(score.to_dict(), ensure_ascii=False) + "\n")
+        fh.write(json.dumps({
+            "fingerprint": run_fingerprint(), "score": score.to_dict(), "trace": trace,
+        }, ensure_ascii=False) + "\n")
 
 
 def print_summary(summary: dict) -> None:
@@ -228,12 +256,8 @@ async def main_async(args: argparse.Namespace) -> int:
     print(f"cases     : {len(cases)}   repeats: {args.repeat}")
     print()
 
-    client = MCPToolClient()
-    await client.connect()
-    print(f"MCP       : {client.server_name} v{client.server_version}, "
-          f"{len(client.tools)} tools over {client.transport}")
-
     runs: list[list[CaseScore]] = []
+    trace_runs: list[dict] = []
     exhausted = False
     try:
         for repeat in range(1, args.repeat + 1):
@@ -241,8 +265,9 @@ async def main_async(args: argparse.Namespace) -> int:
                 print(f"\n--- run {repeat}/{args.repeat} ---")
             try:
                 runs.append(await run_once(
-                    cases, client, checkpoint=args.checkpoint, done=done,
+                    cases, checkpoint=args.checkpoint, done=done,
                 ))
+                trace_runs.append(dict(_traces))
             except QuotaExhausted as exc:
                 exhausted = True
                 completed = len(load_checkpoint()) if args.checkpoint else 0
@@ -256,7 +281,7 @@ async def main_async(args: argparse.Namespace) -> int:
                 )
                 break
     finally:
-        await client.aclose()
+        _traces.clear()
 
     if exhausted:
         return 3
@@ -278,6 +303,8 @@ async def main_async(args: argparse.Namespace) -> int:
         json.dumps(
             {
                 "generated_at": stamp,
+                "scorer_version": SCORER_VERSION,
+                "fingerprint": run_fingerprint(),
                 "provider": settings.llm_provider,
                 "model": llm.active_model(),
                 "as_of_date": settings.as_of_date,
@@ -285,6 +312,7 @@ async def main_async(args: argparse.Namespace) -> int:
                 "summary": aggregate([s for run in runs for s in run]),
                 "per_run_summary": summaries,
                 "cases": [[s.to_dict() for s in run] for run in runs],
+                "traces": trace_runs,
             },
             indent=2,
             ensure_ascii=False,
@@ -299,6 +327,7 @@ async def main_async(args: argparse.Namespace) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--allow-live", action="store_true", help="explicitly allow quota-consuming LLM calls")
     parser.add_argument("--category", action="append", help="filter by category (repeatable)")
     parser.add_argument("--case", action="append", help="run specific case ids (repeatable)")
     parser.add_argument("--repeat", type=int, default=1, help="run the suite N times")
@@ -320,6 +349,10 @@ def main() -> int:
         help="reuse scores already in the checkpoint and run only the rest",
     )
     args = parser.parse_args()
+    if not args.allow_live:
+        parser.error("Live evaluation consumes API quota. Add --allow-live only when intended.")
+    if settings.mcp_transport != "stdio":
+        parser.error("Evaluation requires stdio so each case has isolated mock state.")
     if args.repeat > 1:
         # Repeats measure run-to-run variance, so every repeat must actually
         # execute; a checkpoint would let run 2 replay run 1's answers.

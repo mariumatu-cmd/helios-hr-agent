@@ -21,7 +21,7 @@ services:
     region: oregon
     dockerfilePath: ./Dockerfile
     healthCheckPath: /healthz
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       # Secrets are set in the Render dashboard, never committed. `sync: false`
       # tells Render to prompt for the value instead of expecting it here.
@@ -37,6 +37,14 @@ services:
         value: "true"
       - key: LOG_LEVEL
         value: INFO
+      - key: LLM_MAX_CALLS_PER_TURN
+        value: "8"
+      - key: LLM_MAX_CALLS_PER_HOUR
+        value: "60"
+      - key: LLM_MAX_CALLS_PER_DAY
+        value: "100"
+      - key: CHAT_MAX_REQUESTS_PER_HOUR
+        value: "12"
       # Must match the Dockerfile's bake location. Pointing this at a path the
       # builder stage did not populate sends fastembed back to HuggingFace on
       # the first query of every cold start -- the exact failure the two-stage

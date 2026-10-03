@@ -14,6 +14,21 @@ from mcp_server import data  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
+def no_live_llm_calls(monkeypatch):
+    from openai.resources.chat.completions import Completions
+
+    from agent import llm
+
+    def deny(*args, **kwargs):
+        raise AssertionError("Tests must never consume live LLM quota")
+
+    monkeypatch.setattr(Completions, "create", deny)
+    llm._requests.clear()
+    yield
+    llm._requests.clear()
+
+
+@pytest.fixture(autouse=True)
 def clean_writes():
     """Mock writes live in memory; clear them so cases cannot leak into each other."""
     data.reset_writes()

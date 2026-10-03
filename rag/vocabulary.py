@@ -55,6 +55,8 @@ GENERIC = frozenset(
     quickly soon immediately promptly urgently later sooner
     first second third last next previous same different
     total overall approximately roughly exactly precisely
+    profile retrieve retrieval cite citation citations preview confirm confirmation
+    button compliant compliance
     """.split()
 )
 
@@ -135,7 +137,10 @@ def corpus_vocabulary() -> frozenset[str]:
     from rag.retrieve import _Index
 
     terms = set(_Index.get().bm25["postings"])
-    return frozenset(terms | {_normalise(t) for t in terms})
+    return frozenset(
+        terms | {_normalise(t) for t in terms}
+        | {root for term in terms for root in _roots(term) if len(root) >= 4}
+    )
 
 
 @functools.lru_cache(maxsize=1)
@@ -150,7 +155,10 @@ def data_vocabulary() -> frozenset[str]:
     for path in sorted(settings.mock_data_dir.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         terms.update(bm25.tokenize(json.dumps(payload, ensure_ascii=False)))
-    return frozenset(terms | {_normalise(t) for t in terms})
+    return frozenset(
+        terms | {_normalise(t) for t in terms}
+        | {root for term in terms for root in _roots(term) if len(root) >= 4}
+    )
 
 
 def known(term: str) -> bool:

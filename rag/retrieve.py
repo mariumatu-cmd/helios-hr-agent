@@ -246,6 +246,8 @@ def search(
     query = (query or "").strip()
     if not query:
         return SearchResult(query, [], False, 0.0, "empty query")
+    if not any(character.isalpha() for character in query):
+        return SearchResult(query, [], False, 0.0, "query must contain words, not just punctuation or numbers")
 
     mode = (mode or settings.retrieval_mode or "hybrid").lower().strip()
     if mode not in {"hybrid", "dense", "bm25"}:

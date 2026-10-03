@@ -21,6 +21,8 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import secrets
 import sys
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
@@ -30,6 +32,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 from config import settings
+from mcp_server import approval
 
 log = logging.getLogger(__name__)
 
@@ -65,19 +68,22 @@ class MCPToolClient:
     server_version: str = ""
     transport: str = ""
     _stack: AsyncExitStack | None = None
+    _approval_secret: str = field(default="", repr=False)
 
     async def connect(self) -> MCPToolClient:
         transport = settings.mcp_transport.strip().lower()
         self._stack = AsyncExitStack()
         try:
             if transport == "stdio":
+                self._approval_secret = secrets.token_hex(32)
                 params = StdioServerParameters(
                     command=sys.executable,
                     args=[str(settings.mcp_server_script)],
-                    env=None,
+                    env={**os.environ, "MCP_APPROVAL_SECRET": self._approval_secret},
                 )
                 read, write = await self._stack.enter_async_context(stdio_client(params))
             elif transport in ("streamable-http", "http"):
+                self._approval_secret = settings.mcp_approval_secret
                 from mcp.client.streamable_http import streamablehttp_client
 
                 read, write, _ = await self._stack.enter_async_context(
@@ -120,15 +126,28 @@ class MCPToolClient:
             schema = dict(tool.input_schema or {"type": "object", "properties": {}})
             schema.setdefault("type", "object")
             schema.setdefault("properties", {})
+            schema["properties"] = {
+                k: v for k, v in schema["properties"].items() if k != "approval_token"
+            }
             specs.append({
                 "type": "function",
                 "function": {
                     "name": tool.name,
-                    "description": (tool.description or "").strip(),
+                    "description": (tool.description or "").strip().split("\n\n")[0],
                     "parameters": schema,
                 },
             })
         return specs
+
+    async def confirm(self, name: str, arguments: dict[str, Any]) -> ToolCallResult:
+        """Only the trusted web endpoint may mint an action approval."""
+        if name not in ("create_hr_ticket", "draft_hr_email"):
+            raise ValueError("This is not a confirmable action")
+        clean = {k: v for k, v in arguments.items() if k not in ("confirmed", "approval_token")}
+        if name == "create_hr_ticket":
+            clean.setdefault("priority", "normal")
+        token = approval.issue(self._approval_secret, name, clean)
+        return await self.call(name, {**clean, "confirmed": True, "approval_token": token})
 
     def catalogue(self) -> list[dict[str, Any]]:
         """Human-readable tool inventory, for /health and the trace panel."""

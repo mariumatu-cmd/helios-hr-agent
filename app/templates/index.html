@@ -4,14 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Helios HR Assistant</title>
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header>
   <div class="brand">
     <h1>Helios HR Assistant</h1>
-    <p class="sub">Agentic RAG over 12 HR policy documents &middot; tools served over MCP</p>
+    <p class="sub">Agentic RAG over synthetic HR policies &middot; tools served over MCP</p>
   </div>
+  <div class="controls">
+    <button id="new-chat" type="button">New conversation</button>
+    <label><input id="fresh" type="checkbox"> Force live call (uses quota)</label>
+    {% if access_code_required %}
+    <label>Demo code <input id="demo-code" type="password" autocomplete="off"></label>
+    {% endif %}
+  </div>
+  <p class="muted">Repeated read-only requests may use a labelled 10-minute cache.
+    Live agent tasks can take minutes. Do not click twice.</p>
   <div class="status" id="status">
     <span class="dot" id="status-dot"></span><span id="status-text">checking&hellip;</span>
   </div>
@@ -31,7 +48,7 @@
         <p>Ask me about Helios HR policy &mdash; time off, remote work, benefits, expenses,
         equipment or leave. I answer only from the policy corpus and the HR system of record,
         and I cite the section I used.</p>
-        <p class="muted">Today is {{ as_of_date }} (the mock HR data snapshot date).
+        <p class="muted">Demo snapshot date: {{ as_of_date }} (not the current date).
         {{ tool_count }} tools discovered over MCP.</p>
       </div>
     </div>

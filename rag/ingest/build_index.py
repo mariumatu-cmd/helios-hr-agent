@@ -40,6 +40,13 @@ from rag.ingest.parse import SOURCE_PREFIX, SUPPORTED_SUFFIXES, load_corpus  # n
 
 EMBED_BATCH = 32
 
+
+def pipeline_fingerprint() -> str:
+    digest = hashlib.sha256()
+    for name in ("parse.py", "chunk.py", "bm25.py"):
+        digest.update((pathlib.Path(__file__).parent / name).read_text(encoding="utf-8").encode())
+    return digest.hexdigest()
+
 # Fields persisted per chunk. `embed_text` is intentionally dropped: it is
 # reconstructible and doubles the on-disk metadata size for no retrieval value.
 _PERSIST_FIELDS = (
@@ -130,6 +137,7 @@ def build(index_dir: pathlib.Path | None = None) -> dict:
             "overlap_tokens": OVERLAP_TOKENS,
         },
         "corpus_fingerprint": corpus_fingerprint(settings.corpus_dir),
+        "pipeline_fingerprint": pipeline_fingerprint(),
         "seed": settings.seed,
         "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "build_seconds": round(time.perf_counter() - started, 2),
@@ -170,6 +178,8 @@ def check(index_dir: pathlib.Path | None = None) -> int:
     current = corpus_fingerprint(settings.corpus_dir)
     if current != info.get("corpus_fingerprint"):
         problems.append("corpus has changed since the index was built; rebuild required")
+    if pipeline_fingerprint() != info.get("pipeline_fingerprint"):
+        problems.append("ingestion code has changed since the index was built; rebuild required")
 
     if problems:
         for problem in problems:

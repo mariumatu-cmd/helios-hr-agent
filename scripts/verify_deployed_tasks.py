@@ -1,184 +1,118 @@
-"""Prove the two required end-to-end agentic tasks complete on the LIVE deploy.
+"""Explicitly opt-in verification of the same two tasks offered in the UI.
 
-The rubric asks for at least two end-to-end agentic tasks in the deployed demo,
-each requiring multi-step reasoning, RAG retrieval and structured/mock-data tool
-use. This hits the deployed URL -- not a local process -- and records what the
-grader would see: the tool-call trace, the citations, and the latency.
-
-Writes evidence/deployed-tasks.json for the design doc to quote.
+python scripts/verify_deployed_tasks.py --allow-live --task pto --confirm-mock-actions
+Consumes LLM quota. The optional confirmation creates an in-memory mock ticket.
 """
-
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import pathlib
 import sys
 import time
-import urllib.error
-import urllib.request
+from http.cookiejar import CookieJar
+from urllib.request import HTTPCookieProcessor, Request, build_opener
 
-BASE = "https://helios-hr-assistant-wz3c.onrender.com"
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-# Task design note: each prompt deliberately spans three capabilities that no
-# single tool covers -- structured mock data (balances, usage history),
-# retrieved policy prose (conditions the rule engine does not encode), and a
-# concrete action (ticket or email). That is what forces genuine multi-step
-# reasoning rather than one composite tool call.
-TASKS = [
-    (
-        "international-remote-work",
-        # Maya Rodriguez (E-1041) has 12 approved days inside the rolling
-        # 12-month window and 12 more deliberately outside it, so a correct
-        # answer must exclude the latter. 14 days keeps her within the 30-day
-        # limit, so the request should pass and the ticket should be filed.
-        "I'm Maya Rodriguez. I'd like to work remotely from Portugal from "
-        "2026-10-05 to 2026-10-18. How many international days have I already "
-        "used this year, and does this request stay within the limit? If it "
-        "does, please file the ticket for me, and tell me what conditions the "
-        "policy places on working from an EU country.",
-    ),
-    (
-        "parental-leave-and-pto",
-        "I'm David Okafor and my partner is due in March. How much paid "
-        "parental leave am I entitled to, what is my current PTO balance, and "
-        "does taking parental leave affect that balance? Cite the policy, then "
-        "draft the email I should send my manager.",
-    ),
-]
+from agent.citations import identities  # noqa: E402
+from agent.demo_tasks import DEMO_WORKFLOWS  # noqa: E402
+from evaluation.cases import by_id  # noqa: E402
+from evaluation.score import SCORER_VERSION, score_case  # noqa: E402
 
 
-def post(path: str, payload: dict, timeout: int = 600) -> tuple[int, dict, float]:
-    body = json.dumps(payload).encode()
-    req = urllib.request.Request(f"{BASE}{path}", data=body, method="POST")
-    req.add_header("Content-Type", "application/json")
-    started = time.perf_counter()
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read().decode()
-            code = resp.status
-    except urllib.error.HTTPError as exc:
-        raw = exc.read().decode()
-        code = exc.code
-    return code, json.loads(raw), (time.perf_counter() - started) * 1000
+def restore_trace(value):
+    from types import SimpleNamespace
+
+    if isinstance(value, list):
+        return [restore_trace(v) for v in value]
+    if isinstance(value, dict):
+        # Tool payloads remain JSON dictionaries; trace objects use attributes.
+        return SimpleNamespace(**{
+            k: restore_trace(v) if k in ("steps", "tool_calls") else v
+            for k, v in value.items()
+        })
+    return value
+
+
+def assess(task_id: str, payload: dict) -> list[str]:
+    score = score_case(by_id("C01" if task_id == "international" else "C02"), restore_trace(payload))
+    failures = list(score.failures)
+    calls = [
+        c for s in payload.get("steps", []) for c in s.get("tool_calls", [])
+        if not c.get("is_error")
+    ]
+    tools = {c["name"] for c in calls}
+    if not tools & {"search_policy_documents", "get_policy_section"}:
+        failures.append("No successful MCP policy retrieval")
+    if len(payload.get("steps", [])) < 2 or len(tools) < 2:
+        failures.append("Not a multi-step, multi-tool workflow")
+    used = identities(payload.get("answer", ""))
+    passages = set().union(*(
+        identities(s["citation"]) for s in payload.get("sources", []) if s.get("snippet")
+    ))
+    if not used or not used & passages:
+        failures.append("No inline citation backed by a returned passage")
+    if task_id == "international" and not all(
+        any(c.startswith(doc) for c in used) for doc in ("POL-INTL-001", "POL-REMOTE-001")
+    ):
+        failures.append("Expected citations to both international and remote-work policies")
+    if task_id == "pto" and not payload.get("pending_actions"):
+        failures.append("Missing ticket preview")
+    return failures
 
 
 def main() -> int:
-    # Each task costs several minutes and a slice of the free-tier quota, so
-    # allow re-running just one while iterating.
-    only = sys.argv[1] if len(sys.argv) > 1 else ""
-    tasks = [t for t in TASKS if not only or only in t[0]]
-    if not tasks:
-        print(f"no task matches {only!r}; known: {[t[0] for t in TASKS]}")
-        return 2
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--allow-live", action="store_true")
+    parser.add_argument("--confirm-mock-actions", action="store_true")
+    parser.add_argument("--task", choices=["international", "pto"])
+    parser.add_argument("--base-url", default="https://helios-hr-assistant-wz3c.onrender.com")
+    args = parser.parse_args()
+    if not args.allow_live:
+        parser.error("Add --allow-live to authorize quota-consuming model calls.")
+    opener = build_opener(HTTPCookieProcessor(CookieJar()))
+
+    def post(path, body):
+        request = Request(
+            args.base_url.rstrip("/") + path, data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json",
+                     "X-Demo-Code": os.environ.get("DEMO_ACCESS_CODE", "")},
+        )
+        with opener.open(request, timeout=600) as response:
+            return json.load(response)
 
     results = []
-    failures = 0
-
-    for name, message in tasks:
-        print(f"\n{'=' * 70}\n{name}\n{'=' * 70}")
-        code, data, wall_ms = post("/chat", {"message": message})
-
-        # `Trace.to_dict()` is `asdict(trace)`, so the trace *is* the response
-        # body -- there is no nested "trace" key.
-        steps = data.get("steps") or []
-        tools = data.get("tools_used") or []
-        citations = data.get("citations") or []
-        answer = data.get("answer") or ""
-
-        ok = (
-            code == 200
-            and len(steps) >= 3
-            and len(set(tools)) >= 2
-            and len(citations) >= 1
-            and bool(answer.strip())
-            and not data.get("error")
-            # A run that exhausts the step budget returns an apology, not an
-            # answer. It would otherwise satisfy every count above, so assert
-            # on it explicitly.
-            and not data.get("truncated")
-        )
-        failures += 0 if ok else 1
-
-        print(f"http            : {code}")
-        print(f"steps           : {len(steps)}")
-        print(f"distinct tools  : {len(set(tools))}  {sorted(set(tools))}")
-        print(f"citations       : {len(citations)}")
-        print(f"wall clock      : {wall_ms / 1000:.1f}s")
-        print(f"service / thrtl : {data.get('total_service_ms')} / {data.get('throttle_ms')}")
-        print(f"provider/model  : {data.get('provider')}/{data.get('model')}")
-        print(f"fell_back       : {data.get('fell_back')}")
-        print(f"peak ctx tokens : {data.get('peak_context_tokens')}")
-        print(f"elided results  : {data.get('elided_results')}")
-        print(f"truncated       : {data.get('truncated')}")
-        print(f"error           : {data.get('error') or 'none'}")
-        print(f"VERDICT         : {'PASS' if ok else 'FAIL'}")
-        print(f"\n--- answer (first 600 chars) ---\n{answer[:600]}")
-
-        results.append(
-            {
-                "task": name,
-                "prompt": message,
-                "http_status": code,
-                "steps": len(steps),
-                "tools_used": tools,
-                "distinct_tools": sorted(set(tools)),
-                "citations": citations,
-                "wall_clock_ms": round(wall_ms),
-                "total_service_ms": data.get("total_service_ms"),
-                "throttle_ms": data.get("throttle_ms"),
-                "provider": data.get("provider"),
-                "model": data.get("model"),
-                "fell_back": data.get("fell_back"),
-                "peak_context_tokens": data.get("peak_context_tokens"),
-                "elided_results": data.get("elided_results"),
-                "truncated": data.get("truncated"),
-                "error": data.get("error"),
-                # Per-step detail makes a stalled run diagnosable: a repeated
-                # tool call is the signature of context compaction discarding a
-                # result the agent still needed.
-                "step_detail": [
-                    {
-                        "index": s.get("index"),
-                        "kind": s.get("kind"),
-                        "tools": [
-                            c.get("name") for c in (s.get("tool_calls") or [])
-                        ],
-                        "context_tokens": s.get("context_tokens"),
-                        "elided_results": s.get("elided_results"),
-                    }
-                    for s in steps
-                ],
-                "passed": ok,
-                "answer": answer,
-            }
-        )
-
-    out = pathlib.Path("evidence")
-    out.mkdir(exist_ok=True)
-    # Merge into any existing evidence so re-running a single task does not
-    # discard the other task's result.
-    path = out / "deployed-tasks.json"
-    existing: dict[str, dict] = {}
-    if path.exists():
-        prior = json.loads(path.read_text(encoding="utf-8"))
-        existing = {t["task"]: t for t in prior.get("tasks", [])}
-    for r in results:
-        existing[r["task"]] = r
-
-    path.write_text(
-        json.dumps(
-            {
-                "base_url": BASE,
-                "captured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                "tasks": [existing[t[0]] for t in TASKS if t[0] in existing],
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    print(f"\nwrote {path}")
-    print(f"\n{len(tasks) - failures}/{len(tasks)} deployed tasks passed")
-    return 1 if failures else 0
+    for task in DEMO_WORKFLOWS:
+        if args.task and task["id"] != args.task:
+            continue
+        started = time.monotonic()
+        trace = post("/chat", {"message": task["question"], "fresh": True})
+        failures = assess(task["id"], trace)
+        actions = []
+        if args.confirm_mock_actions and not failures:
+            for pending in trace.get("pending_actions", []):
+                result = post(f"/actions/{pending['id']}/confirm", {})
+                actions.append(result)
+                if (
+                    result.get("status") != "completed" or result.get("api_calls") != 0
+                    or not result.get("result", {}).get("ticket_id")
+                ):
+                    failures.append("Confirmed mock ticket was not verified")
+        results.append({
+            "task": task["id"], "prompt": task["question"], "trace": trace,
+            "confirmation_results": actions, "failures": failures,
+            "passed": not failures, "wall_seconds": round(time.monotonic() - started, 2),
+        })
+        print(task["id"], "FAIL: " + "; ".join(failures) if failures else "PASS")
+    path = ROOT / "evidence" / f"deployed-{time.strftime('%Y%m%dT%H%M%S')}.json"
+    path.write_text(json.dumps({
+        "base_url": args.base_url, "scorer_version": SCORER_VERSION, "tasks": results,
+    }, indent=2), encoding="utf-8")
+    return int(any(not r["passed"] for r in results))
 
 
 if __name__ == "__main__":

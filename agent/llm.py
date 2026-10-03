@@ -27,7 +27,11 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
 import time
+from collections import deque
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
@@ -36,6 +40,46 @@ from openai import APIStatusError, OpenAI
 from config import settings
 
 log = logging.getLogger(__name__)
+
+_requests: deque[float] = deque()
+_quota_lock = threading.Lock()
+_turn_calls: ContextVar[list[int] | None] = ContextVar("turn_calls", default=None)
+
+
+class QuotaExceeded(RuntimeError):
+    """A provider limit or a local spending guard stopped the request."""
+
+    status_code = 429
+
+
+@contextmanager
+def call_budget():
+    count = [0]
+    token = _turn_calls.set(count)
+    try:
+        yield count
+    finally:
+        _turn_calls.reset(token)
+
+
+def reserve_call() -> None:
+    """Count actual HTTP attempts, including errors; never auto-retry a full budget."""
+    if not settings.llm_enabled:
+        raise QuotaExceeded("LLM calls are disabled (LLM_ENABLED=false); no quota was used.")
+    now = time.monotonic()
+    with _quota_lock:
+        while _requests and _requests[0] <= now - 86400:
+            _requests.popleft()
+        turn = _turn_calls.get()
+        if turn is not None and turn[0] >= settings.llm_max_calls_per_turn:
+            raise QuotaExceeded("Per-turn API-call budget reached. Narrow the request.")
+        if len(_requests) >= settings.llm_max_calls_per_day:
+            raise QuotaExceeded("Local daily API-call budget reached; wait before demonstrating.")
+        if sum(t > now - 3600 for t in _requests) >= settings.llm_max_calls_per_hour:
+            raise QuotaExceeded("Local hourly API-call budget reached; wait before retrying.")
+        _requests.append(now)
+        if turn is not None:
+            turn[0] += 1
 
 _ENDPOINTS: dict[str, str] = {
     "groq": "https://api.groq.com/openai/v1",
@@ -184,6 +228,8 @@ class LLMResponse:
     service_ms: float = 0.0
     throttle_ms: float = 0.0
     attempts: int = 1
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 # Groq's free tier is capped on tokens-per-minute, and every agent step resends
@@ -196,8 +242,8 @@ class LLMResponse:
 # entry in the chain has its own token budget, so rotating to it costs one
 # request instead of tens of seconds. The long retry budget is therefore spent
 # only on the last entry, where there is nowhere else to go.
-MAX_RATE_LIMIT_RETRIES = 5
-RETRIES_BEFORE_ROTATING = 1
+MAX_RATE_LIMIT_RETRIES = 0
+RETRIES_BEFORE_ROTATING = 0
 MAX_BACKOFF_SECONDS = 30.0
 
 # How long a model is passed over after it rate-limits. Groq's bucket is
@@ -346,10 +392,20 @@ def chat(
     # measured against the configured chain, so `fell_back` still means "not
     # the configured primary" even when the primary is the one removed.
     order = _ordered_chain(chain)
-    if _replays_tool_calls_required(messages):
-        usable = [entry for entry in order if entry[1].replays_tool_calls]
-        if usable:
-            order = usable
+    if tools or _replays_tool_calls_required(messages):
+        order = [entry for entry in order if entry[1].replays_tool_calls]
+        if not order:
+            raise NoProviderConfigured("Configure a Groq key for multi-step tool workflows.")
+    order = [
+        entry for entry in order
+        if _cooldown_until.get(_cooldown_key(entry[1]), 0) <= time.monotonic()
+    ]
+    if not order:
+        raise QuotaExceeded("All compatible models are cooling down. Wait before retrying.")
+
+    run_started = time.perf_counter()
+    total_attempts = 0
+    total_throttle_s = 0.0
 
     for position, (provider_index, cfg) in enumerate(order):
         # max_retries=0: retries are handled below so their cost is observable.
@@ -366,18 +422,16 @@ def chat(
 
         throttle_s = 0.0
         attempts = 0
-        service_ms = 0.0
         completion = None
-        started = time.perf_counter()
         has_next = position + 1 < len(order)
         max_retries = RETRIES_BEFORE_ROTATING if has_next else MAX_RATE_LIMIT_RETRIES
 
         for retry in range(max_retries + 1):
+            reserve_call()
             attempts += 1
-            call_started = time.perf_counter()
+            total_attempts += 1
             try:
                 completion = client.chat.completions.create(**kwargs)
-                service_ms = (time.perf_counter() - call_started) * 1000.0
                 break
             except APIStatusError as exc:
                 last_error = exc
@@ -391,7 +445,7 @@ def chat(
                 if exc.status_code == 429:
                     # Observed, not predicted: this model has just told us its
                     # bucket is empty, so stop leading with it until it refills.
-                    _mark_cooling(cfg, _retry_after_seconds(exc, retry))
+                    _mark_cooling(cfg)
                 if exc.status_code == 429 and retry < max_retries:
                     wait = _retry_after_seconds(exc, retry)
                     log.info(
@@ -400,6 +454,7 @@ def chat(
                     )
                     time.sleep(wait)
                     throttle_s += wait
+                    total_throttle_s += wait
                     continue
                 if exc.status_code in (408, 429, 500, 502, 503, 504) and has_next:
                     log.warning(
@@ -407,6 +462,8 @@ def chat(
                         cfg.name, cfg.model, exc.status_code,
                     )
                     break
+                if exc.status_code == 429:
+                    raise QuotaExceeded("Provider quota exhausted. Wait; no automatic retry.") from exc
                 raise
             except Exception as exc:  # network / timeout
                 last_error = exc
@@ -421,7 +478,7 @@ def chat(
         if completion is None:
             continue  # exhausted this provider; try the next one
 
-        latency_ms = (time.perf_counter() - started) * 1000.0
+        latency_ms = (time.perf_counter() - run_started) * 1000.0
         # A success proves the bucket has room again, whatever we assumed.
         _cooldown_until.pop(_cooldown_key(cfg), None)
         msg = completion.choices[0].message
@@ -433,9 +490,11 @@ def chat(
             text=strip_reasoning(msg.content),
             latency_ms=latency_ms,
             fell_back=provider_index > 0,
-            service_ms=service_ms,
-            throttle_ms=throttle_s * 1000.0,
-            attempts=attempts,
+            service_ms=latency_ms - total_throttle_s * 1000.0,
+            throttle_ms=total_throttle_s * 1000.0,
+            attempts=total_attempts,
+            prompt_tokens=getattr(getattr(completion, "usage", None), "prompt_tokens", 0) or 0,
+            completion_tokens=getattr(getattr(completion, "usage", None), "completion_tokens", 0) or 0,
         )
 
     raise RuntimeError(f"every model in the fallback chain failed: {last_error}")

@@ -52,6 +52,7 @@ class Case:
     # Citations are checked as substrings of the citations the *tools* returned,
     # so a hallucinated citation cannot score.
     expected_citations: list[str] = field(default_factory=list)
+    require_all_citations: bool = False
 
     # Tools the task genuinely requires. Scored as recall: extra tool calls are
     # not penalised here (an agent exploring is not an agent failing), but
@@ -118,6 +119,7 @@ CASES: list[Case] = [
         question="If my laptop is stolen while travelling, who do I have to notify and how quickly?",
         must_include=[("24", "immediately")],
         expected_citations=["POL-SEC-001", "POL-EQUIP-001"],
+        require_all_citations=True,
         expected_tools=["search_policy_documents"],
         notes="Answer spans a .md and a .txt document; either citation is acceptable.",
     ),
@@ -147,6 +149,7 @@ CASES: list[Case] = [
         category="lookup",
         difficulty=EASY,
         question="Which department does Marcus Doyle work in, and who is his manager?",
+        must_include=["Customer Success", "Ryan Patel"],
         expected_tools=["lookup_employee_profile"],
         notes="Profile lookup; scored on tool selection and non-hallucination.",
     ),
@@ -155,6 +158,8 @@ CASES: list[Case] = [
         category="lookup",
         difficulty=EASY,
         question="List everyone in the Engineering department.",
+        must_include=["Maya Rodriguez", "David Okafor", "Priya Natarajan", "Helen Vasquez",
+                      "Nia Thompson", "Devon Ames"],
         expected_tools=["list_employees"],
         notes="Must filter via the tool rather than enumerate from memory.",
     ),
@@ -163,6 +168,7 @@ CASES: list[Case] = [
         category="lookup",
         difficulty=MEDIUM,
         question="What HR tickets have been raised for Maya Rodriguez?",
+        must_include=[("no tickets", "no hr tickets", "none", "no existing", "no recorded")],
         expected_tools=["list_hr_tickets"],
         notes="Read of the mutable store; must not invent tickets.",
     ),
@@ -234,7 +240,8 @@ CASES: list[Case] = [
         category="reasoning",
         difficulty=MEDIUM,
         question=(
-            "I want to take the week of 14 September 2026 off. Is there anything in the way?"
+            "Maya Rodriguez wants five business days of PTO starting 14 September 2026. "
+            "Is there anything in the way?"
         ),
         must_include=[("blackout", "conference", "helios forum")],
         expected_citations=["POL-PTO-001"],
@@ -246,7 +253,8 @@ CASES: list[Case] = [
         category="reasoning",
         difficulty=HARD,
         question=(
-            "Is 28 December 2026 to 4 January 2027 inside a blackout period, and if so which one?"
+            "For Jonas Weber in Customer Support, is 28 December 2026 to 4 January 2027 "
+            "inside a blackout period, and if so which one?"
         ),
         must_include=[("blackout"), ("support", "peak", "customer")],
         expected_citations=["POL-PTO-001"],
@@ -295,13 +303,15 @@ CASES: list[Case] = [
         category="multi_hop",
         difficulty=MEDIUM,
         question=(
-            "What is the equipment stipend for a new remote hire, and which policy document "
-            "version is that in?"
+            "David Okafor's partner is due on 1 March 2027, when he plans to start leave. "
+            "How much paid parental leave is he entitled to as the non-birthing parent? "
+            "Does it reduce PTO, and what is his available PTO balance?"
         ),
-        must_include=[("POL-EQUIP-001", "equipment")],
-        expected_citations=["POL-EQUIP-001"],
-        expected_tools=["search_policy_documents", "list_policy_documents"],
-        notes="Content plus document metadata: two different retrieval surfaces.",
+        must_include=[("8 weeks", "eight weeks"), "85.61", ("not deducted", "does not reduce", "separate")],
+        must_not_include=["entitled to 16", "entitled to sixteen", "as a birthing parent"],
+        expected_citations=["POL-LEAVE-002"],
+        expected_tools=["search_policy_documents", "check_policy_compliance", "check_pto_balance"],
+        notes="Regression for the incorrect recorded parental-leave demo.",
     ),
 
     # ---------------------------------------------------------------- refusal
@@ -389,7 +399,7 @@ CASES: list[Case] = [
         category="ambiguous",
         difficulty=HARD,
         question="Can I expense this?",
-        must_include=[("what", "which", "more detail", "tell me")],
+        must_include=[("what", "which", "more detail", "tell me", "provide", "share")],
         forbidden_tools=["create_hr_ticket", "draft_hr_email"],
         behaviour="clarify",
         notes=(

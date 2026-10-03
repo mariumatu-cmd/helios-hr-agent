@@ -1,4 +1,11 @@
 {
+  "legacy_verifier_version": 1,
+  "superseded": true,
+  "review_findings": [
+    "Legacy passed fields only checked counts and are not current quality evidence.",
+    "Parental answer incorrectly grants 16 weeks and calls the non-birthing parent birthing.",
+    "International ticket scenario ends at confirmation, not a completed mock write."
+  ],
   "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
   "captured_at": "2026-09-13T14:44:25Z",
   "tasks": [

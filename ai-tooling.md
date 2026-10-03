@@ -7,7 +7,7 @@ and what worked well and what did not.
 
 | Tool | Role |
 |---|---|
-| **GitHub Copilot CLI** (agentic mode, Claude models) | The primary tool. Used for essentially the whole build: scaffolding, the corpus, the MCP server, the agent loop, the tests, the diagnostics, and this documentation. |
+| **GitHub Copilot CLI / App** (Claude models for the original build; GPT-6 Astra for the submission review/fixes) | Scaffolding, corpus, MCP server, agent loop, tests, diagnostics, documentation, and requirement-driven corrections. |
 | GitHub Copilot in-editor completion | Minor. Line-level completion while reading and adjusting generated code. |
 
 No other code-generation tool was used. The LLM providers the *application*
@@ -39,9 +39,9 @@ the original design, which is the point of having them.
 
 ## What worked well
 
-**Volume with structure.** Twelve policy documents across four file formats,
+**Volume with structure.** Sixteen policy documents across four file formats,
 twenty internally consistent employee records, six cross-referenced JSON
-datasets, and 186 tests are more artifact than the timebox allowed by hand. The
+datasets, and an automated regression suite are more artifact than the timebox allowed by hand. The
 corpus in particular benefited: the documents needed *interlocking rules* —
 international work depending on tenure and visa class and a rolling day count —
 and generating them together kept them consistent in a way that writing them
@@ -116,6 +116,15 @@ code drifts, and that counts in documentation should be checked against the code
 rather than trusted.
 
 ## Division of responsibility
+
+The submission review found errors that the original tests did not detect:
+incorrect parental-leave entitlement, citation scores that counted retrieved
+labels rather than answer citations, and preview-order checks that accepted a
+same-turn write. Fixes added deterministic role-based leave checks, stricter
+scoring, preserved section IDs, and session-bound signed confirmation outside the
+model. Quota controls and offline regression tests were added without calling a
+live LLM. Package-lock generation was stopped when Windows Security reported an
+IT-policy block; installed versions were pinned without bypassing the restriction.
 
 The AI tooling produced most of the source text. The direction, the acceptance
 criteria, and every decision that survived a measurement were mine:

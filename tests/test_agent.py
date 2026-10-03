@@ -438,20 +438,20 @@ async def test_final_step_reports_how_many_sources_the_answer_rests_on(scripted)
     """The answer's basis is part of the operational trace, per the brief."""
     scripted([
         tool_step([("search_policy_documents", {"query": "pto"})]),
-        final_step("15 days."),
+        final_step("15 days (POL-PTO-001 §2.1; POL-HOL-001 §3)."),
     ])
     client = FakeClient(results={
         "search_policy_documents": {
             "results": [
-                {"citation": "POL-PTO-001 SS2.1"},
-                {"citation": "POL-HOL-001 SS3"},
+                {"citation": "POL-PTO-001 §2.1"},
+                {"citation": "POL-HOL-001 §3"},
             ]
         }
     })
     trace = await orchestrator.run_agent("q", client)
 
     step = next(s for s in trace.steps if s.kind == "final")
-    assert step.summary == "answer synthesised from 2 cited sources"
+    assert step.summary == "answer uses 2 verified citation labels"
 
 
 # --- /chat returns snippets, not just citation labels ----------------------
@@ -464,12 +464,12 @@ async def test_final_step_reports_how_many_sources_the_answer_rests_on(scripted)
 async def test_sources_carry_the_passage_behind_each_citation(scripted):
     scripted([
         tool_step([("search_policy_documents", {"query": "pto"})]),
-        final_step("15 days (POL-PTO-001 SS2.1)."),
+        final_step("15 days (POL-PTO-001 §2.1)."),
     ])
     client = FakeClient(results={
         "search_policy_documents": {
             "results": [{
-                "citation": "POL-PTO-001 SS2.1 Accrual Rates",
+                "citation": "POL-PTO-001 §2.1 Accrual Rates",
                 "doc_id": "POL-PTO-001",
                 "doc_title": "Paid Time Off Policy",
                 "section": "2.1 Accrual Rates",
@@ -479,10 +479,10 @@ async def test_sources_carry_the_passage_behind_each_citation(scripted):
     })
     trace = await orchestrator.run_agent("q", client)
 
-    assert trace.citations == ["POL-PTO-001 SS2.1 Accrual Rates"]
+    assert trace.citations == ["POL-PTO-001 §2.1 Accrual Rates"]
     assert len(trace.sources) == 1
     source = trace.sources[0]
-    assert source["citation"] == "POL-PTO-001 SS2.1 Accrual Rates"
+    assert source["citation"] == "POL-PTO-001 §2.1 Accrual Rates"
     assert source["doc_id"] == "POL-PTO-001"
     assert source["section"] == "2.1 Accrual Rates"
     assert source["snippet"] == "Full-time employees accrue 15 days in years 0-2."
@@ -538,7 +538,9 @@ async def test_a_citation_without_text_still_appears_in_citations(scripted):
     })
     trace = await orchestrator.run_agent("q", client)
 
-    assert trace.citations == ["POL-REMOTE-001 SS4"]
+    assert trace.retrieved_citations == ["POL-REMOTE-001 SS4"]
+    assert trace.citations == []
+    assert trace.error
     assert trace.sources == []
 
 

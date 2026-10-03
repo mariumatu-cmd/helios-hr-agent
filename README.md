@@ -1,311 +1,181 @@
 # Helios HR Assistant
 
-An agentic AI system that answers HR policy and operations questions for a
-fictional company, **Helios Dynamics**. It combines retrieval over a policy
-corpus with live tool calls against mock HR records, exposed through a **Model
-Context Protocol (MCP)** server, and it cites every claim it makes.
+An agentic HR assistant for the fictional **Helios Dynamics**: policy retrieval,
+synthetic employee records, deterministic compliance checks, and reversible mock
+actions, all accessed through a real Model Context Protocol (MCP) server.
 
-The system is built to give a defensible answer to questions that a naive RAG
-chatbot gets wrong, because answering them correctly requires *both* the written
-policy *and* a specific employee's data:
+**Application:** https://helios-hr-assistant-wz3c.onrender.com
 
-> *"Maya Rodriguez wants to work from Portugal for six weeks, 5 October to 15
-> November. Can she?"*
+**Readiness:** https://helios-hr-assistant-wz3c.onrender.com/health
 
-The policy allows 30 days abroad per rolling 12 months. Maya has 12 days already
-used inside the window — not the 24 a careless reading of her travel history
-suggests, because her Spain trip closed before the window opened. The agent must
-retrieve the rule, look up the history, apply the rolling-window arithmetic, and
-cite the section. The answer is **no, by 24 days** — and the useful part is the
-alternatives it offers, which are only reachable by combining retrieval with
-structured data.
+**Design and evaluation:** [design-and-evaluation.md](design-and-evaluation.md)
 
-**Deployed application:** see [`deployed.md`](deployed.md)
-**Design rationale and evaluation results:** see [`design-and-evaluation.md`](design-and-evaluation.md)
-**How AI coding tools were used:** see [`ai-tooling.md`](ai-tooling.md)
+**Deployment:** [deployed.md](deployed.md)
 
-### Submission map
+**AI tooling disclosure:** [ai-tooling.md](ai-tooling.md)
 
-| Required artefact | Where |
-|---|---|
-| All developed code | `agent/`, `app/`, `mcp_server/`, `rag/`, `scripts/`, `tests/` |
-| Introductory description, setup, local run, deployment | this file |
-| Architecture, RAG, MCP, orchestration, tool schemas, guardrails, deployment, evaluation | [`design-and-evaluation.md`](design-and-evaluation.md) |
-| AI coding tools used, what worked and what did not | [`ai-tooling.md`](ai-tooling.md) |
-| Deployed URL, health endpoint, cold-start notes | [`deployed.md`](deployed.md) |
-| Evaluation questions, expected answers, scripts, results | `evaluation/` |
-| Synthetic employee, PTO, benefits and ticket data | `mock_data/` |
-| MCP server code and tool definitions | `mcp_server/` (see the naming note at the end of this file) |
+The URL may still serve an earlier revision until this branch is merged and
+the gated deployment succeeds. Compare `/health.build_sha` with the submitted commit.
 
-The repository is public, and `quantic-grader` also holds an explicit read
-invitation so access does not depend on that staying true.
+## Submission status
 
----
+The code includes 16 policy documents in Markdown, HTML, PDF and TXT, a local
+221-chunk index, 12 MCP tools, 30 evaluation cases, and two canonical demo workflows.
+The numerical results from September are **historical**, not evidence that the
+revised system achieves the same scores. In particular, the old citation score
+measured retrieved-label presence, not factual support. See the design report.
 
-## What it does
+Before submitting:
 
-| Capability | Where |
-|---|---|
-| Hybrid RAG (dense + BM25 + reciprocal rank fusion) over 16 policy documents in 4 file formats | `rag/` |
-| 12 MCP tools over policy search, employee records, PTO, benefits, travel history, and ticketing | `mcp_server/` |
-| Hand-written agent loop with full step-by-step tracing and provider fallback | `agent/` |
-| FastAPI chat app that renders every tool call, argument, and result | `app/` |
-| Two-store abstention gate that refuses questions the system genuinely cannot answer | `rag/vocabulary.py` |
-| 30-case evaluation suite with a deterministic scorer, plus a 6-way retrieval ablation | `evaluation/` |
-
----
-
-## Architecture at a glance
-
-```
-                    ┌──────────────────────────────────────────┐
-  browser  ───────► │  FastAPI web app        (app/main.py)    │
-                    │  chat UI + /chat + /health + /healthz     │
-                    └───────────────┬──────────────────────────┘
-                                    │
-                    ┌───────────────▼──────────────────────────┐
-                    │  Agent orchestrator (agent/orchestrator) │
-                    │  plan → call tools → observe → answer    │
-                    └──────┬──────────────────────┬────────────┘
-                           │                      │
-                  ┌────────▼────────┐   ┌─────────▼──────────────┐
-                  │ LLM provider     │   │ MCP client            │
-                  │ Groq → Gemini    │   │ (agent/mcp_client.py) │
-                  │ automatic fallback│  └─────────┬─────────────┘
-                  └──────────────────┘             │ stdio (JSON-RPC)
-                                                   │
-                                    ┌──────────────▼─────────────┐
-                                    │ MCP server (mcp_server/)   │
-                                    │ 12 tools, annotated        │
-                                    └───┬────────────────┬───────┘
-                                        │                │
-                              ┌─────────▼──────┐  ┌──────▼────────────┐
-                              │ RAG index      │  │ Mock HR data      │
-                              │ numpy + BM25   │  │ 6 JSON datasets   │
-                              │ 184 chunks     │  │ + rule engine     │
-                              └────────────────┘  └───────────────────┘
-```
-
-Everything runs inside **one process tree**, so it fits a single free-tier web
-service. The MCP server is a genuine child process speaking JSON-RPC over stdio —
-not an in-process function call dressed up as a protocol.
-
-Full detail, including transport rationale and tool schemas, is in
-[`design-and-evaluation.md`](design-and-evaluation.md).
-
----
+- Record the required **7-10 minute deployed screen-share with voiceover**.
+  Follow the assignment's presenter/camera/identity requirements; do not put ID
+  documents in this public repository.
+- Submit the recording link and repository link through the course dashboard.
+  No recording link is currently included here.
+- Confirm `quantic-grader` has access. The earlier invitation claim could not be
+  independently verified during the review.
+- Verify the deployed commit and demonstrate both numbered UI tasks.
 
 ## Setup
 
-Requires **Python 3.11+** (developed on 3.12).
+Use **Python 3.12+**. From the repository directory:
 
-```bash
-git clone https://github.com/mariumatu-cmd/helios-hr-agent.git
-cd helios-hr-agent
-
+```powershell
 python -m venv .venv
-# Windows
 .\.venv\Scripts\Activate.ps1
-# macOS / Linux
-source .venv/bin/activate
-
 pip install -e ".[dev]"
+Copy-Item .env.example .env
 ```
 
-### Configure a model provider
+On macOS/Linux, activate with `source .venv/bin/activate` and copy the template
+using `cp .env.example .env`.
 
-Copy the template and add at least one key. Both providers have free tiers.
+Set `GROQ_API_KEY` in `.env` or the host environment. A Groq tool-capable model
+is required for multi-step workflows. Gemini's configured compatibility endpoint
+is only available for non-tool calls; it is not a replacement for Groq here.
+Never commit API keys, demo codes, or approval secrets.
 
-```bash
-cp .env.example .env
-```
+Direct dependencies are pinned to versions exercised locally in `pyproject.toml`.
+A full cross-platform transitive lock is **not** claimed: package downloads were
+blocked by the development machine's IT policy. That policy was not bypassed.
 
-| Variable | Where to get it | Notes |
-|---|---|---|
-| `GROQ_API_KEY` | https://console.groq.com/keys | Primary. Fast, free tier. |
-| `GEMINI_API_KEY` | https://aistudio.google.com/apikey | Last-resort fallback, for single-shot calls only — Gemini's OpenAI-compatible endpoint cannot replay a tool call (see `design-and-evaluation.md` §6), so multi-step agent turns are carried by the Groq models. |
+## Run
 
-Set either one, or both. With neither, the app still starts and every non-LLM
-endpoint works — `/health` reports `degraded` and the chat endpoint says plainly
-that no model is configured.
-
-Degradation is a chain of **models**, not just of providers. Groq meters its
-free tier per model — measured directly, two back-to-back calls to different
-Groq models each saw a full 8,000-token bucket rather than a shared, draining
-one. That matters more than it sounds: at roughly 6,000 tokens per request
-against an 8,000 tokens-per-minute bucket, a *single* model allows about one
-agent step per minute, which is not enough to finish a multi-step task.
-Rotating across four Groq models multiplies the usable budget before Gemini is
-touched at all.
-
-Rotation is strictly reactive: it happens because a call failed, never because
-a quota header looked close. Predictive switching would make the agent
-non-deterministic and would invalidate any groundedness or latency claim
-measured across a run. Every hop is recorded in the trace.
-
-Two other variables matter on a free tier:
-
-| Variable | Default | Why it exists |
-|---|---|---|
-| `GROQ_FALLBACK_MODELS` | `openai/gpt-oss-20b,qwen/qwen3.8-27b,qwen/qwen3.6-27b` | Comma-separated, tried in order after `GROQ_MODEL`. Each is a separate 8,000 TPM budget. All were verified against the live catalogue to emit well-formed tool calls — Groq's `compound` models advertise 70,000 TPM but reject a caller-supplied tool manifest with HTTP 400, so they cannot drive this agent. |
-| `LLM_MAX_TOKENS` | `1200` | Completion cap. Groq reserves it against the per-minute budget whether the model uses it or not, so it is a prompt-budget decision as much as an output one. |
-| `CONTEXT_TOKEN_BUDGET` | `5200` | Max estimated prompt tokens per agent step. Groq's free tier allows 8,000 tokens/minute and that bucket covers the prompt *and* the completion, so a request over it can never succeed — not on a retry, and not on another model. Every step resends the tool manifest plus all prior tool results, so without this cap a multi-step run grows past the limit and stalls. The orchestrator compacts the oldest tool results to stay under it, always preserving citations. |
-
-`.env.example` documents every variable; `.env` is git-ignored and no key is
-ever committed.
-
-### Build the retrieval index
-
-The index is committed, so this is only needed if you change the corpus:
-
-```bash
-python -m rag.ingest.build_index
-```
-
-It parses all 16 documents (Markdown, HTML, plain text, and PDF), chunks them on
-heading boundaries, embeds them with `BAAI/bge-small-en-v1.5` running locally via
-ONNX, and writes `rag/index/`. Takes about 30 seconds. Deterministic — the same
-corpus always produces the same 184 chunks, verified by a fingerprint in
-`rag/index/index_info.json`.
-
-### Reproducibility
-
-Every entry point — the web app, the index builder, and both evaluation
-harnesses — calls `config.apply_seeds()` before doing any work, which fixes
-`random`, `numpy` and `PYTHONHASHSEED` from the single `SEED` variable
-(default `42`). The seed used is written into `rag/index/index_info.json`
-alongside the corpus fingerprint, so an index can always be traced back to the
-corpus and seed that produced it.
-
-Determinism is enforced, not just intended:
-
-- **Chunking** is deterministic; CI rebuilds the index and fails the build if
-  the committed one does not match the corpus. The fingerprint normalises line
-  endings, so a Windows checkout and a Linux container agree — that was a real
-  bug, and the regression test for it is in `tests/test_ingestion.py`.
-- **Retrieval** is exact (no ANN approximation) over a committed index.
-- **The agent** runs at `AGENT_TEMPERATURE=0.0`, and model rotation is reactive
-  only, so a run cannot silently drift onto a different model mid-suite.
-- **Scoring** is rule-based rather than LLM-judged, so the same trace always
-  receives the same score.
-
-The remaining source of variance is the provider itself, which is not
-bit-reproducible even at temperature 0. `design-and-evaluation.md` reports that
-honestly rather than claiming determinism the system does not have.
-
----
-
-## Run locally
-
-```bash
+```powershell
 uvicorn app.main:app --reload --port 8000
 ```
 
-Open http://127.0.0.1:8000. The app starts its own MCP server subprocess, so
-there is nothing else to launch.
-
-Four demo questions are seeded in the UI, including one the system is expected
-to **refuse**. Every response shows the full trace: which tools ran, with which
-arguments, what came back, and which policy sections were cited.
-
-### Useful endpoints
+Open http://127.0.0.1:8000. The app starts and discovers the MCP subprocess.
+All dates are evaluated against the clearly labelled **2026-09-12 synthetic
+snapshot**, not today's date. This prevents the example answers drifting.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /healthz` | Liveness. Always 200 while the process is up. Used by the host. |
-| `GET /health` | Readiness. 503 when the index or a model provider is missing. |
-| `GET /tools` | The live MCP tool manifest, as discovered from the server. |
-| `GET /documents` | The indexed corpus. |
-| `POST /chat` | `{"message": "...", "history": []}` → the answer, `citations` (labels), `sources` (the passages behind them, with snippets), and the step-by-step tool trace. |
-| `GET /demo-tasks` | The seeded agentic demo tasks, so a grader can reproduce them. |
+| `GET /` | Chat, canonical demo buttons, source snippets and operational trace |
+| `GET /healthz` | Process liveness; no LLM call |
+| `GET /health` | Configured dependencies, tool count, index, revision and local quota limits; no LLM call |
+| `GET /tools` | Discovered MCP catalogue |
+| `GET /documents` | Indexed corpus |
+| `GET /demo-tasks` | Reproducible UI tasks |
+| `POST /chat` | Message, optional user/assistant history, and optional `fresh`; answer, cited/retrieved labels, snippets, trace, usage and previews |
+| `POST /actions/{id}/confirm` | Execute the exact stored mock preview, once, in its originating browser session; **zero LLM calls** |
 
-### Running the MCP server on its own
+`/health` checks configuration, not whether a provider key is valid or has quota.
+Only a live chat can establish that. The UI shows cached results explicitly;
+their trace/timings belong to the original run.
 
-The server is a standard MCP server and works with any MCP client, including
-Claude Desktop and MCP Inspector:
+## Protecting the demonstration quota
 
-```bash
-python mcp_server/hr_server.py          # stdio
-python scripts/mcp_smoketest.py         # connect, list tools, call a few
-```
+**Do not run the full live evaluation on the day of the recording.**
 
-To run it as a separate HTTP service instead of a subprocess, set
-`MCP_TRANSPORT=http` and `MCP_SERVER_URL`. The client supports both; stdio is the
-default because it keeps the free-tier deployment to a single service.
+- Unit/integration tests use scripted models and prohibit real chat-completion calls.
+  Indexing and retrieval evaluation use the local embedding model, not an LLM API.
+- Live evaluation and deployed-task scripts require explicit `--allow-live`.
+- The app admits one chat at a time and rejects duplicate/concurrent submissions.
+  The default hourly chat allowance is 12 requests.
+- Actual provider HTTP attempts, including failures and fallbacks, are capped at
+  **8 per turn, 60 per hour and 100 per day**. No automatic same-model 429 retry.
+- Read-only identical requests within the same session/context may reuse a
+  labelled **10-minute cache**. Mutating workflows and ticket listings are not cached.
+  Use **Force live call** when recording a fresh execution; this intentionally uses quota.
+- Set `DEMO_ACCESS_CODE` to protect a public demo from casual quota consumption.
+  Supply it privately to your grader and enter it in the UI, not the chat.
+- Set `LLM_ENABLED=false` to disable all real model calls during offline rehearsal.
+  Chat explicitly reports that calls are disabled; it does not fake an answer.
 
----
+These are process-local application limits, **not provider quota readings**.
+They reset on restart and cannot protect against other applications using the
+same API key. Token-per-minute and provider daily limits can still interrupt a task.
 
-## Tests and checks
+## The two demo workflows
 
-```bash
-pytest -q                                # 186 tests, ~50 s
-ruff check .                             # lint
-python scripts/validate_mock_data.py     # referential integrity of the mock data
-python scripts/check_rules.py            # hand-verified rule-engine edge cases
-python scripts/healthcheck.py            # end-to-end smoke test, no API key needed
-```
+The canonical prompts live in `agent/demo_tasks.py` and are reused by the UI
+and deployed verifier:
 
-The test suite covers ingestion determinism, retrieval and abstention, all 12
-MCP tools over a real client session, the rule engine's date arithmetic, the
-agent loop against a scripted model, and the HTTP layer.
+1. **International remote work:** Maya's 42-day Portugal request; retrieve
+   international and remote-work policies, inspect her profile and rolling usage,
+   check compliance, and explain that 12 + 42 exceeds 30 by 24 days.
+2. **PTO and ticket preview:** Jonas's three-day request; retrieve PTO policy,
+   check 13 available hours against 24 requested and 6 days' notice against 10,
+   explain manager/skip-level exception routes, and show a mock ticket preview.
+   Click its confirmation button to create the in-memory ticket and show its ID.
 
----
+Every policy claim, including alternatives, needs evidence. A preview is not a
+completed write, and a tool call alone is not a correct answer.
 
-## Evaluation
+## Offline checks
 
-```bash
-# No API key required -- retrieval quality and a 6-way ablation
+```powershell
+pytest -q
+ruff check .
+python scripts/validate_mock_data.py
+python scripts/check_rules.py
+python scripts/healthcheck.py
+python -m rag.ingest.build_index --check
 python -m evaluation.run_retrieval_eval
-
-# Requires an API key -- full agent evaluation over 30 cases
-python -m evaluation.run_eval
-python -m evaluation.run_eval --category refusal     # one slice
-python -m evaluation.run_eval --min-pass-rate 0.85   # gate for CI
 ```
 
-Results, methodology, and an honest reading of what the numbers do and do not
-show are in [`design-and-evaluation.md`](design-and-evaluation.md). Raw output
-lands in `evaluation/results/`.
+The committed index avoids embedding downloads at application startup. When
+ingestion code or policies change, rebuild locally:
 
----
-
-## Deployment
-
-The repository deploys as a **single Docker service on Render's free tier**
-(`render.yaml` + `Dockerfile`). The image bakes in the embedding model weights so
-that startup does no network I/O.
-
-```bash
-docker build -t helios-hr .
-docker run -p 8000:8000 -e GROQ_API_KEY=... helios-hr
+```powershell
+python -m rag.ingest.build_index
 ```
 
-Measured memory is **343 MB against the 512 MB free-tier cap**
-(`evaluation/results/memory_footprint.txt`).
+The embedding weights must already be cached for fully offline execution.
+Do not bypass organizational download restrictions.
 
-Free-tier instances spin down after ~15 minutes idle; the first request
-afterwards takes roughly 50 seconds. See [`deployed.md`](deployed.md) for the
-live URL and the cold-start details.
+## Live evaluation: intentionally opt-in
 
----
+Only run with spare quota:
 
-## Repository layout
-
-```
-agent/           orchestrator, MCP client, LLM providers with fallback, prompts
-app/             FastAPI application, chat UI, static assets
-corpus/          16 HR policy documents in md / html / txt / pdf
-mcp_server/      MCP server, 12 tool definitions, and the HR rule engine
-mock_data/       6 JSON datasets: employees, PTO, benefits, travel, offices, tickets
-rag/             chunking, indexing, hybrid retrieval, abstention vocabulary
-evaluation/      28 scored cases, deterministic scorer, harnesses, results
-scripts/         calibration, diagnostics, validation, smoke tests
-tests/           186 tests
+```powershell
+python -m evaluation.run_eval --allow-live --case C01
+python -m evaluation.run_eval --allow-live --resume
+python scripts/verify_deployed_tasks.py --allow-live --task pto --confirm-mock-actions
 ```
 
-## A note on the `mcp_server/` directory name
+The last command performs a real agent turn and then explicitly authorizes the
+mock ticket. It saves the complete response and confirmation result in `evidence/`.
+Current evaluation records contain scorer version, configuration/code fingerprint
+and full traces. A checkpoint from another revision is rejected.
 
-It is not called `mcp/`. The official MCP Python SDK installs a top-level package
-with that exact name, and a local `mcp/` directory shadows it on `sys.path`, so
-`from mcp.server import ...` would import this project instead of the SDK. The
-assignment suggests `mcp/ or equivalent`; this is the equivalent.
+## Architecture and deployment
+
+```text
+Browser -> FastAPI -> agent orchestrator -> LLM provider
+                         |
+                      MCP client
+                         | stdio JSON-RPC
+                      MCP server
+                      /        \
+             local RAG index   synthetic HR records + rule engine
+```
+
+Render runs one Docker service and one worker. GitHub Actions checks the code,
+real MCP transport, app startup and container, then deploys **that exact commit**.
+Independent Render auto-deploy is disabled in `render.yaml`; ensure the existing
+service's dashboard configuration also reflects that setting.
+
+The folder is called `mcp_server/`, not `mcp/`, to avoid shadowing the SDK package.
+All employee data is synthetic; tickets and email drafts disappear on restart.

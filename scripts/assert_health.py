@@ -38,6 +38,8 @@ def assess(health: dict, require_llm: bool) -> list[str]:
     llm = health.get("llm", {})
     if require_llm and not llm.get("providers_configured"):
         problems.append("no LLM provider configured")
+    if require_llm and llm.get("enabled") is False:
+        problems.append("LLM calls are disabled")
 
     return problems
 
