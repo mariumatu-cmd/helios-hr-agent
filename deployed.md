@@ -95,7 +95,9 @@ python scripts/verify_deployed_tasks.py --allow-live --task pto --confirm-mock-a
 
 Set `DEMO_ACCESS_CODE` in the shell if the deployed service requires it.
 The verifier preserves cookies for the separate confirmation request and saves
-full responses under a new timestamped evidence filename.
+full responses, with per-run timing, model calls and tokens, under a new
+timestamped evidence filename. `--task` and `--case` are repeatable; the run
+stops at the first provider or HTTP error instead of spending more quota.
 
 ## Cold starts and expected waits
 
@@ -103,8 +105,9 @@ Free instances may sleep after roughly 15 minutes idle. The historical cold-star
 measurement was **52.5 seconds**; allow a minute or more rather than assuming
 this remains an exact bound.
 
-Warm chat is **not a 2-6 second operation**. Historical deployed tasks took
-about 189-207 seconds; the historical evaluation p50/p95 were 65.4/248.2 seconds.
-These measurements predate the current code, whose live latency has not been
-measured. Health response time is a different metric and cannot stand in for
+Warm chat is **not a 2-6 second operation**. On 3 October 2026, eight
+back-to-back requests to build `291b50a` took a median of 15.1 seconds and at
+most 46.9 seconds, the PTO demonstration, with 95.5 seconds in total spent
+waiting on provider rate limits. September's deployed tasks took about 189-207
+seconds. Health response time is a different metric and cannot stand in for
 agent latency.

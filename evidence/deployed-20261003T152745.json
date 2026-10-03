@@ -1,0 +1,2585 @@
+{
+  "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
+  "build_sha": "291b50af8573b6e50d642f1d462e6797250867a7",
+  "measured_at": "2026-10-03T13:27:45Z",
+  "scorer_version": "2",
+  "summary": {
+    "runs": 8,
+    "passed": 4,
+    "wall_seconds_median": 15.1,
+    "wall_seconds_max": 46.94,
+    "throttle_seconds": 95.5,
+    "api_calls": 28,
+    "tokens": 86820,
+    "stopped_early": null
+  },
+  "tasks": [
+    {
+      "task": "international",
+      "kind": "demo task",
+      "prompt": "Maya Rodriguez wants to work from Portugal for 42 calendar days, 5 October to 15 November 2026. Can she? Check her profile and rolling international usage, retrieve the international and remote-work policies, and explain the limit and any compliant options with citations.",
+      "trace": {
+        "question": "Maya Rodriguez wants to work from Portugal for 42 calendar days, 5 October to 15 November 2026. Can she? Check her profile and rolling international usage, retrieve the international and remote-work policies, and explain the limit and any compliant options with citations.",
+        "answer": "**No \u2013 Maya cannot work from Portugal for the full 42\u202fcalendar days as requested.**  \n\n**Why the request exceeds policy**\n\n1. **Rolling 30\u2011day limit** \u2013 The International Remote Work policy allows a maximum of\u202f30\u202fcalendar days of work abroad in any rolling 12\u2011month period. Maya has already used\u202f12\u202fdays (Ireland, March\u202f2\u201113\u202f2026), leaving only\u202f18\u202fdays remaining (POL\u2011INTL\u2011001 \u00a72 The\u202f30\u2011Day\u202fRule; usage citation\u202fPOL\u2011INTL\u2011001 \u00a72 Rolling\u202f30\u2011Day\u202fLimit).  \n\n2. **Country\u2011specific cap** \u2013 Portugal is an eligible country, but the maximum consecutive days allowed there is\u202f30\u202f(POL\u2011INTL\u2011001 \u00a73 Eligible\u202fCountries).  \n\n3. **Requested duration** \u2013 Maya\u2019s request (Oct\u202f5\u202f\u2013\u202fNov\u202f15\u202f2026) is\u202f42\u202fdays, exceeding both the overall 30\u2011day rolling limit and Portugal\u2019s 30\u2011day cap (POL\u2011INTL\u2011001 \u00a72 The\u202f30\u2011Day\u202fRule).  \n\n**Compliant alternatives**\n\n| Option | How it fits policy | Required steps |\n|--------|-------------------|----------------|\n| **Reduce the stay to \u2264\u202f30\u202fdays** (e.g., Oct\u202f5\u202f\u2013\u202fNov\u202f3) | Meets both the rolling limit (18\u202fdays available) and Portugal\u2019s 30\u2011day cap. | Submit an International Remote Work request \u2265\u202f20\u202fbusiness days before the start date (POL\u2011INTL\u2011001 \u00a74 Approval\u202fWorkflow). |\n| **Take the excess 12\u202fdays as PTO or unpaid leave** (work 30\u202fdays, then 12\u202fdays off) | Excess days must be taken as approved PTO/unpaid leave with no work performed (POL\u2011INTL\u2011001 \u00a72). | Request PTO for the 12\u202fdays through Workday; ensure manager and HR approval. |\n| **Pursue a permanent relocation** | Allows work beyond 30\u202fdays but requires a new employment agreement and 90\u2011day lead time (POL\u2011INTL\u2011001 \u00a74). | Initiate a relocation request with Global Mobility; provide 90\u2011day notice. |\n| **Apply for a short\u2011term international assignment** | Sponsored assignments can exceed the 30\u2011day limit with VP approval (POL\u2011INTL\u2011001 \u00a74). | Business unit submits assignment proposal; obtain VP and Global Mobility sign\u2011off. |\n\n**Next steps**  \nMaya should either shorten the Portugal stay to 30\u202fdays or split the period, using PTO for the remaining days. If she needs the full 42\u202fdays for business reasons, she must explore relocation or a short\u2011term assignment as outlined above. All requests must follow the approval workflow in POL\u2011INTL\u2011001 \u00a74.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 757.4,
+            "fell_back": false,
+            "summary": "selected 1 tool: lookup_employee_profile",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "lookup_employee_profile",
+                "arguments": {
+                  "employee": "Maya Rodriguez"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "full_name": "Maya Rodriguez",
+                  "email": "maya.rodriguez@helios.example.com",
+                  "title": "Senior Software Engineer",
+                  "department": "Engineering",
+                  "role_family": "Engineering",
+                  "employment_type": "full_time",
+                  "weekly_hours": 40,
+                  "hire_date": "2022-03-14",
+                  "manager_id": "E-1007",
+                  "office_location": "AUS",
+                  "work_city": "Austin",
+                  "work_state": "TX",
+                  "work_country": "United States",
+                  "work_arrangement": "remote",
+                  "remote_eligible_role": true,
+                  "latest_performance_rating": "Exceeds Expectations",
+                  "on_pip": false,
+                  "work_authorization": "citizen",
+                  "has_corporate_card": true,
+                  "tenure_months": 53,
+                  "office": {
+                    "office_id": "AUS",
+                    "name": "Austin HQ",
+                    "city": "Austin",
+                    "state": "TX",
+                    "country": "United States",
+                    "timezone": "America/Chicago",
+                    "utc_offset_standard": -6,
+                    "holiday_schedule": "US",
+                    "expense_tier": "us_other",
+                    "entity": "Helios Systems, Inc.",
+                    "hybrid_anchor_days": [
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday"
+                    ]
+                  },
+                  "manager_name": "David Okafor",
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 3.3
+              }
+            ],
+            "service_ms": 757.4,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 2947,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 427.8,
+            "fell_back": false,
+            "summary": "selected 1 tool: check_international_work_usage",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "check_international_work_usage",
+                "arguments": {
+                  "employee": "Maya Rodriguez"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "employee_name": "Maya Rodriguez",
+                  "work_authorization": "citizen",
+                  "as_of_date": "2026-09-12",
+                  "window_start": "2025-09-12",
+                  "window_end": "2026-09-12",
+                  "annual_limit_days": 30,
+                  "days_used": 12,
+                  "days_remaining": 18,
+                  "counted_records": [
+                    {
+                      "record_id": "IRW-2026-0043",
+                      "employee_id": "E-1041",
+                      "country": "Ireland",
+                      "start_date": "2026-03-02",
+                      "end_date": "2026-03-13",
+                      "calendar_days": 12,
+                      "status": "completed",
+                      "approved_by": "E-1007",
+                      "notes": "Co-located with Dublin platform team."
+                    }
+                  ],
+                  "excluded_records": [
+                    {
+                      "record_id": "IRW-2025-0298",
+                      "employee_id": "E-1041",
+                      "country": "Spain",
+                      "start_date": "2025-08-04",
+                      "end_date": "2025-08-15",
+                      "calendar_days": 12,
+                      "status": "completed",
+                      "approved_by": "E-1007",
+                      "notes": "OUTSIDE the current rolling 12-month window as of 2026-09-12; must NOT count toward the limit.",
+                      "excluded_because": "ended 2025-08-15, before the rolling window opened on 2025-09-12"
+                    }
+                  ],
+                  "citation": "POL-INTL-001 \u00a72 Rolling 30-Day Limit"
+                },
+                "is_error": false,
+                "latency_ms": 4.4
+              }
+            ],
+            "service_ms": 427.8,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3369,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 475.2,
+            "fell_back": false,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 3,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "k": 5,
+                  "query": "international work policy rolling limit 30 days remote work Portugal"
+                },
+                "result": {
+                  "query": "international work policy rolling limit 30 days remote work Portugal",
+                  "grounded": true,
+                  "best_similarity": 0.8423,
+                  "reason": "",
+                  "unknown_terms": [],
+                  "hits": [
+                    {
+                      "chunk_id": "c00099",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "The 30-Day Rule",
+                      "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+                      "text": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer than 30\n  days must either:\n\n- take the excess period as approved PTO or unpaid leave, performing no work\n      whatsoever during that period; or\n- pursue a permanent relocation through Global Mobility, which requires an\n      entity in the destination country, a new employment agreement, and a\n      minimum lead time of 90 days ; or\n- be assigned to a formal short-term international assignment, which is\n      sponsored by the business unit and requires VP approval.\n\nA six-week (42-day) request, for example, exceeds the 30-day limit and cannot\n  be approved as ordinary international remote work.",
+                      "score": 0.032787,
+                      "dense_rank": 1,
+                      "bm25_rank": 1,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00100",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "Eligible Countries",
+                      "citation": "POL-INTL-001 \u00a73 Eligible Countries",
+                      "text": "Temporary international remote work is permitted only in countries where\n  Helios has assessed the tax and permanent-establishment risk. As of the\n  effective date, the eligible list is:\n\n| Country | Max consecutive days | Notes |\n| Ireland | 30 | Helios entity present |\n| Portugal | 30 | Helios entity present |\n| Spain | 21 | No entity; PE risk after 21 days |\n| Italy | 21 | No entity; PE risk after 21 days |\n| Germany | 21 | No entity; PE risk after 21 days |\n| Netherlands | 21 | No entity; PE risk after 21 days |\n| United Kingdom | 30 | Treaty relief available |\n| Canada | 30 | Ontario and British Columbia only |\n| Mexico | 14 | Immigration restrictions |\n| Singapore | 30 | Helios entity present |\n| Japan | 14 | Immigration restrictions |\n\nWork from any country not on this list is prohibited without a\n  case-by-case assessment by Global Mobility & Tax, which requires a minimum\n  of 20 business days to complete. Work from countries subject\n  to sanctions or export-control restrictions is prohibited outright; see POL-SEC-001 Section 8.",
+                      "score": 0.032258,
+                      "dense_rank": 2,
+                      "bm25_rank": 2,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00184",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Remote Work (Domestic)",
+                      "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+                      "text": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL-SEC-001` \u00a77 |\n| 21 \u2013 30 consecutive business days | Manager + HR Business Partner | Security review + payroll notification |\n| More than 30 consecutive days in a state where the employee is not registered | Not permitted as temporary work | Requires a permanent work-location change under Section 4 |\n\nThe **30-day rule** exists because working more than 30 days in a state creates\nstate income-tax withholding and, in some states, employer-registration\nobligations. Cumulative days in the same state within a rolling 12-month period\ncount toward the 30-day threshold.",
+                      "score": 0.031498,
+                      "dense_rank": 3,
+                      "bm25_rank": 4,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00177",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Purpose",
+                      "citation": "POL-REMOTE-001 \u00a71 Purpose",
+                      "text": "Helios Systems supports flexible work arrangements where they are compatible\nwith the employee's role, team needs, and legal obligations. This policy defines\nthe available work arrangements, who is eligible for each, and how to request a\nchange.\n\nTemporary work from a location outside the employee's home country is governed\nby `POL-INTL-001` (International Remote Work and Tax Compliance) and requires\nadditional approvals.",
+                      "score": 0.029031,
+                      "dense_rank": 16,
+                      "bm25_rank": 3,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00101",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "Approval Workflow",
+                      "citation": "POL-INTL-001 \u00a74 Approval Workflow",
+                      "text": "1. Employee submits an International Remote Work request in Helios Workday at\n      least 20 business days before the intended start date,\n      specifying destination country, exact dates, and total calendar days.\n2. Manager approval \u2014 confirms coverage and time-zone overlap\n      under POL-REMOTE-001 Section 8.\n3. Global Mobility & Tax review \u2014 confirms the country is\n      eligible, the day count is within limits, and no permanent-establishment\n      or payroll-withholding trigger applies.\n4. Immigration check \u2014 confirms the employee holds the right\n      to be present and, where required, the right to work. Employees on a US\n      work visa (including H-1B, L-1, O-1, and TN status) must additionally be\n      cleared by Immigration Counsel, as travel may affect status or re-entry.\n5. Information Security review \u2014 required for all\n      international requests, per POL-SEC-001 Section 7.\n6. Written approval is issued in Workday. No travel should be booked\n      before written approval is issued.\n\nTypical end-to-end approval time is 10 \u2013 20 business days. Requests submitted\n  with less than 20 business days' notice are reviewed on a best-effort basis and\n  are frequently denied for lack of review time.",
+                      "score": 0.028986,
+                      "dense_rank": 9,
+                      "bm25_rank": 9,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 578.2
+              }
+            ],
+            "service_ms": 475.2,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3786,
+            "elided_results": 0
+          },
+          {
+            "index": 4,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 2963.9,
+            "fell_back": false,
+            "summary": "answer uses 4 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 2963.9,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 5971,
+            "elided_results": 0
+          }
+        ],
+        "citations": [
+          "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-INTL-001 \u00a73 Eligible Countries",
+          "POL-INTL-001 \u00a74 Approval Workflow"
+        ],
+        "sources": [
+          {
+            "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "The 30-Day Rule",
+            "snippet": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer th..."
+          },
+          {
+            "citation": "POL-INTL-001 \u00a73 Eligible Countries",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "Eligible Countries",
+            "snippet": "Temporary international remote work is permitted only in countries where\n  Helios has assessed the tax and permanent-establishment risk. As of the\n  effective date, the eligible list is:\n\n| Country | Max consecutive days | Notes |\n| Ireland | 30 | Helios entity present |\n| Portugal | 30 | Helios entity present |\n| Spain | 21 | No entity; PE risk after 21 days |\n| Italy | 21 | No entity; PE risk af..."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Temporary Remote Work (Domestic)",
+            "snippet": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL..."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a71 Purpose",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Purpose",
+            "snippet": "Helios Systems supports flexible work arrangements where they are compatible\nwith the employee's role, team needs, and legal obligations. This policy defines\nthe available work arrangements, who is eligible for each, and how to request a\nchange.\n\nTemporary work from a location outside the employee's home country is governed\nby `POL-INTL-001` (International Remote Work and Tax Compliance) and requi..."
+          },
+          {
+            "citation": "POL-INTL-001 \u00a74 Approval Workflow",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "Approval Workflow",
+            "snippet": "1. Employee submits an International Remote Work request in Helios Workday at\n      least 20 business days before the intended start date,\n      specifying destination country, exact dates, and total calendar days.\n2. Manager approval \u2014 confirms coverage and time-zone overlap\n      under POL-REMOTE-001 Section 8.\n3. Global Mobility & Tax review \u2014 confirms the country is\n      eligible, the day cou..."
+          }
+        ],
+        "tools_used": [
+          "lookup_employee_profile",
+          "check_international_work_usage",
+          "search_policy_documents"
+        ],
+        "total_ms": 5413.8,
+        "total_service_ms": 5413.8,
+        "throttle_ms": 0.0,
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "fell_back": false,
+        "grounded": true,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 5971,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-INTL-001 \u00a73 Eligible Countries",
+          "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+          "POL-REMOTE-001 \u00a71 Purpose",
+          "POL-INTL-001 \u00a74 Approval Workflow"
+        ],
+        "pending_actions": [],
+        "api_calls": 4,
+        "prompt_tokens": 10538,
+        "completion_tokens": 1276,
+        "cached": false,
+        "answer_html": "<p><strong>No \u2013 Maya cannot work from Portugal for the full 42\u202fcalendar days as requested.</strong></p>\n<p><strong>Why the request exceeds policy</strong></p>\n<ol>\n<li>\n<p><strong>Rolling 30\u2011day limit</strong> \u2013 The International Remote Work policy allows a maximum of\u202f30\u202fcalendar days of work abroad in any rolling 12\u2011month period. Maya has already used\u202f12\u202fdays (Ireland, March\u202f2\u201113\u202f2026), leaving only\u202f18\u202fdays remaining (POL\u2011INTL\u2011001 \u00a72 The\u202f30\u2011Day\u202fRule; usage citation\u202fPOL\u2011INTL\u2011001 \u00a72 Rolling\u202f30\u2011Day\u202fLimit).</p>\n</li>\n<li>\n<p><strong>Country\u2011specific cap</strong> \u2013 Portugal is an eligible country, but the maximum consecutive days allowed there is\u202f30\u202f(POL\u2011INTL\u2011001 \u00a73 Eligible\u202fCountries).</p>\n</li>\n<li>\n<p><strong>Requested duration</strong> \u2013 Maya\u2019s request (Oct\u202f5\u202f\u2013\u202fNov\u202f15\u202f2026) is\u202f42\u202fdays, exceeding both the overall 30\u2011day rolling limit and Portugal\u2019s 30\u2011day cap (POL\u2011INTL\u2011001 \u00a72 The\u202f30\u2011Day\u202fRule).</p>\n</li>\n</ol>\n<p><strong>Compliant alternatives</strong></p>\n<table>\n<thead>\n<tr>\n<th>Option</th>\n<th>How it fits policy</th>\n<th>Required steps</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>Reduce the stay to \u2264\u202f30\u202fdays</strong> (e.g., Oct\u202f5\u202f\u2013\u202fNov\u202f3)</td>\n<td>Meets both the rolling limit (18\u202fdays available) and Portugal\u2019s 30\u2011day cap.</td>\n<td>Submit an International Remote Work request \u2265\u202f20\u202fbusiness days before the start date (POL\u2011INTL\u2011001 \u00a74 Approval\u202fWorkflow).</td>\n</tr>\n<tr>\n<td><strong>Take the excess 12\u202fdays as PTO or unpaid leave</strong> (work 30\u202fdays, then 12\u202fdays off)</td>\n<td>Excess days must be taken as approved PTO/unpaid leave with no work performed (POL\u2011INTL\u2011001 \u00a72).</td>\n<td>Request PTO for the 12\u202fdays through Workday; ensure manager and HR approval.</td>\n</tr>\n<tr>\n<td><strong>Pursue a permanent relocation</strong></td>\n<td>Allows work beyond 30\u202fdays but requires a new employment agreement and 90\u2011day lead time (POL\u2011INTL\u2011001 \u00a74).</td>\n<td>Initiate a relocation request with Global Mobility; provide 90\u2011day notice.</td>\n</tr>\n<tr>\n<td><strong>Apply for a short\u2011term international assignment</strong></td>\n<td>Sponsored assignments can exceed the 30\u2011day limit with VP approval (POL\u2011INTL\u2011001 \u00a74).</td>\n<td>Business unit submits assignment proposal; obtain VP and Global Mobility sign\u2011off.</td>\n</tr>\n</tbody>\n</table>\n<p><strong>Next steps</strong><br />\nMaya should either shorten the Portugal stay to 30\u202fdays or split the period, using PTO for the remaining days. If she needs the full 42\u202fdays for business reasons, she must explore relocation or a short\u2011term assignment as outlined above. All requests must follow the approval workflow in POL\u2011INTL\u2011001 \u00a74.</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [
+        "did not call required tool: check_policy_compliance",
+        "Expected citations to both international and remote-work policies"
+      ],
+      "passed": false,
+      "wall_seconds": 6.03,
+      "metrics": {
+        "agent_seconds": 5.4,
+        "throttle_seconds": 0.0,
+        "api_calls": 4,
+        "tokens": 11814,
+        "model": "openai/gpt-oss-120b",
+        "fell_back": false
+      }
+    },
+    {
+      "task": "pto",
+      "kind": "demo task",
+      "prompt": "Jonas Weber wants three business days of PTO starting 21 September 2026. Retrieve the PTO policy, check his available balance and compliance, and explain both the balance and notice issues with citations. Prepare a mock HR ticket preview asking about the permitted alternatives; do not create it until I use the confirmation button.",
+      "trace": {
+        "question": "Jonas Weber wants three business days of PTO starting 21 September 2026. Retrieve the PTO policy, check his available balance and compliance, and explain both the balance and notice issues with citations. Prepare a mock HR ticket preview asking about the permitted alternatives; do not create it until I use the confirmation button.",
+        "answer": "**Evidence check**\n\nThe policy\u2019s notice bands (from the `check_policy_compliance` result) are:\n\n| Length of absence | Minimum advance notice |\n|-------------------|------------------------|\n| 1\u20132 consecutive business days | 3 business days |\n| 3\u20135 consecutive business days | **10 business days** |\n| 6\u201310 consecutive business days | 20 business days |\n| >10 consecutive business days | 30 business days (plus skip\u2011level approval) |\n\nYour request is for **3 consecutive business days** (Sept\u202f21\u201123\u202f2026). According to the bands, the required notice is **10 business days**, not 20. The 20\u2011day requirement applies only to absences of 6\u201310 consecutive business days.\n\n**Citations**\n\n* `check_policy_compliance` notice_bands: 3\u20135 days \u2192 10 business days (see the `notice_bands` array in the compliance output).  \n* `get_policy_section` \u201cNotice Requirements\u201d (POL\u2011PTO\u2011001 \u00a73.1) lists the same 3\u20135 day \u2192 10\u2011day rule.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 613.9,
+            "fell_back": true,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "k": 5,
+                  "query": "PTO policy business days notice"
+                },
+                "result": {
+                  "query": "PTO policy business days notice",
+                  "grounded": true,
+                  "best_similarity": 0.7917,
+                  "reason": "",
+                  "unknown_terms": [],
+                  "hits": [
+                    {
+                      "chunk_id": "c00167",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Notice Requirements",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+                      "text": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted with less than the minimum notice are not automatically\ndenied, but require documented manager approval and a stated business\njustification.",
+                      "score": 0.032522,
+                      "dense_rank": 2,
+                      "bm25_rank": 1,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00168",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Approval Workflow",
+                      "citation": "POL-PTO-001 \u00a73.2 Approval Workflow",
+                      "text": "1. The employee submits a PTO request in Helios Workday, specifying start date,\n   end date, and total hours.\n2. The request routes to the employee's direct manager of record.\n3. The manager approves or denies within **3 business days**. If a manager does\n   not respond within 3 business days, the request escalates automatically to\n   the skip-level manager.\n4. Approved requests are deducted from the PTO balance on the first day of the\n   absence, not at the time of approval.\n\nEmployees must not book non-refundable travel before receiving written approval.",
+                      "score": 0.03031,
+                      "dense_rank": 5,
+                      "bm25_rank": 7,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00138",
+                      "doc_id": "POL-LEAVE-002",
+                      "doc_title": "Parental and Medical Leave Policy",
+                      "section": "When It Applies",
+                      "citation": "POL-LEAVE-002 \u00a73.1 When It Applies",
+                      "text": "Absences of **four (4) or more consecutive days** due to the employee's own\nserious health condition are handled under this policy rather than PTO\n(`POL-PTO-001`, Section 7). Absences of one to three days are ordinary sick\nabsences charged to PTO.",
+                      "score": 0.029206,
+                      "dense_rank": 15,
+                      "bm25_rank": 3,
+                      "source_file": "parental-medical-leave.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "3.5",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00078",
+                      "doc_id": "POL-HOL-001",
+                      "doc_title": "Holiday Schedule and Observance Policy",
+                      "section": "Floating Holidays",
+                      "citation": "POL-HOL-001 \u00a73 Floating Holidays",
+                      "text": "In addition to the observed holidays above, each full-time employee receives\n**two (2) floating holidays** per calendar year, credited on January 1.\n\n- Floating holidays may be used for any purpose, including religious or cultural\n  observances not on the company schedule.\n- Floating holidays require the same advance notice as a 1 \u2013 2 day PTO request\n  (3 business days; see `POL-PTO-001`, Section 3.1).\n- Floating holidays **do not carry over** and are forfeited if unused by\n  December 31.\n- Floating holidays are **not paid out** at separation.\n- Employees hired after July 1 receive one (1) floating holiday for that year.\n\nPart-time employees receive one (1) floating holiday per calendar year.",
+                      "score": 0.028778,
+                      "dense_rank": 9,
+                      "bm25_rank": 10,
+                      "source_file": "holiday-schedule.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "2.6",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00173",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Sick Time",
+                      "citation": "POL-PTO-001 \u00a77 Sick Time",
+                      "text": "Helios operates a combined PTO bank; there is no separate sick-time balance for\nabsences of 1 \u2013 3 days. Absences of **4 or more consecutive days** due to the\nemployee's own serious health condition are handled under `POL-LEAVE-002`\n(Parental and Medical Leave) and are not charged to PTO.\n\nEmployees should notify their manager as early as possible on the first day of\nan unplanned sick absence. No advance notice is required for sick absences.",
+                      "score": 0.028629,
+                      "dense_rank": 20,
+                      "bm25_rank": 2,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 166.0
+              }
+            ],
+            "service_ms": 613.9,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 2964,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 985.0,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_pto_balance",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "check_pto_balance",
+                "arguments": {
+                  "employee": "Jonas Weber"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "eligible": true,
+                  "years_of_service": 0.86,
+                  "annual_accrual_days": 15,
+                  "accrual_rate_hours_per_period": 5.0,
+                  "accrual_cap_hours": 180.0,
+                  "carryover_hours": 0.0,
+                  "accrued_ytd_hours": 85.0,
+                  "used_ytd_hours": 72.0,
+                  "balance_hours": 13.0,
+                  "scheduled_future_hours": 0.0,
+                  "available_hours": 13.0,
+                  "floating_holidays_total": 2,
+                  "floating_holidays_remaining": 2,
+                  "employee_name": "Jonas Weber",
+                  "employment_type": "full_time",
+                  "available_days": 1.62,
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 2.8
+              }
+            ],
+            "service_ms": 985.0,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 4445,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 1448.1,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_policy_compliance",
+            "tool_calls": [
+              {
+                "step": 3,
+                "name": "check_policy_compliance",
+                "arguments": {
+                  "days": 3,
+                  "employee": "Jonas Weber",
+                  "request_type": "pto",
+                  "start_date": "2026-09-21"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "employee_name": "Jonas Weber",
+                  "request": {
+                    "start_date": "2026-09-21",
+                    "end_date": "2026-09-23",
+                    "days": 3.0,
+                    "hours": 24.0
+                  },
+                  "as_of_date": "2026-09-12",
+                  "compliant": false,
+                  "findings": [
+                    {
+                      "check": "balance",
+                      "status": "fail",
+                      "detail": "request is 24 hours (3 days); 13 hours (1.62 days) available after 0 hours already scheduled",
+                      "shortfall_hours": 11.0,
+                      "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance"
+                    },
+                    {
+                      "check": "notice",
+                      "status": "fail",
+                      "detail": "6 business days notice given (today 2026-09-12 -> 2026-09-21); 3 consecutive business days requires 10 business days notice (POL-PTO-001 \u00a73.1 Notice Requirements)",
+                      "required_business_days": 10,
+                      "given_business_days": 6,
+                      "exception_path": "Documented manager approval and a business justification are required for shorter notice; it is not an automatic denial.",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements"
+                    },
+                    {
+                      "check": "blackout",
+                      "status": "pass",
+                      "detail": "no blackout period applies to Customer Support for these dates",
+                      "conflicts": [],
+                      "exception_path": null,
+                      "citation": "POL-PTO-001 \u00a74 Blackout Periods"
+                    }
+                  ],
+                  "blocking_reasons": [
+                    "request is 24 hours (3 days); 13 hours (1.62 days) available after 0 hours already scheduled",
+                    "6 business days notice given (today 2026-09-12 -> 2026-09-21); 3 consecutive business days requires 10 business days notice (POL-PTO-001 \u00a73.1 Notice Requirements)"
+                  ],
+                  "citations": [
+                    "POL-PTO-001 \u00a73.1 Notice Requirements",
+                    "POL-PTO-001 \u00a73.3 Insufficient Balance",
+                    "POL-PTO-001 \u00a74 Blackout Periods"
+                  ],
+                  "alternatives": [
+                    {
+                      "detail": "One or two consecutive business days require 3 business days notice.",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements"
+                    },
+                    {
+                      "detail": "Reduce PTO to the available balance, request unpaid leave with skip-level approval, or use an unused floating holiday. A changed request must be checked again before calling it compliant.",
+                      "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance"
+                    }
+                  ],
+                  "notice_bands": [
+                    {
+                      "up_to_business_days": 2,
+                      "required_notice": 3
+                    },
+                    {
+                      "up_to_business_days": 5,
+                      "required_notice": 10
+                    },
+                    {
+                      "up_to_business_days": 10,
+                      "required_notice": 20
+                    },
+                    {
+                      "up_to_business_days": 10000,
+                      "required_notice": 30
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 3.1
+              }
+            ],
+            "service_ms": 1448.1,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 4695,
+            "elided_results": 0
+          },
+          {
+            "index": 4,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 8232.1,
+            "fell_back": true,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 4,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "Notice Requirements"
+                },
+                "result": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "Notice Requirements",
+                  "passages": [
+                    {
+                      "chunk_id": "c00167",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Notice Requirements",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+                      "text": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted with less than the minimum notice are not automatically\ndenied, but require documented manager approval and a stated business\njustification.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 2.8
+              }
+            ],
+            "service_ms": 699.9,
+            "throttle_ms": 7532.2,
+            "attempts": 3,
+            "context_tokens": 5453,
+            "elided_results": 0
+          },
+          {
+            "index": 5,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 17703.3,
+            "fell_back": true,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 5,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "Insufficient Balance"
+                },
+                "result": {
+                  "doc_id": "POL-PTO-001",
+                  "section": "Insufficient Balance",
+                  "passages": [
+                    {
+                      "chunk_id": "c00169",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Insufficient Balance",
+                      "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance",
+                      "text": "An employee may not take PTO they have not accrued. If a requested absence\nexceeds the available balance, the employee may:\n\n- reduce the length of the absence to fit the available balance;\n- request unpaid personal leave, which requires skip-level approval; or\n- apply an unused floating holiday (see `POL-HOL-001`, Section 3).\n\nNegative PTO balances are not permitted under any circumstances.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 3.2
+              }
+            ],
+            "service_ms": 1007.3,
+            "throttle_ms": 16696.1,
+            "attempts": 4,
+            "context_tokens": 5863,
+            "elided_results": 0
+          },
+          {
+            "index": 6,
+            "kind": "validation",
+            "provider": "",
+            "model": "",
+            "latency_ms": 0.0,
+            "fell_back": false,
+            "summary": "Requested missing evidence",
+            "tool_calls": [],
+            "service_ms": 0.0,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 0,
+            "elided_results": 0
+          },
+          {
+            "index": 7,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 5261.7,
+            "fell_back": true,
+            "summary": "answer uses 1 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 1151.6,
+            "throttle_ms": 4110.1,
+            "attempts": 2,
+            "context_tokens": 5761,
+            "elided_results": 0
+          }
+        ],
+        "citations": [
+          "POL-PTO-001 \u00a73.1 Notice Requirements"
+        ],
+        "sources": [
+          {
+            "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Notice Requirements",
+            "snippet": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted..."
+          },
+          {
+            "citation": "POL-PTO-001 \u00a73.2 Approval Workflow",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Approval Workflow",
+            "snippet": "1. The employee submits a PTO request in Helios Workday, specifying start date,\n   end date, and total hours.\n2. The request routes to the employee's direct manager of record.\n3. The manager approves or denies within **3 business days**. If a manager does\n   not respond within 3 business days, the request escalates automatically to\n   the skip-level manager.\n4. Approved requests are deducted from..."
+          },
+          {
+            "citation": "POL-LEAVE-002 \u00a73.1 When It Applies",
+            "doc_id": "POL-LEAVE-002",
+            "doc_title": "Parental and Medical Leave Policy",
+            "section": "When It Applies",
+            "snippet": "Absences of **four (4) or more consecutive days** due to the employee's own\nserious health condition are handled under this policy rather than PTO\n(`POL-PTO-001`, Section 7). Absences of one to three days are ordinary sick\nabsences charged to PTO."
+          },
+          {
+            "citation": "POL-HOL-001 \u00a73 Floating Holidays",
+            "doc_id": "POL-HOL-001",
+            "doc_title": "Holiday Schedule and Observance Policy",
+            "section": "Floating Holidays",
+            "snippet": "In addition to the observed holidays above, each full-time employee receives\n**two (2) floating holidays** per calendar year, credited on January 1.\n\n- Floating holidays may be used for any purpose, including religious or cultural\n  observances not on the company schedule.\n- Floating holidays require the same advance notice as a 1 \u2013 2 day PTO request\n  (3 business days; see `POL-PTO-001`, Section..."
+          },
+          {
+            "citation": "POL-PTO-001 \u00a77 Sick Time",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Sick Time",
+            "snippet": "Helios operates a combined PTO bank; there is no separate sick-time balance for\nabsences of 1 \u2013 3 days. Absences of **4 or more consecutive days** due to the\nemployee's own serious health condition are handled under `POL-LEAVE-002`\n(Parental and Medical Leave) and are not charged to PTO.\n\nEmployees should notify their manager as early as possible on the first day of\nan unplanned sick absence. No a..."
+          },
+          {
+            "citation": "POL-PTO-001 \u00a73.3 Insufficient Balance",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Insufficient Balance",
+            "snippet": "An employee may not take PTO they have not accrued. If a requested absence\nexceeds the available balance, the employee may:\n\n- reduce the length of the absence to fit the available balance;\n- request unpaid personal leave, which requires skip-level approval; or\n- apply an unused floating holiday (see `POL-HOL-001`, Section 3).\n\nNegative PTO balances are not permitted under any circumstances."
+          }
+        ],
+        "tools_used": [
+          "search_policy_documents",
+          "check_pto_balance",
+          "check_policy_compliance",
+          "get_policy_section"
+        ],
+        "total_ms": 46612.8,
+        "total_service_ms": 18274.4,
+        "throttle_ms": 28338.4,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "fell_back": true,
+        "grounded": true,
+        "truncated": false,
+        "error": "",
+        "elided_results": 1,
+        "peak_context_tokens": 5863,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-PTO-001 \u00a73.1 Notice Requirements",
+          "POL-PTO-001 \u00a73.2 Approval Workflow",
+          "POL-LEAVE-002 \u00a73.1 When It Applies",
+          "POL-HOL-001 \u00a73 Floating Holidays",
+          "POL-PTO-001 \u00a77 Sick Time",
+          "POL-PTO-001 \u00a73.3 Insufficient Balance",
+          "POL-PTO-001 \u00a74 Blackout Periods"
+        ],
+        "pending_actions": [],
+        "api_calls": 7,
+        "prompt_tokens": 26376,
+        "completion_tokens": 1799,
+        "cached": false,
+        "answer_html": "<p><strong>Evidence check</strong></p>\n<p>The policy\u2019s notice bands (from the <code>check_policy_compliance</code> result) are:</p>\n<table>\n<thead>\n<tr>\n<th>Length of absence</th>\n<th>Minimum advance notice</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>1\u20132 consecutive business days</td>\n<td>3 business days</td>\n</tr>\n<tr>\n<td>3\u20135 consecutive business days</td>\n<td><strong>10 business days</strong></td>\n</tr>\n<tr>\n<td>6\u201310 consecutive business days</td>\n<td>20 business days</td>\n</tr>\n<tr>\n<td>&gt;10 consecutive business days</td>\n<td>30 business days (plus skip\u2011level approval)</td>\n</tr>\n</tbody>\n</table>\n<p>Your request is for <strong>3 consecutive business days</strong> (Sept\u202f21\u201123\u202f2026). According to the bands, the required notice is <strong>10 business days</strong>, not 20. The 20\u2011day requirement applies only to absences of 6\u201310 consecutive business days.</p>\n<p><strong>Citations</strong></p>\n<ul>\n<li><code>check_policy_compliance</code> notice_bands: 3\u20135 days \u2192 10 business days (see the <code>notice_bands</code> array in the compliance output).</li>\n<li><code>get_policy_section</code> \u201cNotice Requirements\u201d (POL\u2011PTO\u2011001 \u00a73.1) lists the same 3\u20135 day \u2192 10\u2011day rule.</li>\n</ul>\n"
+      },
+      "confirmation_results": [],
+      "failures": [
+        "answer missing: ('13', 'insufficient', 'not enough')",
+        "Missing ticket preview"
+      ],
+      "passed": false,
+      "wall_seconds": 46.94,
+      "metrics": {
+        "agent_seconds": 46.6,
+        "throttle_seconds": 28.3,
+        "api_calls": 7,
+        "tokens": 28175,
+        "model": "openai/gpt-oss-20b",
+        "fell_back": true
+      }
+    },
+    {
+      "task": "R03",
+      "kind": "evaluation case",
+      "prompt": "What is the maximum number of consecutive days I may work from another country?",
+      "trace": {
+        "question": "What is the maximum number of consecutive days I may work from another country?",
+        "answer": "You may work from an overseas location for **up to\u202f30\u202fcalendar days** in any rolling 12\u2011month period, counted across all countries combined.\u202fIf you stay longer you must use PTO, unpaid leave, or pursue a permanent relocation or formal assignment\u202f(POL\u2011INTL\u2011001 \u00a72 The\u202f30\u2011Day\u202fRule).\n\nIn addition, each eligible country has its own maximum consecutive\u2011day limit. For example, Spain, Italy, Germany, the Netherlands, and a few others are limited to **21\u202fconsecutive days**, while many countries (Ireland, Portugal, United Kingdom, Canada, Singapore, etc.) allow the full **30\u202fconsecutive days** (POL\u2011INTL\u2011001 \u00a73 Eligible\u202fCountries).  \n\nSo the overall ceiling is 30\u202fdays, but you must also respect the per\u2011country cap shown in the eligible\u2011countries table.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 12480.7,
+            "fell_back": true,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "k": 5,
+                  "query": "maximum number of consecutive days may work from another country"
+                },
+                "result": {
+                  "query": "maximum number of consecutive days may work from another country",
+                  "grounded": true,
+                  "best_similarity": 0.758,
+                  "reason": "",
+                  "unknown_terms": [],
+                  "hits": [
+                    {
+                      "chunk_id": "c00099",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "The 30-Day Rule",
+                      "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+                      "text": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer than 30\n  days must either:\n\n- take the excess period as approved PTO or unpaid leave, performing no work\n      whatsoever during that period; or\n- pursue a permanent relocation through Global Mobility, which requires an\n      entity in the destination country, a new employment agreement, and a\n      minimum lead time of 90 days ; or\n- be assigned to a formal short-term international assignment, which is\n      sponsored by the business unit and requires VP approval.\n\nA six-week (42-day) request, for example, exceeds the 30-day limit and cannot\n  be approved as ordinary international remote work.",
+                      "score": 0.032787,
+                      "dense_rank": 1,
+                      "bm25_rank": 1,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00184",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Remote Work (Domestic)",
+                      "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+                      "text": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL-SEC-001` \u00a77 |\n| 21 \u2013 30 consecutive business days | Manager + HR Business Partner | Security review + payroll notification |\n| More than 30 consecutive days in a state where the employee is not registered | Not permitted as temporary work | Requires a permanent work-location change under Section 4 |\n\nThe **30-day rule** exists because working more than 30 days in a state creates\nstate income-tax withholding and, in some states, employer-registration\nobligations. Cumulative days in the same state within a rolling 12-month period\ncount toward the 30-day threshold.",
+                      "score": 0.031498,
+                      "dense_rank": 3,
+                      "bm25_rank": 4,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00100",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "Eligible Countries",
+                      "citation": "POL-INTL-001 \u00a73 Eligible Countries",
+                      "text": "Temporary international remote work is permitted only in countries where\n  Helios has assessed the tax and permanent-establishment risk. As of the\n  effective date, the eligible list is:\n\n| Country | Max consecutive days | Notes |\n| Ireland | 30 | Helios entity present |\n| Portugal | 30 | Helios entity present |\n| Spain | 21 | No entity; PE risk after 21 days |\n| Italy | 21 | No entity; PE risk after 21 days |\n| Germany | 21 | No entity; PE risk after 21 days |\n| Netherlands | 21 | No entity; PE risk after 21 days |\n| United Kingdom | 30 | Treaty relief available |\n| Canada | 30 | Ontario and British Columbia only |\n| Mexico | 14 | Immigration restrictions |\n| Singapore | 30 | Helios entity present |\n| Japan | 14 | Immigration restrictions |\n\nWork from any country not on this list is prohibited without a\n  case-by-case assessment by Global Mobility & Tax, which requires a minimum\n  of 20 business days to complete. Work from countries subject\n  to sanctions or export-control restrictions is prohibited outright; see POL-SEC-001 Section 8.",
+                      "score": 0.031054,
+                      "dense_rank": 2,
+                      "bm25_rank": 7,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00091",
+                      "doc_id": "POL-SEC-001",
+                      "doc_title": "Information Security and Acceptable Use Policy",
+                      "section": "Security Review Triggers",
+                      "citation": "POL-SEC-001 \u00a77.1 Security Review Triggers",
+                      "text": "An Information Security review is required before:\n\n- any work from outside the employee's home country, of any duration\n  (`POL-INTL-001` Section 4.5);\n- domestic temporary work exceeding **10 consecutive business days**\n  (`POL-REMOTE-001` Section 5); and\n- any travel to a country on the Elevated Risk list (Section 8).\n\nThe review is requested in the same Workday flow as the travel or remote-work\nrequest and typically completes within **5 business days**.",
+                      "score": 0.030835,
+                      "dense_rank": 8,
+                      "bm25_rank": 2,
+                      "source_file": "information-security-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "6.2",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00167",
+                      "doc_id": "POL-PTO-001",
+                      "doc_title": "Paid Time Off (PTO) Policy",
+                      "section": "Notice Requirements",
+                      "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+                      "text": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted with less than the minimum notice are not automatically\ndenied, but require documented manager approval and a stated business\njustification.",
+                      "score": 0.029644,
+                      "dense_rank": 6,
+                      "bm25_rank": 9,
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.1",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 466.3
+              }
+            ],
+            "service_ms": 480.7,
+            "throttle_ms": 11999.9,
+            "attempts": 2,
+            "context_tokens": 2892,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 5195.7,
+            "fell_back": false,
+            "summary": "answer uses 2 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 2050.2,
+            "throttle_ms": 3145.4,
+            "attempts": 2,
+            "context_tokens": 4891,
+            "elided_results": 0
+          }
+        ],
+        "citations": [
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-INTL-001 \u00a73 Eligible Countries"
+        ],
+        "sources": [
+          {
+            "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "The 30-Day Rule",
+            "snippet": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer th..."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Temporary Remote Work (Domestic)",
+            "snippet": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL..."
+          },
+          {
+            "citation": "POL-INTL-001 \u00a73 Eligible Countries",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "Eligible Countries",
+            "snippet": "Temporary international remote work is permitted only in countries where\n  Helios has assessed the tax and permanent-establishment risk. As of the\n  effective date, the eligible list is:\n\n| Country | Max consecutive days | Notes |\n| Ireland | 30 | Helios entity present |\n| Portugal | 30 | Helios entity present |\n| Spain | 21 | No entity; PE risk after 21 days |\n| Italy | 21 | No entity; PE risk af..."
+          },
+          {
+            "citation": "POL-SEC-001 \u00a77.1 Security Review Triggers",
+            "doc_id": "POL-SEC-001",
+            "doc_title": "Information Security and Acceptable Use Policy",
+            "section": "Security Review Triggers",
+            "snippet": "An Information Security review is required before:\n\n- any work from outside the employee's home country, of any duration\n  (`POL-INTL-001` Section 4.5);\n- domestic temporary work exceeding **10 consecutive business days**\n  (`POL-REMOTE-001` Section 5); and\n- any travel to a country on the Elevated Risk list (Section 8).\n\nThe review is requested in the same Workday flow as the travel or remote-wor..."
+          },
+          {
+            "citation": "POL-PTO-001 \u00a73.1 Notice Requirements",
+            "doc_id": "POL-PTO-001",
+            "doc_title": "Paid Time Off (PTO) Policy",
+            "section": "Notice Requirements",
+            "snippet": "Advance notice requirements scale with the length of the absence:\n\n| Length of absence | Minimum advance notice |\n| --- | --- |\n| 1 \u2013 2 consecutive business days | 3 business days |\n| 3 \u2013 5 consecutive business days | 10 business days |\n| 6 \u2013 10 consecutive business days | 20 business days |\n| More than 10 consecutive business days | 30 business days, plus skip-level approval |\n\nRequests submitted..."
+          }
+        ],
+        "tools_used": [
+          "search_policy_documents"
+        ],
+        "total_ms": 18243.7,
+        "total_service_ms": 3098.4,
+        "throttle_ms": 15145.3,
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "fell_back": true,
+        "grounded": true,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 4891,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+          "POL-INTL-001 \u00a73 Eligible Countries",
+          "POL-SEC-001 \u00a77.1 Security Review Triggers",
+          "POL-PTO-001 \u00a73.1 Notice Requirements"
+        ],
+        "pending_actions": [],
+        "api_calls": 2,
+        "prompt_tokens": 5088,
+        "completion_tokens": 472,
+        "cached": false,
+        "answer_html": "<p>You may work from an overseas location for <strong>up to\u202f30\u202fcalendar days</strong> in any rolling 12\u2011month period, counted across all countries combined.\u202fIf you stay longer you must use PTO, unpaid leave, or pursue a permanent relocation or formal assignment\u202f(POL\u2011INTL\u2011001 \u00a72 The\u202f30\u2011Day\u202fRule).</p>\n<p>In addition, each eligible country has its own maximum consecutive\u2011day limit. For example, Spain, Italy, Germany, the Netherlands, and a few others are limited to <strong>21\u202fconsecutive days</strong>, while many countries (Ireland, Portugal, United Kingdom, Canada, Singapore, etc.) allow the full <strong>30\u202fconsecutive days</strong> (POL\u2011INTL\u2011001 \u00a73 Eligible\u202fCountries).</p>\n<p>So the overall ceiling is 30\u202fdays, but you must also respect the per\u2011country cap shown in the eligible\u2011countries table.</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [],
+      "passed": true,
+      "wall_seconds": 20.06,
+      "metrics": {
+        "agent_seconds": 18.2,
+        "throttle_seconds": 15.1,
+        "api_calls": 2,
+        "tokens": 5560,
+        "model": "openai/gpt-oss-120b",
+        "fell_back": true
+      }
+    },
+    {
+      "task": "L01",
+      "kind": "evaluation case",
+      "prompt": "What is Jonas Weber's current PTO balance in hours?",
+      "trace": {
+        "question": "What is Jonas Weber's current PTO balance in hours?",
+        "answer": "Jonas\u202fWeber\u2019s current paid\u2011time\u2011off balance is **13.0\u202fhours** (available for use as of\u202f2026\u201109\u201112).",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 511.7,
+            "fell_back": false,
+            "summary": "selected 1 tool: lookup_employee_profile",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "lookup_employee_profile",
+                "arguments": {
+                  "employee": "Jonas Weber"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "full_name": "Jonas Weber",
+                  "email": "jonas.weber@helios.example.com",
+                  "title": "Support Engineer II",
+                  "department": "Customer Support",
+                  "role_family": "Support Engineering",
+                  "employment_type": "full_time",
+                  "weekly_hours": 40,
+                  "hire_date": "2025-11-03",
+                  "manager_id": "E-1032",
+                  "office_location": "DUB",
+                  "work_city": "Dublin",
+                  "work_state": null,
+                  "work_country": "Ireland",
+                  "work_arrangement": "hybrid",
+                  "remote_eligible_role": true,
+                  "latest_performance_rating": "Meets Expectations",
+                  "on_pip": false,
+                  "work_authorization": "local_national",
+                  "has_corporate_card": false,
+                  "tenure_months": 10,
+                  "office": {
+                    "office_id": "DUB",
+                    "name": "Dublin",
+                    "city": "Dublin",
+                    "state": null,
+                    "country": "Ireland",
+                    "timezone": "Europe/Dublin",
+                    "utc_offset_standard": 0,
+                    "holiday_schedule": "IE",
+                    "expense_tier": "intl_other",
+                    "entity": "Helios Systems Ireland Ltd.",
+                    "hybrid_anchor_days": [
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday"
+                    ]
+                  },
+                  "manager_name": "Aisha Bello",
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 2.6
+              }
+            ],
+            "service_ms": 511.7,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 2884,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 2031.3,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_pto_balance",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "check_pto_balance",
+                "arguments": {
+                  "employee": "Jonas Weber"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "eligible": true,
+                  "years_of_service": 0.86,
+                  "annual_accrual_days": 15,
+                  "accrual_rate_hours_per_period": 5.0,
+                  "accrual_cap_hours": 180.0,
+                  "carryover_hours": 0.0,
+                  "accrued_ytd_hours": 85.0,
+                  "used_ytd_hours": 72.0,
+                  "balance_hours": 13.0,
+                  "scheduled_future_hours": 0.0,
+                  "available_hours": 13.0,
+                  "floating_holidays_total": 2,
+                  "floating_holidays_remaining": 2,
+                  "employee_name": "Jonas Weber",
+                  "employment_type": "full_time",
+                  "available_days": 1.62,
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 2.7
+              }
+            ],
+            "service_ms": 591.4,
+            "throttle_ms": 1439.9,
+            "attempts": 2,
+            "context_tokens": 3303,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 4167.0,
+            "fell_back": true,
+            "summary": "answer uses 0 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 823.6,
+            "throttle_ms": 3343.4,
+            "attempts": 2,
+            "context_tokens": 3536,
+            "elided_results": 0
+          }
+        ],
+        "citations": [],
+        "sources": [],
+        "tools_used": [
+          "lookup_employee_profile",
+          "check_pto_balance"
+        ],
+        "total_ms": 6718.7,
+        "total_service_ms": 1935.4,
+        "throttle_ms": 4783.3,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "fell_back": true,
+        "grounded": null,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 3536,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [],
+        "pending_actions": [],
+        "api_calls": 3,
+        "prompt_tokens": 7012,
+        "completion_tokens": 386,
+        "cached": false,
+        "answer_html": "<p>Jonas\u202fWeber\u2019s current paid\u2011time\u2011off balance is <strong>13.0\u202fhours</strong> (available for use as of\u202f2026\u201109\u201112).</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [
+        "answer missing: 13"
+      ],
+      "passed": false,
+      "wall_seconds": 7.3,
+      "metrics": {
+        "agent_seconds": 6.7,
+        "throttle_seconds": 4.8,
+        "api_calls": 3,
+        "tokens": 7398,
+        "model": "openai/gpt-oss-20b",
+        "fell_back": true
+      }
+    },
+    {
+      "task": "C03",
+      "kind": "evaluation case",
+      "prompt": "Is Sofia Marino covered by short-term disability? Explain why or why not.",
+      "trace": {
+        "question": "Is Sofia Marino covered by short-term disability? Explain why or why not.",
+        "answer": "No. Sofia Marino is **not covered by short\u2011term disability**.\n\n**Reasoning**  \nSofia\u2019s employee record shows she is a part\u2011time employee (24\u202fhours/week). The Benefits Eligibility matrix lists short\u2011term disability as a benefit **only for full\u2011time employees** and explicitly \u201cNo\u201d for part\u2011time staff (POL\u2011BEN\u2011001 \u00a73 Eligibility Matrix). The Short\u2011Term Disability section of the Parental and Medical Leave policy reiterates that \u201cPart\u2011time employees are not covered by short\u2011term disability\u201d (POL\u2011LEAVE\u2011002 \u00a73.2 Short\u2011Term Disability). Sofia\u2019s benefits status also records short\u2011term disability as false with the same citation.\n\n**Citations**  \n- POL\u2011BEN\u2011001 \u00a73 Eligibility Matrix \u2013 short\u2011term disability: Yes for full\u2011time, No for part\u2011time.  \n- POL\u2011LEAVE\u2011002 \u00a73.2 Short\u2011Term Disability \u2013 \u201cPart\u2011time employees are not covered by short\u2011term disability.\u201d",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 6110.1,
+            "fell_back": false,
+            "summary": "selected 1 tool: lookup_employee_profile",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "lookup_employee_profile",
+                "arguments": {
+                  "employee": "Sofia Marino"
+                },
+                "result": {
+                  "employee_id": "E-1099",
+                  "full_name": "Sofia Marino",
+                  "email": "sofia.marino@helios.example.com",
+                  "title": "Product Designer",
+                  "department": "Design",
+                  "role_family": "Design",
+                  "employment_type": "part_time",
+                  "weekly_hours": 24,
+                  "hire_date": "2024-02-26",
+                  "manager_id": "E-1002",
+                  "office_location": "NYC",
+                  "work_city": "Brooklyn",
+                  "work_state": "NY",
+                  "work_country": "United States",
+                  "work_arrangement": "remote",
+                  "remote_eligible_role": true,
+                  "latest_performance_rating": "Meets Expectations",
+                  "on_pip": false,
+                  "work_authorization": "permanent_resident",
+                  "has_corporate_card": false,
+                  "tenure_months": 30,
+                  "office": {
+                    "office_id": "NYC",
+                    "name": "New York",
+                    "city": "New York",
+                    "state": "NY",
+                    "country": "United States",
+                    "timezone": "America/New_York",
+                    "utc_offset_standard": -5,
+                    "holiday_schedule": "US",
+                    "expense_tier": "tier_1",
+                    "entity": "Helios Systems, Inc.",
+                    "hybrid_anchor_days": [
+                      "Monday",
+                      "Tuesday",
+                      "Thursday"
+                    ]
+                  },
+                  "manager_name": "Priya Natarajan",
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 2.8
+              }
+            ],
+            "service_ms": 1086.4,
+            "throttle_ms": 5023.7,
+            "attempts": 3,
+            "context_tokens": 2890,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 1974.3,
+            "fell_back": true,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "k": 5,
+                  "query": "short-term disability coverage part-time employee"
+                },
+                "result": {
+                  "query": "short-term disability coverage part-time employee",
+                  "grounded": true,
+                  "best_similarity": 0.8233,
+                  "reason": "",
+                  "unknown_terms": [],
+                  "hits": [
+                    {
+                      "chunk_id": "c00009",
+                      "doc_id": "POL-BEN-001",
+                      "doc_title": "Benefits and Eligibility Policy",
+                      "section": "Changing Employment Type",
+                      "citation": "POL-BEN-001 \u00a79 Changing Employment Type",
+                      "text": "A change in employment type that affects eligibility is a qualifying life event.\nBenefits change on the effective date of the employment-type change, not the\ndate of the request. An employee moving from full-time to part-time loses\nshort-term and long-term disability coverage and moves to the employee-only\nmedical subsidy.",
+                      "score": 0.032522,
+                      "dense_rank": 2,
+                      "bm25_rank": 1,
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.3",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00139",
+                      "doc_id": "POL-LEAVE-002",
+                      "doc_title": "Parental and Medical Leave Policy",
+                      "section": "Short-Term Disability",
+                      "citation": "POL-LEAVE-002 \u00a73.2 Short-Term Disability",
+                      "text": "Full-time employees are covered by employer-paid short-term disability:\n\n| Period | Benefit |\n| --- | --- |\n| Days 1 \u2013 7 | Elimination period; employee may use PTO or take unpaid |\n| Week 2 \u2013 week 8 | 100% of base pay |\n| Week 9 \u2013 week 26 | 60% of base pay |\n\nPart-time employees are not covered by short-term disability\n(`POL-BEN-001`, Section 3) and should contact People Operations to discuss state\ndisability programs and unpaid leave options.",
+                      "score": 0.032522,
+                      "dense_rank": 1,
+                      "bm25_rank": 2,
+                      "source_file": "parental-medical-leave.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "3.5",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00002",
+                      "doc_id": "POL-BEN-001",
+                      "doc_title": "Benefits and Eligibility Policy",
+                      "section": "Eligibility Matrix",
+                      "citation": "POL-BEN-001 \u00a73 Eligibility Matrix",
+                      "text": "| Benefit | Full-time | Part-time | Temporary | Intern |\n| --- | --- | --- | --- | --- |\n| Medical, dental, vision | Yes | Yes (employee-only subsidy) | No | No |\n| Health Savings Account (HSA) | Yes, with HDHP plan | Yes, with HDHP plan | No | No |\n| 401(k) \u2014 employee deferral | Yes | Yes | Yes | Yes, if age 21+ |\n| 401(k) \u2014 company match | Yes | Yes | No | No |\n| Life and AD&D insurance | Yes | Yes | No | No |\n| Short-term disability | Yes | No | No | No |\n| Long-term disability | Yes | No | No | No |\n| Paid parental leave | Yes | Yes, pro-rated | No | No |\n| PTO | Yes | Yes, pro-rated | No | No |\n| Floating holidays | 2 per year | 1 per year | No | No |\n| Wellness stipend | Yes | Yes | No | No |\n| Learning stipend | Yes | Yes | No | No |\n| Home-office stipend | Yes | Yes | No | No |\n| Commuter benefit | Yes | Yes | Yes | Yes |\n| Employee Assistance Program (EAP) | Yes | Yes | Yes | Yes |",
+                      "score": 0.031746,
+                      "dense_rank": 3,
+                      "bm25_rank": 3,
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.3",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00003",
+                      "doc_id": "POL-BEN-001",
+                      "doc_title": "Benefits and Eligibility Policy",
+                      "section": "Waiting Periods",
+                      "citation": "POL-BEN-001 \u00a74 Waiting Periods",
+                      "text": "| Benefit | Coverage begins |\n| --- | --- |\n| Medical, dental, vision | First day of the month following **30 days** of employment |\n| Life, AD&D, disability | First day of the month following **30 days** of employment |\n| 401(k) deferral | First payroll following **60 days** of employment |\n| 401(k) company match | First payroll following **12 months** of employment |\n| Wellness and learning stipends | Immediately on hire |\n| Paid parental leave | After **12 months** of continuous service |\n\nAn employee who has not yet satisfied a waiting period is **not eligible** for\nthat benefit, even if they have made an election.",
+                      "score": 0.03125,
+                      "dense_rank": 4,
+                      "bm25_rank": 4,
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.3",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00140",
+                      "doc_id": "POL-LEAVE-002",
+                      "doc_title": "Parental and Medical Leave Policy",
+                      "section": "Long-Term Disability",
+                      "citation": "POL-LEAVE-002 \u00a73.3 Long-Term Disability",
+                      "text": "Long-term disability begins after 26 weeks of continuous disability and pays 60%\nof base pay, subject to the plan document. Full-time employees only.",
+                      "score": 0.030536,
+                      "dense_rank": 6,
+                      "bm25_rank": 5,
+                      "source_file": "parental-medical-leave.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "3.5",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 106.6
+              }
+            ],
+            "service_ms": 690.4,
+            "throttle_ms": 1284.0,
+            "attempts": 3,
+            "context_tokens": 3308,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 11540.5,
+            "fell_back": true,
+            "summary": "selected 1 tool: lookup_benefits_status",
+            "tool_calls": [
+              {
+                "step": 3,
+                "name": "lookup_benefits_status",
+                "arguments": {
+                  "employee": "Sofia Marino"
+                },
+                "result": {
+                  "employee_id": "E-1099",
+                  "benefits_eligible": true,
+                  "medical_plan": "Helios Core (PPO)",
+                  "medical_coverage_effective": "2024-04-01",
+                  "dental": true,
+                  "vision": false,
+                  "coverage_tier": "employee_only",
+                  "coverage_note": "Part-time: employee-only subsidy applies (POL-BEN-001 s3).",
+                  "hsa_annual_election_usd": 0,
+                  "hsa_employer_contribution_usd": 0,
+                  "fsa_annual_election_usd": 0,
+                  "retirement_deferral_pct": 3,
+                  "match_eligible": true,
+                  "match_vested": true,
+                  "life_add": true,
+                  "short_term_disability": false,
+                  "short_term_disability_note": "Part-time employees are not covered by STD (POL-BEN-001 s3).",
+                  "long_term_disability": false,
+                  "parental_leave_eligible": true,
+                  "parental_leave_note": "Pro-rated for part-time (POL-LEAVE-002 s2.2).",
+                  "dependents_on_file": 0,
+                  "pending_dependent_verification": false,
+                  "employee_name": "Sofia Marino",
+                  "employment_type": "part_time",
+                  "weekly_hours": 24,
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 20.2
+              }
+            ],
+            "service_ms": 1540.6,
+            "throttle_ms": 9999.9,
+            "attempts": 3,
+            "context_tokens": 4810,
+            "elided_results": 0
+          },
+          {
+            "index": 4,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 17584.0,
+            "fell_back": false,
+            "summary": "answer uses 2 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 1497.7,
+            "throttle_ms": 16086.3,
+            "attempts": 4,
+            "context_tokens": 5173,
+            "elided_results": 0
+          }
+        ],
+        "citations": [
+          "POL-LEAVE-002 \u00a73.2 Short-Term Disability",
+          "POL-BEN-001 \u00a73 Eligibility Matrix"
+        ],
+        "sources": [
+          {
+            "citation": "POL-BEN-001 \u00a79 Changing Employment Type",
+            "doc_id": "POL-BEN-001",
+            "doc_title": "Benefits and Eligibility Policy",
+            "section": "Changing Employment Type",
+            "snippet": "A change in employment type that affects eligibility is a qualifying life event.\nBenefits change on the effective date of the employment-type change, not the\ndate of the request. An employee moving from full-time to part-time loses\nshort-term and long-term disability coverage and moves to the employee-only\nmedical subsidy."
+          },
+          {
+            "citation": "POL-LEAVE-002 \u00a73.2 Short-Term Disability",
+            "doc_id": "POL-LEAVE-002",
+            "doc_title": "Parental and Medical Leave Policy",
+            "section": "Short-Term Disability",
+            "snippet": "Full-time employees are covered by employer-paid short-term disability:\n\n| Period | Benefit |\n| --- | --- |\n| Days 1 \u2013 7 | Elimination period; employee may use PTO or take unpaid |\n| Week 2 \u2013 week 8 | 100% of base pay |\n| Week 9 \u2013 week 26 | 60% of base pay |\n\nPart-time employees are not covered by short-term disability\n(`POL-BEN-001`, Section 3) and should contact People Operations to discuss stat..."
+          },
+          {
+            "citation": "POL-BEN-001 \u00a73 Eligibility Matrix",
+            "doc_id": "POL-BEN-001",
+            "doc_title": "Benefits and Eligibility Policy",
+            "section": "Eligibility Matrix",
+            "snippet": "| Benefit | Full-time | Part-time | Temporary | Intern |\n| --- | --- | --- | --- | --- |\n| Medical, dental, vision | Yes | Yes (employee-only subsidy) | No | No |\n| Health Savings Account (HSA) | Yes, with HDHP plan | Yes, with HDHP plan | No | No |\n| 401(k) \u2014 employee deferral | Yes | Yes | Yes | Yes, if age 21+ |\n| 401(k) \u2014 company match | Yes | Yes | No | No |\n| Life and AD&D insurance | Yes |..."
+          },
+          {
+            "citation": "POL-BEN-001 \u00a74 Waiting Periods",
+            "doc_id": "POL-BEN-001",
+            "doc_title": "Benefits and Eligibility Policy",
+            "section": "Waiting Periods",
+            "snippet": "| Benefit | Coverage begins |\n| --- | --- |\n| Medical, dental, vision | First day of the month following **30 days** of employment |\n| Life, AD&D, disability | First day of the month following **30 days** of employment |\n| 401(k) deferral | First payroll following **60 days** of employment |\n| 401(k) company match | First payroll following **12 months** of employment |\n| Wellness and learning stip..."
+          },
+          {
+            "citation": "POL-LEAVE-002 \u00a73.3 Long-Term Disability",
+            "doc_id": "POL-LEAVE-002",
+            "doc_title": "Parental and Medical Leave Policy",
+            "section": "Long-Term Disability",
+            "snippet": "Long-term disability begins after 26 weeks of continuous disability and pays 60%\nof base pay, subject to the plan document. Full-time employees only."
+          }
+        ],
+        "tools_used": [
+          "lookup_employee_profile",
+          "search_policy_documents",
+          "lookup_benefits_status"
+        ],
+        "total_ms": 37445.9,
+        "total_service_ms": 5052.0,
+        "throttle_ms": 32393.9,
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "fell_back": true,
+        "grounded": true,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 5173,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-BEN-001 \u00a79 Changing Employment Type",
+          "POL-LEAVE-002 \u00a73.2 Short-Term Disability",
+          "POL-BEN-001 \u00a73 Eligibility Matrix",
+          "POL-BEN-001 \u00a74 Waiting Periods",
+          "POL-LEAVE-002 \u00a73.3 Long-Term Disability"
+        ],
+        "pending_actions": [],
+        "api_calls": 4,
+        "prompt_tokens": 12076,
+        "completion_tokens": 583,
+        "cached": false,
+        "answer_html": "<p>No. Sofia Marino is <strong>not covered by short\u2011term disability</strong>.</p>\n<p><strong>Reasoning</strong><br />\nSofia\u2019s employee record shows she is a part\u2011time employee (24\u202fhours/week). The Benefits Eligibility matrix lists short\u2011term disability as a benefit <strong>only for full\u2011time employees</strong> and explicitly \u201cNo\u201d for part\u2011time staff (POL\u2011BEN\u2011001 \u00a73 Eligibility Matrix). The Short\u2011Term Disability section of the Parental and Medical Leave policy reiterates that \u201cPart\u2011time employees are not covered by short\u2011term disability\u201d (POL\u2011LEAVE\u2011002 \u00a73.2 Short\u2011Term Disability). Sofia\u2019s benefits status also records short\u2011term disability as false with the same citation.</p>\n<p><strong>Citations</strong></p>\n<ul>\n<li>POL\u2011BEN\u2011001 \u00a73 Eligibility Matrix \u2013 short\u2011term disability: Yes for full\u2011time, No for part\u2011time.</li>\n<li>POL\u2011LEAVE\u2011002 \u00a73.2 Short\u2011Term Disability \u2013 \u201cPart\u2011time employees are not covered by short\u2011term disability.\u201d</li>\n</ul>\n"
+      },
+      "confirmation_results": [],
+      "failures": [],
+      "passed": true,
+      "wall_seconds": 37.77,
+      "metrics": {
+        "agent_seconds": 37.4,
+        "throttle_seconds": 32.4,
+        "api_calls": 4,
+        "tokens": 12659,
+        "model": "openai/gpt-oss-120b",
+        "fell_back": true
+      }
+    },
+    {
+      "task": "X03",
+      "kind": "evaluation case",
+      "prompt": "What does the Helios pet insurance policy cover?",
+      "trace": {
+        "question": "What does the Helios pet insurance policy cover?",
+        "answer": "The retrieved HR policy evidence does not cover this question. Please contact People Operations for clarification.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 473.6,
+            "fell_back": false,
+            "summary": "selected 1 tool: list_policy_documents",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "list_policy_documents",
+                "arguments": {},
+                "result": {
+                  "index": {
+                    "model": "BAAI/bge-small-en-v1.5",
+                    "dimensions": 384,
+                    "chunks": 221,
+                    "documents": 16,
+                    "doc_ids": [
+                      "POL-BEN-001",
+                      "POL-CONDUCT-001",
+                      "POL-PAY-001",
+                      "POL-EQUIP-001",
+                      "POL-GRIEV-001",
+                      "POL-HOL-001",
+                      "POL-SEC-001",
+                      "POL-INTL-001",
+                      "POL-LEARN-001",
+                      "POL-ONBOARD-001",
+                      "POL-LEAVE-002",
+                      "POL-PERF-001",
+                      "POL-PTO-001",
+                      "POL-REMOTE-001",
+                      "POL-EXP-001",
+                      "POL-SAFE-001"
+                    ],
+                    "source_formats": [
+                      "html",
+                      "md",
+                      "pdf",
+                      "txt"
+                    ],
+                    "chunking": {
+                      "strategy": "heading_aware_with_sentence_aligned_overlap",
+                      "target_tokens": 320,
+                      "max_tokens": 420,
+                      "overlap_tokens": 60
+                    },
+                    "corpus_fingerprint": "3bd28e9db163f338c33731461369c0b3b909551f4bd9434a65fc0e80e5039611",
+                    "pipeline_fingerprint": "14284c2661ea272c72de2a44dd16d8fcd3e139dd7aba807230f449aad90682d5",
+                    "seed": 42,
+                    "built_at": "2026-10-03T10:13:57Z",
+                    "build_seconds": 262.73
+                  },
+                  "documents": [
+                    {
+                      "doc_id": "POL-BEN-001",
+                      "title": "Benefits and Eligibility Policy",
+                      "version": "4.3",
+                      "effective_date": "2026-01-01",
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "chunks": 12,
+                      "sections": [
+                        "401(k) Retirement Plan",
+                        "COBRA and Separation",
+                        "Changing Employment Type",
+                        "Contacts",
+                        "Eligibility Matrix",
+                        "Employment Types",
+                        "Medical, Dental, and Vision",
+                        "Open Enrollment",
+                        "Purpose",
+                        "Qualifying Life Events",
+                        "Stipends",
+                        "Waiting Periods"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-CONDUCT-001",
+                      "title": "Code of Conduct, Anti-Harassment, and Reporting Policy",
+                      "version": "7.0",
+                      "effective_date": "2026-01-01",
+                      "source_file": "code-of-conduct.md",
+                      "source_format": "md",
+                      "chunks": 17,
+                      "sections": [
+                        "Bullying and Abusive Conduct",
+                        "Confidentiality",
+                        "Conflicts of Interest",
+                        "Consequences",
+                        "Contacts",
+                        "Discrimination",
+                        "Expected Conduct",
+                        "Gifts and Anti-Corruption",
+                        "Harassment",
+                        "Investigation Process",
+                        "Manager Obligations",
+                        "Purpose and Commitment",
+                        "Reporting Channels",
+                        "Retaliation",
+                        "Sexual Harassment",
+                        "Support Resources",
+                        "Workplace Violence"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-EQUIP-001",
+                      "title": "Equipment and Asset Management Policy",
+                      "version": "3.8",
+                      "effective_date": "2026-01-01",
+                      "source_file": "equipment-asset-policy.txt",
+                      "source_format": "txt",
+                      "chunks": 12,
+                      "sections": [
+                        "Accessibility And Accommodations",
+                        "Computing Equipment Is Never Self-Purchased",
+                        "Contacts",
+                        "Damage, Loss, And Theft",
+                        "Ergonomic Assessments",
+                        "Personal Use",
+                        "Purpose",
+                        "Refresh Cycle",
+                        "Return At Separation",
+                        "Standard Issue By Role",
+                        "Stipend",
+                        "Travel And Loaner Devices"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-EXP-001",
+                      "title": "Travel and Expense Reimbursement Policy",
+                      "version": "5.1",
+                      "effective_date": "2026-01-01",
+                      "source_file": "travel-expense-policy.pdf",
+                      "source_format": "pdf",
+                      "chunks": 15,
+                      "sections": [
+                        "Air Travel",
+                        "Approval Thresholds",
+                        "Audit and Misuse",
+                        "Contacts",
+                        "Corporate Card",
+                        "Deadlines",
+                        "Equipment and Software Purchases",
+                        "Ground Transportation",
+                        "Lodging",
+                        "Meals and Per Diem",
+                        "Non-Reimbursable Expenses",
+                        "Purpose and Principles",
+                        "Receipts",
+                        "Travel and Expense Reimbursement Policy",
+                        "Voluntary Remote Work Abroad"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-GRIEV-001",
+                      "title": "Grievance, Investigation, and Disciplinary Procedure",
+                      "version": "3.0",
+                      "effective_date": "2026-01-01",
+                      "source_file": "grievance-disciplinary.md",
+                      "source_format": "md",
+                      "chunks": 16,
+                      "sections": [
+                        "Anonymous Reports",
+                        "Appeals",
+                        "Appointment",
+                        "Communication of Outcome",
+                        "Definitions",
+                        "Disciplinary Outcomes",
+                        "Intake and Triage",
+                        "Interim Measures",
+                        "Non-Retaliation",
+                        "Process",
+                        "Purpose and Scope",
+                        "Raising a Concern",
+                        "Records",
+                        "Standard of Proof",
+                        "Timeliness",
+                        "Timescales"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-HOL-001",
+                      "title": "Holiday Schedule and Observance Policy",
+                      "version": "2.6",
+                      "effective_date": "2026-01-01",
+                      "source_file": "holiday-schedule.md",
+                      "source_format": "md",
+                      "chunks": 10,
+                      "sections": [
+                        "Floating Holidays",
+                        "Holidays During Leave",
+                        "Holidays and Location",
+                        "Ireland (Dublin office)",
+                        "Observed Company Holidays (2026)",
+                        "Purpose",
+                        "Questions",
+                        "Singapore (APAC office)",
+                        "United States",
+                        "Weekend Observance"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-INTL-001",
+                      "title": "International Remote Work and Tax Compliance Policy",
+                      "version": "3.4",
+                      "effective_date": "2026-01-01",
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "chunks": 9,
+                      "sections": [
+                        "Approval Workflow",
+                        "Contacts",
+                        "Eligible Countries",
+                        "Employee Obligations While Abroad",
+                        "Expenses",
+                        "Non-Compliance",
+                        "Purpose and Scope",
+                        "Tax and Payroll Consequences",
+                        "The 30-Day Rule"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-LEARN-001",
+                      "title": "Learning, Development, and Tuition Assistance Policy",
+                      "version": "1.6",
+                      "effective_date": "2026-01-01",
+                      "source_file": "learning-development.md",
+                      "source_format": "md",
+                      "chunks": 15,
+                      "sections": [
+                        "Amount",
+                        "Annual Learning Budget",
+                        "Approval",
+                        "Carry-Over",
+                        "Certifications",
+                        "Commitment and Repayment",
+                        "Eligibility",
+                        "Internal Mobility and Mentoring",
+                        "Learning Time",
+                        "Purpose",
+                        "Questions",
+                        "Records",
+                        "Scope",
+                        "What It Does Not Cover",
+                        "What the Budget Covers"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-LEAVE-002",
+                      "title": "Parental and Medical Leave Policy",
+                      "version": "3.5",
+                      "effective_date": "2026-01-01",
+                      "source_file": "parental-medical-leave.md",
+                      "source_format": "md",
+                      "chunks": 15,
+                      "sections": [
+                        "Bereavement Leave",
+                        "Contacts",
+                        "Eligibility",
+                        "Entitlement",
+                        "Family Care Leave",
+                        "Interaction with Other Entitlements",
+                        "Long-Term Disability",
+                        "Medical Certification",
+                        "Notice",
+                        "Purpose",
+                        "Requesting Leave",
+                        "Returning to Work",
+                        "Short-Term Disability",
+                        "Timing and Structure",
+                        "When It Applies"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-ONBOARD-001",
+                      "title": "New Hire Onboarding Guide",
+                      "version": "4.0",
+                      "effective_date": "2026-01-01",
+                      "source_file": "onboarding-guide.md",
+                      "source_format": "md",
+                      "chunks": 11,
+                      "sections": [
+                        "Before Day One (Manager and IT)",
+                        "Day One",
+                        "First 30 Days",
+                        "First 60 Days",
+                        "First 90 Days",
+                        "If Something Is Missing",
+                        "Key Early Milestones and Deadlines",
+                        "Manager Responsibilities Through 90 Days",
+                        "Onboarding Buddy",
+                        "Purpose",
+                        "Week One Checklist (Employee)"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-PAY-001",
+                      "title": "Compensation and Payroll Administration Policy",
+                      "version": "2.3",
+                      "effective_date": "2026-01-01",
+                      "source_file": "compensation-payroll.md",
+                      "source_format": "md",
+                      "chunks": 16,
+                      "sections": [
+                        "Base Salary",
+                        "Final Pay",
+                        "Garnishments",
+                        "Overpayment",
+                        "Overtime and Classification",
+                        "Pay Changes",
+                        "Pay Confidentiality",
+                        "Paydays",
+                        "Payment Method",
+                        "Payslips, Errors, and Corrections",
+                        "Purpose and Scope",
+                        "Questions",
+                        "Standard Deductions",
+                        "Timekeeping",
+                        "Underpayment",
+                        "Variable Pay"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-PERF-001",
+                      "title": "Performance Management and Promotion Policy",
+                      "version": "3.2",
+                      "effective_date": "2026-01-01",
+                      "source_file": "performance-promotion.md",
+                      "source_format": "md",
+                      "chunks": 15,
+                      "sections": [
+                        "Calibration",
+                        "Compensation Outcomes",
+                        "Consequences During a PIP",
+                        "Contacts",
+                        "Criteria",
+                        "Disagreeing With a Review",
+                        "Inputs to a Review",
+                        "Internal Transfers",
+                        "Performance Ratings",
+                        "Purpose",
+                        "Review Cycle",
+                        "Structure",
+                        "Time in Role",
+                        "Timing",
+                        "When a PIP Is Used"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-PTO-001",
+                      "title": "Paid Time Off (PTO) Policy",
+                      "version": "4.1",
+                      "effective_date": "2026-01-01",
+                      "source_file": "pto-policy.md",
+                      "source_format": "md",
+                      "chunks": 14,
+                      "sections": [
+                        "Accrual Cap",
+                        "Accrual Rates",
+                        "Approval Workflow",
+                        "Blackout Periods",
+                        "Carryover",
+                        "Holidays Falling Within PTO",
+                        "Insufficient Balance",
+                        "Notice Requirements",
+                        "Policy Questions and Exceptions",
+                        "Purpose and Scope",
+                        "Separation and Payout",
+                        "Sick Time",
+                        "Team Coverage Rule",
+                        "Working While on PTO"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-REMOTE-001",
+                      "title": "Remote and Hybrid Work Policy",
+                      "version": "5.0",
+                      "effective_date": "2026-01-01",
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "chunks": 13,
+                      "sections": [
+                        "Core Collaboration Hours",
+                        "Eligibility for Fully Remote Status",
+                        "Expectations and Non-Compliance",
+                        "Hybrid",
+                        "Onsite",
+                        "Purpose",
+                        "Questions",
+                        "Remote",
+                        "Requesting or Changing an Arrangement",
+                        "Temporary Remote Work (Domestic)",
+                        "Temporary Work Outside the Home Country",
+                        "Work Arrangement Types",
+                        "Workspace Requirements"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-SAFE-001",
+                      "title": "Workplace Health, Safety, and Wellbeing Policy",
+                      "version": "2.1",
+                      "effective_date": "2026-01-01",
+                      "source_file": "workplace-health-safety.md",
+                      "source_format": "md",
+                      "chunks": 16,
+                      "sections": [
+                        "Adjustments",
+                        "Emergency Procedures",
+                        "How and When",
+                        "Illness and Infectious Disease",
+                        "In the Office",
+                        "Investigation",
+                        "Mental Health and the Employee Assistance Programme",
+                        "Protection for Raising Safety Concerns",
+                        "Purpose and Scope",
+                        "Responsibilities",
+                        "Training and Review",
+                        "Travel Safety",
+                        "What to Report",
+                        "Work-Related Injury",
+                        "Working from Home",
+                        "Workplace Violence and Threats"
+                      ]
+                    },
+                    {
+                      "doc_id": "POL-SEC-001",
+                      "title": "Information Security and Acceptable Use Policy",
+                      "version": "6.2",
+                      "effective_date": "2026-01-01",
+                      "source_file": "information-security-policy.md",
+                      "source_format": "md",
+                      "chunks": 15,
+                      "sections": [
+                        "Acceptable Use",
+                        "Authentication and Access",
+                        "Company-Issued Devices",
+                        "Contacts",
+                        "Data Classification",
+                        "Elevated Risk Locations",
+                        "Enforcement",
+                        "Incident Reporting",
+                        "Loaner Devices",
+                        "Lost or Stolen Devices",
+                        "Personal Devices (BYOD)",
+                        "Purpose",
+                        "Requirements While Travelling",
+                        "Security Review Triggers",
+                        "Workspace and Physical Security"
+                      ]
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 5.8
+              }
+            ],
+            "service_ms": 473.6,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 2883,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 2871.5,
+            "fell_back": true,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "k": 5,
+                  "query": "pet insurance"
+                },
+                "result": {
+                  "query": "pet insurance",
+                  "grounded": false,
+                  "best_similarity": 0.6474,
+                  "reason": "the question refers to 'pet', which appears in neither the policy corpus nor the HR data; the passages below are the closest available but do not cover it",
+                  "unknown_terms": [
+                    "pet"
+                  ],
+                  "hits": [
+                    {
+                      "chunk_id": "c00198",
+                      "doc_id": "POL-EXP-001",
+                      "doc_title": "Travel and Expense Reimbursement Policy",
+                      "section": "Non-Reimbursable Expenses",
+                      "citation": "POL-EXP-001 \u00a76 Non-Reimbursable Expenses",
+                      "text": "The following are never reimbursable:\n- traffic and parking fines, and vehicle towing;\n- personal entertainment, including in-flight entertainment purchases;\n- travel insurance purchased separately (Helios provides business travel\n  insurance automatically);\n- costs for spouses, partners, family members, or pets travelling with the\n  employee;\n- home internet, except the remote-employee internet stipend under\n  POL-BEN-001 Section 8;\n- commuting between the employee's home and their assigned Helios office;\n- personal grooming, clothing, and toiletries;\n- expenses already covered by a stipend under POL-BEN-001.",
+                      "score": 0.031778,
+                      "dense_rank": 5,
+                      "bm25_rank": 1,
+                      "source_file": "travel-expense-policy.pdf",
+                      "source_format": "pdf",
+                      "effective_date": "2026-01-01",
+                      "version": "5.1",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00002",
+                      "doc_id": "POL-BEN-001",
+                      "doc_title": "Benefits and Eligibility Policy",
+                      "section": "Eligibility Matrix",
+                      "citation": "POL-BEN-001 \u00a73 Eligibility Matrix",
+                      "text": "| Benefit | Full-time | Part-time | Temporary | Intern |\n| --- | --- | --- | --- | --- |\n| Medical, dental, vision | Yes | Yes (employee-only subsidy) | No | No |\n| Health Savings Account (HSA) | Yes, with HDHP plan | Yes, with HDHP plan | No | No |\n| 401(k) \u2014 employee deferral | Yes | Yes | Yes | Yes, if age 21+ |\n| 401(k) \u2014 company match | Yes | Yes | No | No |\n| Life and AD&D insurance | Yes | Yes | No | No |\n| Short-term disability | Yes | No | No | No |\n| Long-term disability | Yes | No | No | No |\n| Paid parental leave | Yes | Yes, pro-rated | No | No |\n| PTO | Yes | Yes, pro-rated | No | No |\n| Floating holidays | 2 per year | 1 per year | No | No |\n| Wellness stipend | Yes | Yes | No | No |\n| Learning stipend | Yes | Yes | No | No |\n| Home-office stipend | Yes | Yes | No | No |\n| Commuter benefit | Yes | Yes | Yes | Yes |\n| Employee Assistance Program (EAP) | Yes | Yes | Yes | Yes |",
+                      "score": 0.03125,
+                      "dense_rank": 4,
+                      "bm25_rank": 4,
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.3",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00200",
+                      "doc_id": "POL-EXP-001",
+                      "doc_title": "Travel and Expense Reimbursement Policy",
+                      "section": "Ground Transportation",
+                      "citation": "POL-EXP-001 \u00a77 Ground Transportation",
+                      "text": "- Rideshare and taxi are reimbursable for business travel and for late-night\n  travel from the office after 21:00.\n- Rental cars are reimbursable at mid-size class or below; premium classes\n  require Director approval. Decline the rental company's collision waiver in\n  the United States, where Helios corporate insurance applies; accept it\n  internationally.\n- Personal vehicle mileage is reimbursed at the current IRS standard rate,\n  measured from the office or from home, whichever is shorter.\n- Airport parking is reimbursable for trips of up to 7 days; for longer trips,\n  claim the lower of parking or round-trip rideshare.",
+                      "score": 0.028373,
+                      "dense_rank": 20,
+                      "bm25_rank": 3,
+                      "source_file": "travel-expense-policy.pdf",
+                      "source_format": "pdf",
+                      "effective_date": "2026-01-01",
+                      "version": "5.1",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00004",
+                      "doc_id": "POL-BEN-001",
+                      "doc_title": "Benefits and Eligibility Policy",
+                      "section": "Medical, Dental, and Vision",
+                      "citation": "POL-BEN-001 \u00a75 Medical, Dental, and Vision",
+                      "text": "Helios offers three medical plans:\n\n| Plan | Type | Employee premium (monthly) | Deductible (individual) |\n| --- | --- | --- | --- |\n| Helios Core | PPO | $95 | $1,500 |\n| Helios Plus | PPO | $180 | $750 |\n| Helios Saver | HDHP with HSA | $40 | $3,200 |\n\nHelios contributes **$1,000 per year** to the HSA of employees enrolled in the\nHelios Saver plan, deposited in equal amounts each pay period.\n\nDependent coverage is available for a spouse, domestic partner, and children up\nto age 26. Dependent verification documentation must be provided within **30\ndays** of adding a dependent, or coverage for that dependent is cancelled.",
+                      "score": 0.016393,
+                      "dense_rank": 1,
+                      "bm25_rank": null,
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.3",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00003",
+                      "doc_id": "POL-BEN-001",
+                      "doc_title": "Benefits and Eligibility Policy",
+                      "section": "Waiting Periods",
+                      "citation": "POL-BEN-001 \u00a74 Waiting Periods",
+                      "text": "| Benefit | Coverage begins |\n| --- | --- |\n| Medical, dental, vision | First day of the month following **30 days** of employment |\n| Life, AD&D, disability | First day of the month following **30 days** of employment |\n| 401(k) deferral | First payroll following **60 days** of employment |\n| 401(k) company match | First payroll following **12 months** of employment |\n| Wellness and learning stipends | Immediately on hire |\n| Paid parental leave | After **12 months** of continuous service |\n\nAn employee who has not yet satisfied a waiting period is **not eligible** for\nthat benefit, even if they have made an election.",
+                      "score": 0.016129,
+                      "dense_rank": 2,
+                      "bm25_rank": null,
+                      "source_file": "benefits-eligibility.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "4.3",
+                      "expanded_from": []
+                    }
+                  ],
+                  "instruction": "Do not answer from these passages. Tell the user the HR policy corpus does not cover this question and suggest contacting HR directly. There is no record of 'pet' in either the policy corpus or the HR system, so name that gap explicitly rather than refusing vaguely."
+                },
+                "is_error": false,
+                "latency_ms": 385.2
+              }
+            ],
+            "service_ms": 871.7,
+            "throttle_ms": 1999.8,
+            "attempts": 3,
+            "context_tokens": 5869,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "final",
+            "provider": "",
+            "model": "",
+            "latency_ms": 0.0,
+            "fell_back": false,
+            "summary": "Declined unsupported policy claim",
+            "tool_calls": [],
+            "service_ms": 0.0,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 0,
+            "elided_results": 0
+          }
+        ],
+        "citations": [],
+        "sources": [
+          {
+            "citation": "POL-EXP-001 \u00a76 Non-Reimbursable Expenses",
+            "doc_id": "POL-EXP-001",
+            "doc_title": "Travel and Expense Reimbursement Policy",
+            "section": "Non-Reimbursable Expenses",
+            "snippet": "The following are never reimbursable:\n- traffic and parking fines, and vehicle towing;\n- personal entertainment, including in-flight entertainment purchases;\n- travel insurance purchased separately (Helios provides business travel\n  insurance automatically);\n- costs for spouses, partners, family members, or pets travelling with the\n  employee;\n- home internet, except the remote-employee internet s..."
+          },
+          {
+            "citation": "POL-BEN-001 \u00a73 Eligibility Matrix",
+            "doc_id": "POL-BEN-001",
+            "doc_title": "Benefits and Eligibility Policy",
+            "section": "Eligibility Matrix",
+            "snippet": "| Benefit | Full-time | Part-time | Temporary | Intern |\n| --- | --- | --- | --- | --- |\n| Medical, dental, vision | Yes | Yes (employee-only subsidy) | No | No |\n| Health Savings Account (HSA) | Yes, with HDHP plan | Yes, with HDHP plan | No | No |\n| 401(k) \u2014 employee deferral | Yes | Yes | Yes | Yes, if age 21+ |\n| 401(k) \u2014 company match | Yes | Yes | No | No |\n| Life and AD&D insurance | Yes |..."
+          },
+          {
+            "citation": "POL-EXP-001 \u00a77 Ground Transportation",
+            "doc_id": "POL-EXP-001",
+            "doc_title": "Travel and Expense Reimbursement Policy",
+            "section": "Ground Transportation",
+            "snippet": "- Rideshare and taxi are reimbursable for business travel and for late-night\n  travel from the office after 21:00.\n- Rental cars are reimbursable at mid-size class or below; premium classes\n  require Director approval. Decline the rental company's collision waiver in\n  the United States, where Helios corporate insurance applies; accept it\n  internationally.\n- Personal vehicle mileage is reimbursed..."
+          },
+          {
+            "citation": "POL-BEN-001 \u00a75 Medical, Dental, and Vision",
+            "doc_id": "POL-BEN-001",
+            "doc_title": "Benefits and Eligibility Policy",
+            "section": "Medical, Dental, and Vision",
+            "snippet": "Helios offers three medical plans:\n\n| Plan | Type | Employee premium (monthly) | Deductible (individual) |\n| --- | --- | --- | --- |\n| Helios Core | PPO | $95 | $1,500 |\n| Helios Plus | PPO | $180 | $750 |\n| Helios Saver | HDHP with HSA | $40 | $3,200 |\n\nHelios contributes **$1,000 per year** to the HSA of employees enrolled in the\nHelios Saver plan, deposited in equal amounts each pay period.\n\nDe..."
+          },
+          {
+            "citation": "POL-BEN-001 \u00a74 Waiting Periods",
+            "doc_id": "POL-BEN-001",
+            "doc_title": "Benefits and Eligibility Policy",
+            "section": "Waiting Periods",
+            "snippet": "| Benefit | Coverage begins |\n| --- | --- |\n| Medical, dental, vision | First day of the month following **30 days** of employment |\n| Life, AD&D, disability | First day of the month following **30 days** of employment |\n| 401(k) deferral | First payroll following **60 days** of employment |\n| 401(k) company match | First payroll following **12 months** of employment |\n| Wellness and learning stip..."
+          }
+        ],
+        "tools_used": [
+          "list_policy_documents",
+          "search_policy_documents"
+        ],
+        "total_ms": 24044.5,
+        "total_service_ms": 22044.7,
+        "throttle_ms": 1999.8,
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true,
+        "grounded": false,
+        "truncated": false,
+        "error": "",
+        "elided_results": 1,
+        "peak_context_tokens": 5869,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-EXP-001 \u00a76 Non-Reimbursable Expenses",
+          "POL-BEN-001 \u00a73 Eligibility Matrix",
+          "POL-EXP-001 \u00a77 Ground Transportation",
+          "POL-BEN-001 \u00a75 Medical, Dental, and Vision",
+          "POL-BEN-001 \u00a74 Waiting Periods"
+        ],
+        "pending_actions": [],
+        "api_calls": 3,
+        "prompt_tokens": 10863,
+        "completion_tokens": 300,
+        "cached": false,
+        "answer_html": "<p>The retrieved HR policy evidence does not cover this question. Please contact People Operations for clarification.</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [
+        "expected a refusal, but the answer asserted an answer"
+      ],
+      "passed": false,
+      "wall_seconds": 24.44,
+      "metrics": {
+        "agent_seconds": 24.0,
+        "throttle_seconds": 2.0,
+        "api_calls": 3,
+        "tokens": 11163,
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true
+      }
+    },
+    {
+      "task": "A01",
+      "kind": "evaluation case",
+      "prompt": "How much PTO does Maya have left?",
+      "trace": {
+        "question": "How much PTO does Maya have left?",
+        "answer": "I found two employees named Maya in the system:\n\n1. Maya\u202fRodriguez (E\u20111041)  \n2. Maya\u202fOsei (E\u20111073)\n\nWhich one would you like to check the PTO balance for?",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 5554.0,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_pto_balance",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "check_pto_balance",
+                "arguments": {
+                  "employee": "Maya"
+                },
+                "result": {
+                  "error": "'Maya' matches several employees: Maya Rodriguez (E-1041), Maya Osei (E-1073)",
+                  "hint": "Call list_employees to see valid identifiers."
+                },
+                "is_error": true,
+                "latency_ms": 3.0
+              }
+            ],
+            "service_ms": 517.2,
+            "throttle_ms": 5036.8,
+            "attempts": 2,
+            "context_tokens": 2879,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 338.7,
+            "fell_back": true,
+            "summary": "answer uses 0 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 338.7,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3017,
+            "elided_results": 0
+          }
+        ],
+        "citations": [],
+        "sources": [],
+        "tools_used": [
+          "check_pto_balance"
+        ],
+        "total_ms": 5897.1,
+        "total_service_ms": 860.3,
+        "throttle_ms": 5036.8,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "fell_back": true,
+        "grounded": null,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 3017,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [],
+        "pending_actions": [],
+        "api_calls": 2,
+        "prompt_tokens": 3492,
+        "completion_tokens": 113,
+        "cached": false,
+        "answer_html": "<p>I found two employees named Maya in the system:</p>\n<ol>\n<li>Maya\u202fRodriguez (E\u20111041)</li>\n<li>Maya\u202fOsei (E\u20111073)</li>\n</ol>\n<p>Which one would you like to check the PTO balance for?</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [],
+      "passed": true,
+      "wall_seconds": 6.3,
+      "metrics": {
+        "agent_seconds": 5.9,
+        "throttle_seconds": 5.0,
+        "api_calls": 2,
+        "tokens": 3605,
+        "model": "openai/gpt-oss-20b",
+        "fell_back": true
+      }
+    },
+    {
+      "task": "S01",
+      "kind": "evaluation case",
+      "prompt": "Open an HR ticket for Jonas Weber about his PTO shortfall.",
+      "trace": {
+        "question": "Open an HR ticket for Jonas Weber about his PTO shortfall.",
+        "answer": "Here\u2019s a preview of the HR ticket for Jonas Weber\u2019s PTO shortfall:\n\n**Ticket Preview**  \n- **Employee:** Jonas Weber (E\u20111088)  \n- **Category:** PTO  \n- **Subject:** PTO Shortfall for Jonas Weber  \n- **Body:** Jonas Weber has reported a shortfall in his PTO balance. Please investigate and resolve the discrepancy.  \n- **Priority:** Normal  \n- **Would route to:** HR Operations  \n\nPlease confirm if you\u2019d like to submit this ticket. If you confirm, I\u2019ll create it with `confirmed=true`.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 6497.5,
+            "fell_back": false,
+            "summary": "selected 1 tool: lookup_employee_profile",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "lookup_employee_profile",
+                "arguments": {
+                  "employee": "Jonas Weber"
+                },
+                "result": {
+                  "employee_id": "E-1088",
+                  "full_name": "Jonas Weber",
+                  "email": "jonas.weber@helios.example.com",
+                  "title": "Support Engineer II",
+                  "department": "Customer Support",
+                  "role_family": "Support Engineering",
+                  "employment_type": "full_time",
+                  "weekly_hours": 40,
+                  "hire_date": "2025-11-03",
+                  "manager_id": "E-1032",
+                  "office_location": "DUB",
+                  "work_city": "Dublin",
+                  "work_state": null,
+                  "work_country": "Ireland",
+                  "work_arrangement": "hybrid",
+                  "remote_eligible_role": true,
+                  "latest_performance_rating": "Meets Expectations",
+                  "on_pip": false,
+                  "work_authorization": "local_national",
+                  "has_corporate_card": false,
+                  "tenure_months": 10,
+                  "office": {
+                    "office_id": "DUB",
+                    "name": "Dublin",
+                    "city": "Dublin",
+                    "state": null,
+                    "country": "Ireland",
+                    "timezone": "Europe/Dublin",
+                    "utc_offset_standard": 0,
+                    "holiday_schedule": "IE",
+                    "expense_tier": "intl_other",
+                    "entity": "Helios Systems Ireland Ltd.",
+                    "hybrid_anchor_days": [
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday"
+                    ]
+                  },
+                  "manager_name": "Aisha Bello",
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 2.8
+              }
+            ],
+            "service_ms": 642.4,
+            "throttle_ms": 5855.2,
+            "attempts": 2,
+            "context_tokens": 2886,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 565.9,
+            "fell_back": false,
+            "summary": "selected 1 tool: create_hr_ticket",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "create_hr_ticket",
+                "arguments": {
+                  "body": "Jonas Weber has reported a shortfall in his PTO balance. Please investigate and resolve the discrepancy.",
+                  "category": "PTO",
+                  "employee": "Jonas Weber",
+                  "priority": "normal",
+                  "subject": "PTO Shortfall for Jonas Weber"
+                },
+                "result": {
+                  "requires_confirmation": true,
+                  "action": "create_hr_ticket",
+                  "preview": {
+                    "employee_id": "E-1088",
+                    "employee_name": "Jonas Weber",
+                    "category": "PTO",
+                    "subject": "PTO Shortfall for Jonas Weber",
+                    "body": "Jonas Weber has reported a shortfall in his PTO balance. Please investigate and resolve the discrepancy.",
+                    "priority": "normal",
+                    "would_route_to": "HR Operations"
+                  },
+                  "instruction": "Show this preview to the user and ask them to confirm. Call again with confirmed=true only if they agree."
+                },
+                "is_error": false,
+                "latency_ms": 2.6
+              }
+            ],
+            "service_ms": 565.9,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3305,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "final",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 2751.8,
+            "fell_back": false,
+            "summary": "answer uses 0 verified citation labels",
+            "tool_calls": [],
+            "service_ms": 751.9,
+            "throttle_ms": 1999.9,
+            "attempts": 2,
+            "context_tokens": 3612,
+            "elided_results": 0
+          }
+        ],
+        "citations": [],
+        "sources": [],
+        "tools_used": [
+          "lookup_employee_profile",
+          "create_hr_ticket"
+        ],
+        "total_ms": 9824.6,
+        "total_service_ms": 1969.5,
+        "throttle_ms": 7855.1,
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "fell_back": false,
+        "grounded": null,
+        "truncated": false,
+        "error": "",
+        "elided_results": 0,
+        "peak_context_tokens": 3612,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [],
+        "pending_actions": [
+          {
+            "id": "sh5KIwntw9Efg1EhOUH_QEQB3kTOwN7r",
+            "tool": "create_hr_ticket",
+            "preview": {
+              "employee_id": "E-1088",
+              "employee_name": "Jonas Weber",
+              "category": "PTO",
+              "subject": "PTO Shortfall for Jonas Weber",
+              "body": "Jonas Weber has reported a shortfall in his PTO balance. Please investigate and resolve the discrepancy.",
+              "priority": "normal",
+              "would_route_to": "HR Operations"
+            }
+          }
+        ],
+        "api_calls": 3,
+        "prompt_tokens": 5995,
+        "completion_tokens": 451,
+        "cached": false,
+        "answer_html": "<p>Here\u2019s a preview of the HR ticket for Jonas Weber\u2019s PTO shortfall:</p>\n<p><strong>Ticket Preview</strong></p>\n<ul>\n<li><strong>Employee:</strong> Jonas Weber (E\u20111088)</li>\n<li><strong>Category:</strong> PTO</li>\n<li><strong>Subject:</strong> PTO Shortfall for Jonas Weber</li>\n<li><strong>Body:</strong> Jonas Weber has reported a shortfall in his PTO balance. Please investigate and resolve the discrepancy.</li>\n<li><strong>Priority:</strong> Normal</li>\n<li><strong>Would route to:</strong> HR Operations</li>\n</ul>\n<p>Please confirm if you\u2019d like to submit this ticket. If you confirm, I\u2019ll create it with <code>confirmed=true</code>.</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [],
+      "passed": true,
+      "wall_seconds": 10.17,
+      "metrics": {
+        "agent_seconds": 9.8,
+        "throttle_seconds": 7.9,
+        "api_calls": 3,
+        "tokens": 6446,
+        "model": "openai/gpt-oss-120b",
+        "fell_back": false
+      }
+    }
+  ]
+}

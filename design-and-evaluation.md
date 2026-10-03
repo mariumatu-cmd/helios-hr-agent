@@ -2,9 +2,12 @@
 
 ## Evidence status
 
-The current code has not been evaluated end to end against a live LLM. Live
-measurements in this report come from the September revision and are labelled
-historical; they are not measurements of the current code.
+`evidence/deployed-20261003T152745.json` measures the deployed service (build
+`291b50a`, 3 October 2026): both demonstrations and six evaluation cases, sent
+back to back on the free tier. Scorer 2 passed 4 of 8;
+[Deployed measurement](#deployed-measurement-3-october-2026) explains each
+failure and the change it led to. Older live figures come from the September
+revision and are labelled historical.
 
 `evidence/deployed-tasks.json` is a superseded September capture. Its verifier
 checked tool and step counts, not answers, and so labelled David's
@@ -84,7 +87,11 @@ The agent receives evidence as MCP tool results. Final output distinguishes:
 Citation identity normalizes Unicode hyphens and matches document plus section.
 An answer with invented citations, no inline citations despite policy evidence,
 or a successful compliance decision without retrieved passages receives one
-bounded correction opportunity. If still unsupported, it fails explicitly.
+bounded correction opportunity, which asks for the complete answer again rather
+than a note about the fix. If still unsupported, it fails explicitly. When the
+user explicitly asked for a ticket or email preview and none was produced, the
+agent asks once for it; if that follow-up fails validation or runs out of
+budget, the answer that had already passed stands.
 An ungrounded search leads to a refusal rather than a speculative policy answer.
 This validates provenance, not entailment of every sentence.
 
@@ -194,22 +201,31 @@ An optional `DEMO_ACCESS_CODE` protects casual public access. Do not publish it.
 
 ## Canonical demonstrations
 
-`agent/demo_tasks.py` is the single source of the UI/verifier prompts.
+`agent/demo_tasks.py` is the single source of the UI/verifier prompts. Each
+names its checks in order: the free tier's per-model token limit usually moves a
+multi-step task onto a smaller fallback model, which skipped the compliance
+check or the ticket preview when left to choose (see the
+[deployed measurement](#deployed-measurement-3-october-2026)).
 
-**International workflow:** look up Maya, retrieve international and remote-work
-policies, read rolling usage, check 2026-10-05 through 2026-11-15 in Portugal.
+**International workflow:** read Maya's rolling usage, check 2026-10-05 through
+2026-11-15 in Portugal, and retrieve the international remote-work policy and
+the remote-work policy's section on working outside the home country.
 Expected: 12 prior days plus 42 requested exceeds the 30-day limit by 24.
-Explain remaining allowance and conditional alternatives without inventing rules.
+Explain remaining allowance and conditional alternatives without inventing
+rules, citing both policies.
 
-**PTO workflow:** retrieve PTO policy, look up Jonas/balance, check three business
-days beginning 2026-09-21, prepare a mock ticket preview. Expected: 13 available
-hours versus 24 requested; 6 days' notice versus 10 required. Explain exception
-routes accurately. The user confirms the exact preview in a separate click,
-which returns the ticket ID with zero additional LLM calls.
+**PTO workflow:** check Jonas's balance and three business days beginning
+2026-09-21, retrieve the PTO notice and insufficient-balance sections, then
+prepare a mock ticket preview. Expected: 13 available hours versus 24 requested;
+6 days' notice versus 10 required. Explain exception routes accurately. The user
+confirms the exact preview in a separate click, which returns the ticket ID with
+zero additional LLM calls.
 
 Both must show successful MCP retrieval and structured-data calls, supporting
-inline citations, final answers and operational traces. The verifier rejects
-missing evidence and incorrect gold facts, rather than accepting counts alone.
+inline citations, final answers and operational traces. The verifier scores
+them as cases C01 and C02 and also requires citations to both policies for the
+international task and a ticket preview for PTO. It rejects missing evidence
+and incorrect gold facts, rather than accepting counts alone.
 
 ## Evaluation methodology and results
 
@@ -218,7 +234,10 @@ ambiguity and action safety, with executable gold facts in `evaluation/cases.py`
 The suite includes a parental-leave regression and a two-document security/
 equipment question that requires both document citations.
 
-Scorer version **2** reports:
+Scorer version **3** reports the metrics below. Version 3 accepts a value
+written with a zero fraction ("13.0 hours" for 13) and the orchestrator's own
+decline wording as a refusal; both were false negatives in the deployed
+measurement.
 
 | Metric | Definition / limitation |
 |---|---|
@@ -255,6 +274,36 @@ health-endpoint latency must not be substituted for chat latency.
 `evidence/cold-start.json` records a historical 52.5-second platform cold start;
 it is not a measurement of the current code.
 
+### Deployed measurement (3 October 2026)
+
+`scripts/verify_deployed_tasks.py` sent eight requests back to back to the
+deployed build `291b50a`: both demonstrations and cases R03, L01, C03, X03, A01
+and S01. All eight shared one free-tier per-minute token budget.
+
+| Measure | Result |
+|---|---|
+| Wall-clock time per request | median 15.1 s, maximum 46.9 s (PTO demonstration) |
+| Waiting on provider rate limits | 95.5 s across the eight requests |
+| Model calls and tokens | 28 calls, 86,820 tokens |
+| Passed at capture, scorer 2 | 4/8 (R03, C03, A01, S01) |
+| Same responses re-scored, scorer 3 | 6/8 (adds L01 and X03) |
+
+Each failure was traced to a cause:
+
+- **L01 and X03** were scorer false negatives: "13.0 hours" did not match the
+  expected 13, and the orchestrator's own decline did not count as a refusal.
+- **International** answered correctly but skipped the compliance check and
+  cited only POL-INTL-001, although a POL-REMOTE-001 section had been retrieved.
+- **PTO** ran on the fallback models. The first answer claimed 20 days' notice
+  instead of 10. The evidence check caught it, but the model replied to the
+  correction with a note about notice alone, which replaced the answer and lost
+  the balance finding. It never drafted the ticket preview.
+
+Changes made in response: scorer 3; a correction turn that asks for the complete
+answer; a one-time follow-up for a requested preview that cannot cost a verified
+answer; and demonstration prompts that name their checks. The demonstration
+traces in that evidence file predate these changes.
+
 ### Current offline evidence
 
 `evaluation/results/retrieval_eval.json` and `.md` are generated by the local,
@@ -282,8 +331,8 @@ preserved section addresses, scoring false positives, session-bound single-use
 confirmation, cache behavior and quota limits. Chat-completion calls are blocked
 inside tests; a green test run consumes no LLM quota.
 
-Live answer quality, workflow completion and warm-chat latency of the current
-code have not been measured; the live figures above are historical.
+The 30-case suite has not been run live against the current code. The deployed
+measurement covers eight requests and is not a completion-rate estimate.
 
 ## Deployment and reproducibility
 

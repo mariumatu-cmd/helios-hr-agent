@@ -109,12 +109,14 @@ can still interrupt a task.
 The canonical prompts live in `agent/demo_tasks.py` and are reused by the UI
 and deployed verifier:
 
-1. **International remote work:** Maya's 42-day Portugal request; retrieve
-   international and remote-work policies, inspect her profile and rolling usage,
-   check compliance, and explain that 12 + 42 exceeds 30 by 24 days.
-2. **PTO and ticket preview:** Jonas's three-day request; retrieve PTO policy,
-   check 13 available hours against 24 requested and 6 days' notice against 10,
-   explain manager/skip-level exception routes, and show a mock ticket preview.
+1. **International remote work:** Maya's 42-day Portugal request; read her
+   rolling usage, check compliance, retrieve the international remote-work policy
+   and the remote-work policy's section on working abroad, and explain, citing
+   both, that 12 + 42 exceeds 30 by 24 days.
+2. **PTO and ticket preview:** Jonas's three-day request; check 13 available hours
+   against 24 requested and 6 days' notice against 10, retrieve the PTO notice and
+   insufficient-balance sections, show a mock ticket preview, and explain the
+   manager/skip-level exception routes.
    Select **Create mock ticket** on the preview to create the in-memory ticket and show its ID.
 
 Every policy claim, including alternatives, needs evidence. A preview is not a
@@ -152,7 +154,10 @@ python scripts/verify_deployed_tasks.py --allow-live --task pto --confirm-mock-a
 ```
 
 The last command performs a real agent turn and then explicitly authorizes the
-mock ticket. It saves the complete response and confirmation result in `evidence/`.
+mock ticket. It saves the complete response and confirmation result in `evidence/`
+with each run's wall time, rate-limit waits, model calls and tokens. `--task` and
+`--case` can be repeated, and the run stops at the first provider or HTTP error
+rather than spending quota on requests that would fail the same way.
 Current evaluation records contain scorer version, configuration/code fingerprint
 and full traces. A checkpoint from another revision is rejected.
 
@@ -209,6 +214,7 @@ for it to respond; neither health endpoint calls an LLM.
 
 A multi-step agent task is slower than a single answer even when the service is
 warm, because each model step waits for the provider's per-minute token budget.
-Earlier deployed runs of the two tasks took 189–207 seconds. Those measurements
-predate the current code; [deployed.md](deployed.md#cold-starts-and-expected-waits)
+On 3 October 2026, eight back-to-back requests to the deployed service took a
+median of 15 seconds and at most 47 seconds;
+[design-and-evaluation.md](design-and-evaluation.md#deployed-measurement-3-october-2026)
 has the details.

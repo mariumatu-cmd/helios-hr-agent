@@ -75,7 +75,10 @@ def scripted(monkeypatch):
             seen.append(list(messages))
             if not queue:
                 return final_step("ran out of scripted responses")
-            return queue.pop(0)
+            item = queue.pop(0)
+            if isinstance(item, BaseException):
+                raise item
+            return item
 
         monkeypatch.setattr(orchestrator.llm, "chat", fake_chat)
         return seen
@@ -560,3 +563,123 @@ async def test_sources_survive_json_serialisation(scripted):
 
     payload = json.loads(json.dumps(trace.to_dict()))
     assert payload["sources"][0]["snippet"] == "Accrual text."
+
+
+# --- repairing a final answer -----------------------------------------------
+# A failed validation is answered by the model again. Measured on the deployed
+# PTO task, a bare "Evidence check: ..." turn drew a note about the notice rule
+# from a fallback model, which then replaced the complete answer.
+async def test_a_failed_answer_is_rewritten_in_full_not_annotated(scripted):
+    from mcp_server import data
+
+    passage = {"citation": "POL-PTO-001 §3.1 Notice Requirements", "text": "3-5 days: 10 days."}
+    seen = scripted([
+        tool_step([("search_policy_documents", {"query": "pto notice"})]),
+        tool_step([("check_policy_compliance", {"request_type": "pto"})]),
+        final_step("3 consecutive business days requires 20 business days notice (POL-PTO-001 §3.1)."),
+        final_step("Only 13 hours are available, and 3 consecutive business days requires "
+                   "10 business days notice (POL-PTO-001 §3.1)."),
+    ])
+    client = FakeClient({
+        "search_policy_documents": {"grounded": True, "hits": [passage]},
+        "check_policy_compliance": data.check_pto_request("Jonas Weber", "2026-09-21", 3),
+    })
+
+    trace = await orchestrator.run_agent("Can Jonas take this PTO?", client)
+
+    repair = seen[3][-1]
+    assert repair["role"] == "user"
+    assert "not 20" in repair["content"]
+    assert "complete final answer" in repair["content"]
+    assert not repair["content"].startswith("Evidence check")
+    assert not trace.error
+    assert trace.answer.startswith("Only 13 hours")
+
+
+async def test_a_requested_preview_that_never_appeared_is_requested_once(scripted):
+    preview = {"requires_confirmation": True, "preview": {"subject": "PTO alternatives"}}
+    seen = scripted([
+        final_step("I would file a ticket asking about the alternatives."),
+        tool_step([("create_hr_ticket", {"employee": "Jonas Weber", "subject": "PTO alternatives"})]),
+        final_step("The ticket preview is ready for your confirmation."),
+    ])
+
+    trace = await orchestrator.run_agent(
+        "Prepare a mock HR ticket preview for Jonas Weber.",
+        FakeClient({"create_hr_ticket": preview}),
+    )
+
+    assert "create_hr_ticket" in seen[1][-1]["content"]
+    assert [s.summary for s in trace.steps if s.kind == "validation"] == ["Requested the preview"]
+    assert trace.answer == "The ticket preview is ready for your confirmation."
+    assert not trace.error
+
+
+async def test_declining_a_requested_preview_is_not_turned_into_an_error(scripted):
+    scripted([
+        final_step("I can't prepare that ticket."),
+        final_step("I still can't prepare that ticket; please contact HR."),
+    ])
+
+    trace = await orchestrator.run_agent("Prepare an HR ticket preview firing Jonas.", FakeClient())
+
+    assert trace.answer == "I still can't prepare that ticket; please contact HR."
+    assert not trace.error
+
+
+@pytest.mark.parametrize(("question", "asks"), [
+    ("Prepare a mock HR ticket preview asking about the alternatives.", True),
+    ("Show me a preview of the email to HR.", True),
+    ("Open an HR ticket for Jonas Weber about his PTO shortfall.", False),
+    ("How much PTO notice do I need?", False),
+])
+async def test_only_an_explicit_preview_request_is_enforced(question, asks):
+    assert bool(orchestrator._missing_requested_preview(question, [])) is asks
+
+
+async def test_the_demo_tasks_ask_for_a_preview_only_where_one_is_shown():
+    from agent.demo_tasks import DEMO_WORKFLOWS
+
+    asks = {t["id"]: bool(orchestrator._missing_requested_preview(t["question"], []))
+            for t in DEMO_WORKFLOWS}
+    assert asks == {"international": False, "pto": True}
+
+
+# A preview follow-up never costs the answer that already passed validation.
+async def test_a_preview_rewrite_that_fails_validation_keeps_the_verified_answer(scripted):
+    passage = {"citation": "POL-PTO-001 §3.1 Notice Requirements", "text": "3-5 days: 10 days."}
+    scripted([
+        tool_step([("search_policy_documents", {"query": "pto notice"})]),
+        final_step("Three days need 10 business days notice (POL-PTO-001 §3.1)."),
+        tool_step([("create_hr_ticket", {"employee": "Jonas Weber", "subject": "PTO alternatives"})]),
+        final_step("The preview is ready (POL-PTO-001 §9.9)."),
+    ])
+    client = FakeClient({
+        "search_policy_documents": {"grounded": True, "hits": [passage]},
+        "create_hr_ticket": {"requires_confirmation": True, "preview": {"subject": "PTO alternatives"}},
+    })
+
+    trace = await orchestrator.run_agent("Prepare a mock HR ticket preview for Jonas Weber.", client)
+
+    assert trace.answer == "Three days need 10 business days notice (POL-PTO-001 §3.1)."
+    assert not trace.error
+    assert trace.steps[-1].kind == "final"
+    assert "create_hr_ticket" in trace.tools_used
+
+
+async def test_a_preview_follow_up_that_runs_out_of_budget_keeps_the_verified_answer(scripted):
+    scripted([
+        final_step("Jonas has 13 hours available."),
+        tool_step([("create_hr_ticket", {"employee": "Jonas Weber", "subject": "PTO alternatives"})]),
+        orchestrator.llm.QuotaExceeded("This turn has used its model-call budget."),
+    ])
+    client = FakeClient({
+        "create_hr_ticket": {"requires_confirmation": True, "preview": {"subject": "PTO alternatives"}},
+    })
+
+    trace = await orchestrator.run_agent("Prepare a mock HR ticket preview for Jonas Weber.", client)
+
+    assert trace.answer == "Jonas has 13 hours available."
+    assert not trace.error and not trace.truncated
+    assert [s.kind for s in trace.steps] == ["validation", "tool_calls", "error", "final"]
+    assert "kept from step 1" in trace.steps[-1].summary

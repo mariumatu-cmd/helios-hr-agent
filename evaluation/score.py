@@ -30,11 +30,14 @@ from typing import Any
 from agent.citations import identities, normalize
 from evaluation.cases import Case
 
-SCORER_VERSION = "2"
+SCORER_VERSION = "3"
 
 REFUSAL_MARKERS = (
     "cannot", "can't", "can not", "unable", "not able",
     "don't have", "do not have", "no information", "not covered",
+    # The orchestrator's own deterministic decline, used when retrieval reports
+    # the question as ungrounded, says the evidence "does not cover" it.
+    "does not cover", "doesn't cover", "do not cover",
     "outside", "out of scope", "not in the", "isn't covered", "is not covered",
     "not something i", "not a lawyer", "legal advice",
     # A refusal by scoping rather than by negation -- "I can only help with HR
@@ -90,11 +93,14 @@ def _number_aware_contains(haystack: str, needle: str) -> bool:
 
     Without this, `must_include=["12"]` is satisfied by "2026-09-12" or by the
     wrong answer "120". Numbers are exactly the values these cases care about,
-    so they get a stricter matcher than prose.
+    so they get a stricter matcher than prose. The same value written with a
+    zero fraction ("13.0 hours") still matches, and so does a number ending a
+    sentence; "13.5" does not.
     """
     if needle.isdigit():
         haystack = re.sub(r"\b\d{4}-\d{2}-\d{2}\b", "", haystack)
-        return re.search(rf"(?<![\d.]){re.escape(needle)}(?![\d.])", haystack) is not None
+        pattern = rf"(?<![\d.]){re.escape(needle)}(?:\.0+)?(?!\.?\d)"
+        return re.search(pattern, haystack) is not None
     return needle.lower() in haystack
 
 

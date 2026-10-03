@@ -72,6 +72,16 @@ def test_an_asserted_answer_is_still_a_refusal_failure():
     assert any("refusal" in f for f in result.failures)
 
 
+def test_the_orchestrators_own_decline_is_a_refusal():
+    """Regression: a live X03 run declined with exactly this text and was
+    scored as an asserted answer."""
+    answer = (
+        "The retrieved HR policy evidence does not cover this question. "
+        "Please contact People Operations for clarification."
+    )
+    assert score_case(_case(behaviour="refuse"), FakeTrace(answer=answer)).behaviour == 1.0
+
+
 # -- the disqualifying asymmetry ---------------------------------------------
 def test_a_forbidden_fact_zeroes_the_answer_rather_than_deducting():
     """A wrong balance is not a partially correct answer.
@@ -89,6 +99,15 @@ def test_numbers_match_on_a_word_boundary():
     case = _case(must_include=["12"])
     assert score_case(case, FakeTrace(answer="you have 120 hours")).answer_match == 0.0
     assert score_case(case, FakeTrace(answer="you have 12 days")).answer_match == 1.0
+
+
+def test_a_zero_fraction_is_the_same_number():
+    """Regression: a live L01 answer of '13.0 hours' was scored as missing 13."""
+    case = _case(must_include=["13"])
+    for answer in ("balance is 13.0 hours", "balance is 13.00 hours", "the balance is 13."):
+        assert score_case(case, FakeTrace(answer=answer)).answer_match == 1.0, answer
+    for answer in ("balance is 13.5 hours", "balance is 130 hours", "section 4.13 applies"):
+        assert score_case(case, FakeTrace(answer=answer)).answer_match == 0.0, answer
 
 
 def test_any_alternative_in_a_tuple_satisfies_the_requirement():

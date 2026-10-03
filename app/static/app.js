@@ -263,7 +263,10 @@ function evidenceCheck(trace) {
   if (trace.grounded === true) text = "Policy search found relevant passages";
   else if (trace.grounded === false) text = "Policy search found no relevant passage";
   else if ((trace.sources || []).length) text = "Policy sections retrieved directly";
-  if ((trace.steps || []).some((s) => s.kind === "validation")) {
+  const checks = (trace.steps || []).filter((s) => s.kind === "validation");
+  if (checks.some((s) => s.summary === "Requested the preview")) {
+    text += "; the draft answer was sent back once to produce the requested preview";
+  } else if (checks.length) {
     text += "; the draft answer was sent back once to add missing evidence";
   }
   return text;

@@ -425,6 +425,52 @@ def _notice_claim_errors(text: str, decisions: list[ToolInvocation]) -> list[str
     return []
 
 
+WRITE_TOOLS = ("create_hr_ticket", "draft_hr_email")
+_PREVIEW_REQUEST = re.compile(
+    r"\b(?:ticket|e-?mail)\b[^.?!]*\bpreview|\bpreview\b[^.?!]*\b(?:ticket|e-?mail)\b",
+    re.IGNORECASE,
+)
+
+
+def _missing_requested_preview(question: str, steps: list[Step]) -> list[str]:
+    """A ticket or email preview the user explicitly asked for but never got.
+
+    Only a preview tool call produces the confirmation card, so an answer that
+    merely describes the ticket leaves the user nothing to approve.
+    """
+    if not _PREVIEW_REQUEST.search(question):
+        return []
+    previewed = any(
+        call.name in WRITE_TOOLS and not call.is_error
+        and isinstance(call.result, dict) and call.result.get("requires_confirmation")
+        for step in steps for call in step.tool_calls
+    )
+    if previewed:
+        return []
+    return [
+        "The request asked for a ticket or email preview and none was produced; call "
+        "create_hr_ticket or draft_hr_email without confirmed so the user can review it."
+    ]
+
+
+def _repair_request(problems: list[str]) -> str:
+    """The corrective turn sent after a final answer fails validation.
+
+    It asks for the whole answer again, not a note about the correction. Told
+    only what was wrong, a fallback model on the deployed PTO task replied with
+    an explanation of the notice rule alone, which replaced a complete answer
+    and dropped the balance finding and the requested ticket preview.
+    """
+    return (
+        "Your draft was not shown to the user because it failed an evidence check: "
+        + " ".join(problems)
+        + " Fix these points, then write the complete final answer to the original "
+        "request again: keep every finding, figure and inline citation it needs, and "
+        "do not mention this check. If a requested ticket or email preview has not "
+        "been produced yet, call that tool before answering."
+    )
+
+
 async def run_agent(
     question: str,
     client: MCPToolClient,
@@ -458,6 +504,9 @@ async def _run_agent(
     citations: list[str] = []
     source_labels: set[str] = set()
     validated_once = False
+    # An answer that passed validation but lacked a requested preview: held
+    # while the model drafts the preview, and restored if that does not finish.
+    verified: tuple[str, Step, bool | None] | None = None
 
     for index in range(1, max_steps + 1):
         # Bound the request before it is sent. Doing this per step rather than
@@ -546,6 +595,12 @@ async def _run_agent(
                 problems.append("Retrieve policy passages with search_policy_documents or get_policy_section.")
             problems.extend(_parental_claim_errors(answer, decisions, require_weeks=True))
             problems.extend(_notice_claim_errors(answer, decisions))
+            if verified is not None and (problems or trace.grounded is False):
+                trace.steps.append(Step(
+                    index=index, kind="validation",
+                    summary="The rewrite failed the evidence check; the verified answer stands",
+                ))
+                break
             if trace.grounded is False:
                 trace.answer = (
                     "The retrieved HR policy evidence does not cover this question. "
@@ -556,7 +611,9 @@ async def _run_agent(
             if problems and not validated_once:
                 validated_once = True
                 messages.append({"role": "assistant", "content": answer})
-                messages.append({"role": "user", "content": "Evidence check: " + " ".join(problems)})
+                messages.append({"role": "user", "content": _repair_request(
+                    problems + _missing_requested_preview(question, trace.steps)
+                )})
                 trace.steps.append(Step(index=index, kind="validation", summary="Requested missing evidence"))
                 continue
             if problems:
@@ -564,7 +621,7 @@ async def _run_agent(
                 trace.answer = "I could not verify the policy evidence. Please contact HR or narrow the question."
                 trace.steps.append(Step(index=index, kind="error", summary=trace.error))
                 break
-            trace.steps.append(Step(
+            final = Step(
                 index=index, kind="final", provider=response.provider, model=response.model,
                 latency_ms=round(response.latency_ms, 1), fell_back=response.fell_back,
                 summary=f"answer uses {len(cited_labels(answer, citations))} verified citation labels",
@@ -573,8 +630,21 @@ async def _run_agent(
                 attempts=response.attempts,
                 context_tokens=context_tokens,
                 elided_results=elided,
-            ))
+            )
+            # A missing preview earns one corrective turn, which can never cost
+            # this answer: if the turn fails or runs out of budget, this answer
+            # stands, and declining to draft something can be the right answer.
+            missing_preview = [] if validated_once else _missing_requested_preview(question, trace.steps)
+            if missing_preview:
+                validated_once = True
+                verified = (answer, final, trace.grounded)
+                messages.append({"role": "assistant", "content": answer})
+                messages.append({"role": "user", "content": _repair_request(missing_preview)})
+                trace.steps.append(Step(index=index, kind="validation", summary="Requested the preview"))
+                continue
+            trace.steps.append(final)
             trace.answer = answer
+            verified = None
             break
 
         step = Step(
@@ -621,7 +691,7 @@ async def _run_agent(
                     },
                     is_error=True,
                 )
-            if call.function.name in ("create_hr_ticket", "draft_hr_email"):
+            if call.function.name in WRITE_TOOLS:
                 decisions = [
                     c for s in trace.steps for c in s.tool_calls
                     if c.name == "check_policy_compliance" and not c.is_error
@@ -684,6 +754,13 @@ async def _run_agent(
             f"so far using {', '.join(trace.tools_used) or 'no tools'}. Please narrow the "
             f"question, or contact HR directly."
         )
+
+    if verified is not None:
+        trace.answer, final, trace.grounded = verified
+        final.summary += f"; kept from step {final.index} because the preview follow-up did not finish"
+        final.index = trace.steps[-1].index
+        trace.steps.append(final)
+        trace.error, trace.truncated = "", False
 
     trace.retrieved_citations = citations
     trace.citations = cited_labels(trace.answer, citations)
