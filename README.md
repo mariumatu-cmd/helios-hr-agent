@@ -110,13 +110,13 @@ The canonical prompts live in `agent/demo_tasks.py` and are reused by the UI
 and deployed verifier:
 
 1. **International remote work:** Maya's 42-day Portugal request; read her
-   rolling usage, check compliance, retrieve the international remote-work policy
-   and the remote-work policy's section on working abroad, and explain, citing
-   both, that 12 + 42 exceeds 30 by 24 days.
+   rolling usage, check compliance, read POL-INTL-001 §2 The 30-Day Rule and
+   POL-REMOTE-001 §6 Temporary Work Outside the Home Country, and explain,
+   citing both, that 12 + 42 exceeds 30 by 24 days.
 2. **PTO and ticket preview:** Jonas's three-day request; check 13 available hours
-   against 24 requested and 6 days' notice against 10, retrieve the PTO notice and
-   insufficient-balance sections, show a mock ticket preview, and explain the
-   manager/skip-level exception routes.
+   against 24 requested and 6 days' notice against 10, read POL-PTO-001 §3.1
+   Notice Requirements and §3.3 Insufficient Balance, show a mock ticket preview,
+   and explain the manager/skip-level exception routes.
    Select **Create mock ticket** on the preview to create the in-memory ticket and show its ID.
 
 Every policy claim, including alternatives, needs evidence. A preview is not a

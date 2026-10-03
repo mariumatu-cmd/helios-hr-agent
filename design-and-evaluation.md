@@ -7,7 +7,9 @@
 back to back on the free tier. Scorer 2 passed 4 of 8;
 [Deployed measurement](#deployed-measurement-3-october-2026) explains each
 failure and the change it led to. Older live figures come from the September
-revision and are labelled historical.
+revision and are labelled historical. `evidence/deployed-20261003T163450.json`
+is a later failed check of the international task, described in the same
+section.
 
 `evidence/deployed-tasks.json` is a superseded September capture. Its verifier
 checked tool and step counts, not answers, and so labelled David's
@@ -92,7 +94,11 @@ than a note about the fix. If still unsupported, it fails explicitly. When the
 user explicitly asked for a ticket or email preview and none was produced, the
 agent asks once for it; if that follow-up fails validation or runs out of
 budget, the answer that had already passed stands.
-An ungrounded search leads to a refusal rather than a speculative policy answer.
+An ungrounded turn ends in a refusal rather than a speculative policy answer:
+either no search found a grounded passage, or the question uses a term that
+neither the corpus nor the HR data contains. A narrower follow-up search that
+finds nothing quotable does not undo an earlier grounded result. Section
+headings count as corpus words, because chunk text does not repeat them.
 This validates provenance, not entailment of every sentence.
 
 ## Deterministic policy decisions
@@ -141,7 +147,9 @@ prompt overhead without changing required arguments.
 
 `check_policy_compliance` supports `pto`, `international_remote_work`,
 `remote_arrangement`, and `parental_leave`; the latter requires `parent_role`
-and `start_date`. Expected argument/lookup failures return structured errors.
+and `start_date`. Expected argument/lookup failures return structured errors
+that list each request type with its required arguments. A remote-work request
+that carries a country and both dates is evaluated as `international_remote_work`.
 
 ## Actions and safety
 
@@ -182,7 +190,10 @@ response instead of a held request. Retired models (`model_decommissioned`,
 `model_not_found`) are skipped until restart. `tests/test_llm_resilience.py`
 replays the longest demo task against a simulated free tier (8,000 TPM per
 model, plus one retired model still configured) at four response speeds. Every
-run completes within 7 of the 8 per-turn calls.
+simulated run completes within 7 of the 8 per-turn calls. The simulation
+scripts correct tool arguments, so it does not cover a fallback model retrying
+a wrong one, which is what ended the follow-up check in the
+[deployed measurement](#deployed-measurement-3-october-2026).
 
 The maximum orchestration length remains 12 steps; the API-attempt budget may
 stop it earlier. Context has a 6,200 estimated-token ceiling, with a 1,200-token
@@ -205,17 +216,22 @@ An optional `DEMO_ACCESS_CODE` protects casual public access. Do not publish it.
 names its checks in order: the free tier's per-model token limit usually moves a
 multi-step task onto a smaller fallback model, which skipped the compliance
 check or the ticket preview when left to choose (see the
-[deployed measurement](#deployed-measurement-3-october-2026)).
+[deployed measurement](#deployed-measurement-3-october-2026)). They also name
+each policy section by number and heading. A paraphrased search can fall just
+below the similarity floor ("outside home country" scores 0.554 against 0.56),
+while the heading itself scores 0.754, and the number can be read directly with
+`get_policy_section`.
 
 **International workflow:** read Maya's rolling usage, check 2026-10-05 through
-2026-11-15 in Portugal, and retrieve the international remote-work policy and
-the remote-work policy's section on working outside the home country.
+2026-11-15 in Portugal, and read POL-INTL-001 §2 The 30-Day Rule and
+POL-REMOTE-001 §6 Temporary Work Outside the Home Country.
 Expected: 12 prior days plus 42 requested exceeds the 30-day limit by 24.
 Explain remaining allowance and conditional alternatives without inventing
 rules, citing both policies.
 
 **PTO workflow:** check Jonas's balance and three business days beginning
-2026-09-21, retrieve the PTO notice and insufficient-balance sections, then
+2026-09-21, read POL-PTO-001 §3.1 Notice Requirements and §3.3 Insufficient
+Balance, then
 prepare a mock ticket preview. Expected: 13 available hours versus 24 requested;
 6 days' notice versus 10 required. Explain exception routes accurately. The user
 confirms the exact preview in a separate click, which returns the ticket ID with
@@ -303,6 +319,18 @@ Changes made in response: scorer 3; a correction turn that asks for the complete
 answer; a one-time follow-up for a requested preview that cannot cost a verified
 answer; and demonstration prompts that name their checks. The demonstration
 traces in that evidence file predate these changes.
+
+A follow-up check of the international task on build `d0e8733`
+(`evidence/deployed-20261003T163450.json`) failed before answering. The
+fallback model looked up the profile unasked, and its document-scoped search
+for "outside home country" scored 0.554 against the 0.56 floor. It then sent
+the compliance check as `remote_work` with a country and dates, which the
+server rejected as an arrangement change. Two retries with invented arguments
+used the remaining calls, and the ninth call reached the per-turn budget.
+Changes made in response: such a request is evaluated as international remote
+work; errors list each request type with its arguments; a narrow search miss no
+longer overrides an earlier grounded result; section headings count as corpus
+words; and the prompts name each section by number and heading.
 
 ### Current offline evidence
 

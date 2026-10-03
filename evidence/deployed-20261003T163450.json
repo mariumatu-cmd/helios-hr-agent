@@ -1,0 +1,681 @@
+{
+  "base_url": "https://helios-hr-assistant-wz3c.onrender.com",
+  "build_sha": "d0e8733a5273c6a663322f473739d381d58a31d5",
+  "measured_at": "2026-10-03T14:34:50Z",
+  "scorer_version": "3",
+  "summary": {
+    "runs": 1,
+    "passed": 0,
+    "wall_seconds_median": 40.0,
+    "wall_seconds_max": 39.97,
+    "throttle_seconds": 30.1,
+    "api_calls": 8,
+    "tokens": 29677,
+    "stopped_early": "QuotaExceeded: Per-turn API-call budget reached. Narrow the request."
+  },
+  "tasks": [
+    {
+      "task": "international",
+      "kind": "demo task",
+      "prompt": "Maya Rodriguez wants to work from Portugal for 42 calendar days, 5 October to 15 November 2026. Can she? Check her rolling international usage, run the policy compliance check for this request, and retrieve both the international remote-work policy and the remote-work policy's rules for working outside the home country. Explain the limit and any compliant options, citing both policies.",
+      "trace": {
+        "question": "Maya Rodriguez wants to work from Portugal for 42 calendar days, 5 October to 15 November 2026. Can she? Check her rolling international usage, run the policy compliance check for this request, and retrieve both the international remote-work policy and the remote-work policy's rules for working outside the home country. Explain the limit and any compliant options, citing both policies.",
+        "answer": "Per-turn API-call budget reached. Narrow the request.",
+        "steps": [
+          {
+            "index": 1,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 1408.7,
+            "fell_back": false,
+            "summary": "selected 1 tool: lookup_employee_profile",
+            "tool_calls": [
+              {
+                "step": 1,
+                "name": "lookup_employee_profile",
+                "arguments": {
+                  "employee": "Maya Rodriguez"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "full_name": "Maya Rodriguez",
+                  "email": "maya.rodriguez@helios.example.com",
+                  "title": "Senior Software Engineer",
+                  "department": "Engineering",
+                  "role_family": "Engineering",
+                  "employment_type": "full_time",
+                  "weekly_hours": 40,
+                  "hire_date": "2022-03-14",
+                  "manager_id": "E-1007",
+                  "office_location": "AUS",
+                  "work_city": "Austin",
+                  "work_state": "TX",
+                  "work_country": "United States",
+                  "work_arrangement": "remote",
+                  "remote_eligible_role": true,
+                  "latest_performance_rating": "Exceeds Expectations",
+                  "on_pip": false,
+                  "work_authorization": "citizen",
+                  "has_corporate_card": true,
+                  "tenure_months": 53,
+                  "office": {
+                    "office_id": "AUS",
+                    "name": "Austin HQ",
+                    "city": "Austin",
+                    "state": "TX",
+                    "country": "United States",
+                    "timezone": "America/Chicago",
+                    "utc_offset_standard": -6,
+                    "holiday_schedule": "US",
+                    "expense_tier": "us_other",
+                    "entity": "Helios Systems, Inc.",
+                    "hybrid_anchor_days": [
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday"
+                    ]
+                  },
+                  "manager_name": "David Okafor",
+                  "as_of_date": "2026-09-12"
+                },
+                "is_error": false,
+                "latency_ms": 371.1
+              }
+            ],
+            "service_ms": 1408.7,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 2980,
+            "elided_results": 0
+          },
+          {
+            "index": 2,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 590.5,
+            "fell_back": false,
+            "summary": "selected 1 tool: check_international_work_usage",
+            "tool_calls": [
+              {
+                "step": 2,
+                "name": "check_international_work_usage",
+                "arguments": {
+                  "employee": "Maya Rodriguez"
+                },
+                "result": {
+                  "employee_id": "E-1041",
+                  "employee_name": "Maya Rodriguez",
+                  "work_authorization": "citizen",
+                  "as_of_date": "2026-09-12",
+                  "window_start": "2025-09-12",
+                  "window_end": "2026-09-12",
+                  "annual_limit_days": 30,
+                  "days_used": 12,
+                  "days_remaining": 18,
+                  "counted_records": [
+                    {
+                      "record_id": "IRW-2026-0043",
+                      "employee_id": "E-1041",
+                      "country": "Ireland",
+                      "start_date": "2026-03-02",
+                      "end_date": "2026-03-13",
+                      "calendar_days": 12,
+                      "status": "completed",
+                      "approved_by": "E-1007",
+                      "notes": "Co-located with Dublin platform team."
+                    }
+                  ],
+                  "excluded_records": [
+                    {
+                      "record_id": "IRW-2025-0298",
+                      "employee_id": "E-1041",
+                      "country": "Spain",
+                      "start_date": "2025-08-04",
+                      "end_date": "2025-08-15",
+                      "calendar_days": 12,
+                      "status": "completed",
+                      "approved_by": "E-1007",
+                      "notes": "OUTSIDE the current rolling 12-month window as of 2026-09-12; must NOT count toward the limit.",
+                      "excluded_because": "ended 2025-08-15, before the rolling window opened on 2025-09-12"
+                    }
+                  ],
+                  "citation": "POL-INTL-001 \u00a72 Rolling 30-Day Limit"
+                },
+                "is_error": false,
+                "latency_ms": 3.7
+              }
+            ],
+            "service_ms": 590.5,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3402,
+            "elided_results": 0
+          },
+          {
+            "index": 3,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 643.3,
+            "fell_back": false,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 3,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "doc_id": null,
+                  "k": 5,
+                  "query": "international remote work policy rolling limit 30 days"
+                },
+                "result": {
+                  "query": "international remote work policy rolling limit 30 days",
+                  "grounded": true,
+                  "best_similarity": 0.8694,
+                  "reason": "",
+                  "unknown_terms": [],
+                  "hits": [
+                    {
+                      "chunk_id": "c00099",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "The 30-Day Rule",
+                      "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+                      "text": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer than 30\n  days must either:\n\n- take the excess period as approved PTO or unpaid leave, performing no work\n      whatsoever during that period; or\n- pursue a permanent relocation through Global Mobility, which requires an\n      entity in the destination country, a new employment agreement, and a\n      minimum lead time of 90 days ; or\n- be assigned to a formal short-term international assignment, which is\n      sponsored by the business unit and requires VP approval.\n\nA six-week (42-day) request, for example, exceeds the 30-day limit and cannot\n  be approved as ordinary international remote work.",
+                      "score": 0.032787,
+                      "dense_rank": 1,
+                      "bm25_rank": 1,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00184",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Remote Work (Domestic)",
+                      "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+                      "text": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL-SEC-001` \u00a77 |\n| 21 \u2013 30 consecutive business days | Manager + HR Business Partner | Security review + payroll notification |\n| More than 30 consecutive days in a state where the employee is not registered | Not permitted as temporary work | Requires a permanent work-location change under Section 4 |\n\nThe **30-day rule** exists because working more than 30 days in a state creates\nstate income-tax withholding and, in some states, employer-registration\nobligations. Cumulative days in the same state within a rolling 12-month period\ncount toward the 30-day threshold.",
+                      "score": 0.031754,
+                      "dense_rank": 2,
+                      "bm25_rank": 4,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00100",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "Eligible Countries",
+                      "citation": "POL-INTL-001 \u00a73 Eligible Countries",
+                      "text": "Temporary international remote work is permitted only in countries where\n  Helios has assessed the tax and permanent-establishment risk. As of the\n  effective date, the eligible list is:\n\n| Country | Max consecutive days | Notes |\n| Ireland | 30 | Helios entity present |\n| Portugal | 30 | Helios entity present |\n| Spain | 21 | No entity; PE risk after 21 days |\n| Italy | 21 | No entity; PE risk after 21 days |\n| Germany | 21 | No entity; PE risk after 21 days |\n| Netherlands | 21 | No entity; PE risk after 21 days |\n| United Kingdom | 30 | Treaty relief available |\n| Canada | 30 | Ontario and British Columbia only |\n| Mexico | 14 | Immigration restrictions |\n| Singapore | 30 | Helios entity present |\n| Japan | 14 | Immigration restrictions |\n\nWork from any country not on this list is prohibited without a\n  case-by-case assessment by Global Mobility & Tax, which requires a minimum\n  of 20 business days to complete. Work from countries subject\n  to sanctions or export-control restrictions is prohibited outright; see POL-SEC-001 Section 8.",
+                      "score": 0.031746,
+                      "dense_rank": 3,
+                      "bm25_rank": 3,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00101",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "Approval Workflow",
+                      "citation": "POL-INTL-001 \u00a74 Approval Workflow",
+                      "text": "1. Employee submits an International Remote Work request in Helios Workday at\n      least 20 business days before the intended start date,\n      specifying destination country, exact dates, and total calendar days.\n2. Manager approval \u2014 confirms coverage and time-zone overlap\n      under POL-REMOTE-001 Section 8.\n3. Global Mobility & Tax review \u2014 confirms the country is\n      eligible, the day count is within limits, and no permanent-establishment\n      or payroll-withholding trigger applies.\n4. Immigration check \u2014 confirms the employee holds the right\n      to be present and, where required, the right to work. Employees on a US\n      work visa (including H-1B, L-1, O-1, and TN status) must additionally be\n      cleared by Immigration Counsel, as travel may affect status or re-entry.\n5. Information Security review \u2014 required for all\n      international requests, per POL-SEC-001 Section 7.\n6. Written approval is issued in Workday. No travel should be booked\n      before written approval is issued.\n\nTypical end-to-end approval time is 10 \u2013 20 business days. Requests submitted\n  with less than 20 business days' notice are reviewed on a best-effort basis and\n  are frequently denied for lack of review time.",
+                      "score": 0.028986,
+                      "dense_rank": 9,
+                      "bm25_rank": 9,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00105",
+                      "doc_id": "POL-INTL-001",
+                      "doc_title": "International Remote Work and Tax Compliance Policy",
+                      "section": "Non-Compliance",
+                      "citation": "POL-INTL-001 \u00a78 Non-Compliance",
+                      "text": "Working from another country without written approval is a policy violation and\n  may result in disciplinary action up to and including termination, in addition\n  to any personal tax or immigration consequences for the employee. Managers who\n  knowingly permit unapproved international work are also accountable under this\n  policy.",
+                      "score": 0.028718,
+                      "dense_rank": 15,
+                      "bm25_rank": 5,
+                      "source_file": "international-remote-work.html",
+                      "source_format": "html",
+                      "effective_date": "2026-01-01",
+                      "version": "3.4",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 448.0
+              }
+            ],
+            "service_ms": 643.3,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 3819,
+            "elided_results": 0
+          },
+          {
+            "index": 4,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 1438.8,
+            "fell_back": true,
+            "summary": "selected 1 tool: search_policy_documents",
+            "tool_calls": [
+              {
+                "step": 4,
+                "name": "search_policy_documents",
+                "arguments": {
+                  "doc_id": "POL-REMOTE-001",
+                  "k": 5,
+                  "query": "outside home country"
+                },
+                "result": {
+                  "query": "outside home country",
+                  "grounded": false,
+                  "best_similarity": 0.5542,
+                  "reason": "best passage similarity 0.554 is below the 0.56 grounding threshold; the corpus does not appear to cover this question",
+                  "unknown_terms": [],
+                  "hits": [
+                    {
+                      "chunk_id": "c00185",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Work Outside the Home Country",
+                      "citation": "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country",
+                      "text": "Working from outside the employee's home country \u2014 for any duration \u2014 is **not**\ncovered by Section 5. It requires prior approval under `POL-INTL-001`, which\nimposes a separate day limit, tax review, immigration check, and security\nreview. Booking travel before receiving approval under `POL-INTL-001` is at the\nemployee's own risk.",
+                      "score": 0.032787,
+                      "dense_rank": 1,
+                      "bm25_rank": 1,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00181",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Remote",
+                      "citation": "POL-REMOTE-001 \u00a72.3 Remote",
+                      "text": "The employee has no assigned office and works from a registered home address.\nRemote employees are expected to travel to a Helios office for team onsites up\nto **four (4) times per year** at company expense, governed by `POL-EXP-001`.",
+                      "score": 0.031746,
+                      "dense_rank": 3,
+                      "bm25_rank": 3,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00177",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Purpose",
+                      "citation": "POL-REMOTE-001 \u00a71 Purpose",
+                      "text": "Helios Systems supports flexible work arrangements where they are compatible\nwith the employee's role, team needs, and legal obligations. This policy defines\nthe available work arrangements, who is eligible for each, and how to request a\nchange.\n\nTemporary work from a location outside the employee's home country is governed\nby `POL-INTL-001` (International Remote Work and Tax Compliance) and requires\nadditional approvals.",
+                      "score": 0.030214,
+                      "dense_rank": 11,
+                      "bm25_rank": 2,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00182",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Eligibility for Fully Remote Status",
+                      "citation": "POL-REMOTE-001 \u00a73 Eligibility for Fully Remote Status",
+                      "text": "An employee is eligible to request fully remote status only if **all** of the\nfollowing are true:\n\n1. The employee has completed at least **six (6) months** of continuous service\n   at Helios.\n2. The employee's most recent performance rating is **\"Meets Expectations\" or\n   higher** (see `POL-PERF-001`).\n3. The employee is not currently on a performance improvement plan.\n4. The role is designated remote-eligible in the job architecture. Roles\n   designated `Onsite Required` are not eligible under any circumstances.\n5. The employee's registered work location is a US state, or a country, in which\n   Helios is a registered employer. As of the effective date these are:\n   **United States** (all states except Alaska and Hawaii), **Ireland**,\n   **Singapore**, **Canada** (Ontario and British Columbia only), and\n   **Portugal**.\n\nEmployees in their first six months may still work hybrid; the six-month\nrequirement applies only to fully remote status.",
+                      "score": 0.030118,
+                      "dense_rank": 9,
+                      "bm25_rank": 4,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    },
+                    {
+                      "chunk_id": "c00184",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Remote Work (Domestic)",
+                      "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+                      "text": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL-SEC-001` \u00a77 |\n| 21 \u2013 30 consecutive business days | Manager + HR Business Partner | Security review + payroll notification |\n| More than 30 consecutive days in a state where the employee is not registered | Not permitted as temporary work | Requires a permanent work-location change under Section 4 |\n\nThe **30-day rule** exists because working more than 30 days in a state creates\nstate income-tax withholding and, in some states, employer-registration\nobligations. Cumulative days in the same state within a rolling 12-month period\ncount toward the 30-day threshold.",
+                      "score": 0.016129,
+                      "dense_rank": 2,
+                      "bm25_rank": null,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    }
+                  ],
+                  "instruction": "Do not answer from these passages. Tell the user the HR policy corpus does not cover this question and suggest contacting HR directly."
+                },
+                "is_error": false,
+                "latency_ms": 359.8
+              }
+            ],
+            "service_ms": 1438.8,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 5984,
+            "elided_results": 0
+          },
+          {
+            "index": 5,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 1410.4,
+            "fell_back": true,
+            "summary": "selected 1 tool: get_policy_section",
+            "tool_calls": [
+              {
+                "step": 5,
+                "name": "get_policy_section",
+                "arguments": {
+                  "doc_id": "POL-REMOTE-001",
+                  "section": "6"
+                },
+                "result": {
+                  "doc_id": "POL-REMOTE-001",
+                  "section": "6",
+                  "passages": [
+                    {
+                      "chunk_id": "c00185",
+                      "doc_id": "POL-REMOTE-001",
+                      "doc_title": "Remote and Hybrid Work Policy",
+                      "section": "Temporary Work Outside the Home Country",
+                      "citation": "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country",
+                      "text": "Working from outside the employee's home country \u2014 for any duration \u2014 is **not**\ncovered by Section 5. It requires prior approval under `POL-INTL-001`, which\nimposes a separate day limit, tax review, immigration check, and security\nreview. Booking travel before receiving approval under `POL-INTL-001` is at the\nemployee's own risk.",
+                      "score": 1.0,
+                      "dense_rank": null,
+                      "bm25_rank": null,
+                      "source_file": "remote-work-policy.md",
+                      "source_format": "md",
+                      "effective_date": "2026-01-01",
+                      "version": "5.0",
+                      "expanded_from": []
+                    }
+                  ]
+                },
+                "is_error": false,
+                "latency_ms": 3.7
+              }
+            ],
+            "service_ms": 1410.4,
+            "throttle_ms": 0.0,
+            "attempts": 2,
+            "context_tokens": 5677,
+            "elided_results": 3
+          },
+          {
+            "index": 6,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "latency_ms": 8023.9,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_policy_compliance",
+            "tool_calls": [
+              {
+                "step": 6,
+                "name": "check_policy_compliance",
+                "arguments": {
+                  "country": "Portugal",
+                  "employee": "Maya Rodriguez",
+                  "end_date": "2026-11-15",
+                  "request_type": "remote_work",
+                  "start_date": "2026-10-05"
+                },
+                "result": {
+                  "error": "remote_arrangement requires arrangement",
+                  "hint": "Check the argument format and try again."
+                },
+                "is_error": true,
+                "latency_ms": 4.5
+              }
+            ],
+            "service_ms": 1020.9,
+            "throttle_ms": 7003.0,
+            "attempts": 4,
+            "context_tokens": 6014,
+            "elided_results": 0
+          },
+          {
+            "index": 7,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "latency_ms": 10051.6,
+            "fell_back": false,
+            "summary": "selected 1 tool: check_policy_compliance",
+            "tool_calls": [
+              {
+                "step": 7,
+                "name": "check_policy_compliance",
+                "arguments": {
+                  "arrangement": "temporary",
+                  "country": "Portugal",
+                  "employee": "Maya Rodriguez",
+                  "end_date": "2026-11-15",
+                  "request_type": "remote_work",
+                  "start_date": "2026-10-05"
+                },
+                "result": {
+                  "error": "requested_arrangement must be one of: onsite, hybrid, remote",
+                  "hint": "Check the argument format and try again."
+                },
+                "is_error": true,
+                "latency_ms": 2.8
+              }
+            ],
+            "service_ms": 861.9,
+            "throttle_ms": 9189.6,
+            "attempts": 2,
+            "context_tokens": 6179,
+            "elided_results": 0
+          },
+          {
+            "index": 8,
+            "kind": "tool_calls",
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "latency_ms": 14834.6,
+            "fell_back": true,
+            "summary": "selected 1 tool: check_policy_compliance",
+            "tool_calls": [
+              {
+                "step": 8,
+                "name": "check_policy_compliance",
+                "arguments": {
+                  "arrangement": null,
+                  "country": null,
+                  "employee": "null",
+                  "end_date": null,
+                  "request_type": "null",
+                  "start_date": null
+                },
+                "result": {
+                  "error": "request_type must be pto, international_remote_work, remote_arrangement, parental_leave",
+                  "hint": "Check the argument format and try again."
+                },
+                "is_error": true,
+                "latency_ms": 2.8
+              }
+            ],
+            "service_ms": 885.1,
+            "throttle_ms": 13949.5,
+            "attempts": 2,
+            "context_tokens": 4936,
+            "elided_results": 3
+          },
+          {
+            "index": 9,
+            "kind": "error",
+            "provider": "",
+            "model": "",
+            "latency_ms": 0.0,
+            "fell_back": false,
+            "summary": "QuotaExceeded: Per-turn API-call budget reached. Narrow the request.",
+            "tool_calls": [],
+            "service_ms": 0.0,
+            "throttle_ms": 0.0,
+            "attempts": 1,
+            "context_tokens": 0,
+            "elided_results": 0
+          }
+        ],
+        "citations": [],
+        "sources": [
+          {
+            "citation": "POL-INTL-001 \u00a72 The 30-Day Rule",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "The 30-Day Rule",
+            "snippet": "An approved employee may work from an eligible country for a maximum of 30 calendar days per rolling 12-month period , across all\n  countries combined. Days are counted as calendar days present in the country\n  while performing any work, including partial days.\n\nRequests exceeding 30 days are not approved as temporary international\n  remote work . An employee who needs to work abroad for longer th..."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Temporary Remote Work (Domestic)",
+            "snippet": "An employee may work temporarily from a US location other than their registered\naddress without changing their work arrangement, subject to duration limits:\n\n| Duration | Approval required | Additional requirements |\n| --- | --- | --- |\n| 1 \u2013 10 consecutive business days | Manager notification only | None |\n| 11 \u2013 20 consecutive business days | Manager written approval | Security review under `POL..."
+          },
+          {
+            "citation": "POL-INTL-001 \u00a73 Eligible Countries",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "Eligible Countries",
+            "snippet": "Temporary international remote work is permitted only in countries where\n  Helios has assessed the tax and permanent-establishment risk. As of the\n  effective date, the eligible list is:\n\n| Country | Max consecutive days | Notes |\n| Ireland | 30 | Helios entity present |\n| Portugal | 30 | Helios entity present |\n| Spain | 21 | No entity; PE risk after 21 days |\n| Italy | 21 | No entity; PE risk af..."
+          },
+          {
+            "citation": "POL-INTL-001 \u00a74 Approval Workflow",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "Approval Workflow",
+            "snippet": "1. Employee submits an International Remote Work request in Helios Workday at\n      least 20 business days before the intended start date,\n      specifying destination country, exact dates, and total calendar days.\n2. Manager approval \u2014 confirms coverage and time-zone overlap\n      under POL-REMOTE-001 Section 8.\n3. Global Mobility & Tax review \u2014 confirms the country is\n      eligible, the day cou..."
+          },
+          {
+            "citation": "POL-INTL-001 \u00a78 Non-Compliance",
+            "doc_id": "POL-INTL-001",
+            "doc_title": "International Remote Work and Tax Compliance Policy",
+            "section": "Non-Compliance",
+            "snippet": "Working from another country without written approval is a policy violation and\n  may result in disciplinary action up to and including termination, in addition\n  to any personal tax or immigration consequences for the employee. Managers who\n  knowingly permit unapproved international work are also accountable under this\n  policy."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Temporary Work Outside the Home Country",
+            "snippet": "Working from outside the employee's home country \u2014 for any duration \u2014 is **not**\ncovered by Section 5. It requires prior approval under `POL-INTL-001`, which\nimposes a separate day limit, tax review, immigration check, and security\nreview. Booking travel before receiving approval under `POL-INTL-001` is at the\nemployee's own risk."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a72.3 Remote",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Remote",
+            "snippet": "The employee has no assigned office and works from a registered home address.\nRemote employees are expected to travel to a Helios office for team onsites up\nto **four (4) times per year** at company expense, governed by `POL-EXP-001`."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a71 Purpose",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Purpose",
+            "snippet": "Helios Systems supports flexible work arrangements where they are compatible\nwith the employee's role, team needs, and legal obligations. This policy defines\nthe available work arrangements, who is eligible for each, and how to request a\nchange.\n\nTemporary work from a location outside the employee's home country is governed\nby `POL-INTL-001` (International Remote Work and Tax Compliance) and requi..."
+          },
+          {
+            "citation": "POL-REMOTE-001 \u00a73 Eligibility for Fully Remote Status",
+            "doc_id": "POL-REMOTE-001",
+            "doc_title": "Remote and Hybrid Work Policy",
+            "section": "Eligibility for Fully Remote Status",
+            "snippet": "An employee is eligible to request fully remote status only if **all** of the\nfollowing are true:\n\n1. The employee has completed at least **six (6) months** of continuous service\n   at Helios.\n2. The employee's most recent performance rating is **\"Meets Expectations\" or\n   higher** (see `POL-PERF-001`).\n3. The employee is not currently on a performance improvement plan.\n4. The role is designated r..."
+          }
+        ],
+        "tools_used": [
+          "lookup_employee_profile",
+          "check_international_work_usage",
+          "search_policy_documents",
+          "get_policy_section",
+          "check_policy_compliance"
+        ],
+        "total_ms": 39708.3,
+        "total_service_ms": 9566.2,
+        "throttle_ms": 30142.1,
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true,
+        "grounded": false,
+        "truncated": false,
+        "error": "QuotaExceeded: Per-turn API-call budget reached. Narrow the request.",
+        "elided_results": 6,
+        "peak_context_tokens": 6179,
+        "malformed_tool_calls": 0,
+        "retrieved_citations": [
+          "POL-INTL-001 \u00a72 Rolling 30-Day Limit",
+          "POL-INTL-001 \u00a72 The 30-Day Rule",
+          "POL-REMOTE-001 \u00a75 Temporary Remote Work (Domestic)",
+          "POL-INTL-001 \u00a73 Eligible Countries",
+          "POL-INTL-001 \u00a74 Approval Workflow",
+          "POL-INTL-001 \u00a78 Non-Compliance",
+          "POL-REMOTE-001 \u00a76 Temporary Work Outside the Home Country",
+          "POL-REMOTE-001 \u00a72.3 Remote",
+          "POL-REMOTE-001 \u00a71 Purpose",
+          "POL-REMOTE-001 \u00a73 Eligibility for Fully Remote Status"
+        ],
+        "pending_actions": [],
+        "api_calls": 8,
+        "prompt_tokens": 28761,
+        "completion_tokens": 916,
+        "cached": false,
+        "answer_html": "<p>Per-turn API-call budget reached. Narrow the request.</p>\n"
+      },
+      "confirmation_results": [],
+      "failures": [
+        "agent error: QuotaExceeded: Per-turn API-call budget reached. Narrow the request.",
+        "answer missing: 12",
+        "answer missing: ('30', 'limit')",
+        "answer missing: ('no', 'exceed', 'over')",
+        "no citation from ['POL-INTL-001']; got none",
+        "did not call required tool: check_policy_compliance",
+        "No inline citation backed by a returned passage",
+        "Expected citations to both international and remote-work policies"
+      ],
+      "passed": false,
+      "wall_seconds": 39.97,
+      "metrics": {
+        "agent_seconds": 39.7,
+        "throttle_seconds": 30.1,
+        "api_calls": 8,
+        "tokens": 29677,
+        "model": "qwen/qwen3.8-27b",
+        "fell_back": true
+      }
+    }
+  ]
+}

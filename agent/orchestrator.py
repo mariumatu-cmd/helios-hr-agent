@@ -503,6 +503,7 @@ async def _run_agent(
 
     citations: list[str] = []
     source_labels: set[str] = set()
+    found_grounded = out_of_corpus = False
     validated_once = False
     # An answer that passed validation but lacked a requested preview: held
     # while the model drafts the preview, and restored if that does not finish.
@@ -726,8 +727,16 @@ async def _run_agent(
             if result.name not in trace.tools_used:
                 trace.tools_used.append(result.name)
             if isinstance(result.content, dict) and "grounded" in result.content:
-                grounded = bool(result.content["grounded"])
-                trace.grounded = grounded if trace.grounded is None else (trace.grounded and grounded)
+                # One grounded search gives the answer evidence to stand on; a
+                # narrower follow-up that finds nothing quotable does not take it
+                # away. Requiring every search to be grounded declined a deployed
+                # demo answer over a doc-scoped search that scored 0.554 against
+                # the 0.56 floor. A term neither knowledge store contains is
+                # different: the question itself is out of scope, so the turn
+                # declines whatever else was found.
+                found_grounded = found_grounded or bool(result.content["grounded"])
+                out_of_corpus = out_of_corpus or bool(result.content.get("unknown_terms"))
+                trace.grounded = found_grounded and not out_of_corpus
 
             step.tool_calls.append(ToolInvocation(
                 step=index,

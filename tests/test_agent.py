@@ -683,3 +683,62 @@ async def test_a_preview_follow_up_that_runs_out_of_budget_keeps_the_verified_an
     assert not trace.error and not trace.truncated
     assert [s.kind for s in trace.steps] == ["validation", "tool_calls", "error", "final"]
     assert "kept from step 1" in trace.steps[-1].summary
+
+
+# --- grounding across several searches ---------------------------------------
+class SequencedClient(FakeClient):
+    """Returns the next queued result for a tool each time it is called."""
+
+    def __init__(self, queued: dict[str, list[Any]]):
+        super().__init__()
+        self.queued = {name: list(items) for name, items in queued.items()}
+
+    async def call(self, name: str, arguments: dict) -> ToolCallResult:
+        if self.queued.get(name):
+            self.results[name] = self.queued[name].pop(0)
+        return await super().call(name, arguments)
+
+
+_INTL_PASSAGE = {
+    "citation": "POL-INTL-001 §4.1 Rolling Limit",
+    "text": "Employees may work internationally for up to 30 calendar days in any rolling 12-month period.",
+}
+
+
+async def test_a_narrow_search_that_misses_does_not_undo_grounded_evidence(scripted):
+    """The deployed failure: a doc-scoped follow-up scored 0.554 against the
+    0.56 floor, and the already-grounded answer was declined."""
+    answer = "Maya can work abroad for up to 30 days in a rolling year (POL-INTL-001 §4.1)."
+    scripted([
+        tool_step([("search_policy_documents", {"query": "international rolling limit"})]),
+        tool_step([("search_policy_documents", {
+            "query": "outside home country", "doc_id": "POL-REMOTE-001",
+        })]),
+        final_step(answer),
+    ])
+    client = SequencedClient({"search_policy_documents": [
+        {"grounded": True, "hits": [_INTL_PASSAGE]},
+        {"grounded": False, "best_similarity": 0.554, "hits": [], "unknown_terms": []},
+    ]})
+
+    trace = await orchestrator.run_agent("Can Maya work from Portugal?", client)
+
+    assert trace.grounded is True
+    assert trace.answer == answer
+
+
+async def test_a_term_neither_store_holds_declines_despite_grounded_evidence(scripted):
+    scripted([
+        tool_step([("search_policy_documents", {"query": "international rolling limit"})]),
+        tool_step([("search_policy_documents", {"query": "pet travel allowance"})]),
+        final_step("Maya can bring her pet (POL-INTL-001 §4.1)."),
+    ])
+    client = SequencedClient({"search_policy_documents": [
+        {"grounded": True, "hits": [_INTL_PASSAGE]},
+        {"grounded": False, "hits": [], "unknown_terms": ["pet"]},
+    ]})
+
+    trace = await orchestrator.run_agent("Can Maya take her pet abroad?", client)
+
+    assert trace.grounded is False
+    assert "does not cover this question" in trace.answer

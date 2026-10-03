@@ -113,17 +113,29 @@ def search_policy_documents(query: str, k: int = 5, doc_id: str | None = None) -
         payload = result.to_dict()
         if not payload["grounded"]:
             unknown = payload.get("unknown_terms") or []
-            specifics = (
-                f" There is no record of {', '.join(repr(t) for t in unknown)} in "
-                f"either the policy corpus or the HR system, so name that gap "
-                f"explicitly rather than refusing vaguely."
-                if unknown else ""
-            )
-            payload["instruction"] = (
-                "Do not answer from these passages. Tell the user the HR policy corpus "
-                "does not cover this question and suggest contacting HR directly."
-                + specifics
-            )
+            if unknown:
+                payload["instruction"] = (
+                    "Do not answer from these passages. Tell the user the HR policy corpus "
+                    "does not cover this question and suggest contacting HR directly. "
+                    f"There is no record of {', '.join(repr(t) for t in unknown)} in "
+                    "either the policy corpus or the HR system, so name that gap "
+                    "explicitly rather than refusing vaguely."
+                )
+            elif doc_id:
+                # A narrow lookup inside one document missing is not evidence that
+                # the question is out of scope; on the deployed demo it was
+                # followed by a decline although an earlier search had answered it.
+                payload["instruction"] = (
+                    f"No passage in {doc_id} matches this query closely enough to quote. "
+                    "Do not answer from these passages; read the section you need with "
+                    "get_policy_section, or rely on grounded passages from other searches."
+                )
+            else:
+                payload["instruction"] = (
+                    "Do not answer from these passages. Unless another search returned "
+                    "grounded passages for this question, tell the user the HR policy "
+                    "corpus does not cover it and suggest contacting HR directly."
+                )
         return payload
 
     return _guard(run)
@@ -250,6 +262,9 @@ def check_international_work_usage(employee: str, as_of: str | None = None) -> s
 # ---------------------------------------------------------------------------
 # Composite rule evaluation
 # ---------------------------------------------------------------------------
+_REMOTE_TYPES = ("remote_arrangement", "remote_work", "remote")
+
+
 @mcp.tool(annotations=READ_ONLY)
 def check_policy_compliance(
     request_type: str,
@@ -269,6 +284,8 @@ def check_policy_compliance(
 
     Args:
         request_type: "pto", "international_remote_work", "remote_arrangement", or "parental_leave".
+            Working from another country for a period is "international_remote_work";
+            a remote-work request with country, start_date and end_date is evaluated as one.
         employee: employee id, email, or name.
         start_date: ISO date. Required for "pto" and "international_remote_work".
         end_date: ISO date. Required for "international_remote_work".
@@ -281,7 +298,7 @@ def check_policy_compliance(
     `blocking_reasons` and `citations`.
     """
     def run() -> Any:
-        kind = (request_type or "").strip().lower()
+        kind = (request_type or "").strip().lower().replace("-", "_").replace(" ", "_")
         if kind == "parental_leave":
             if not parent_role or not start_date:
                 raise ValueError("parental_leave requires parent_role and start_date; ask if unknown")
@@ -290,18 +307,31 @@ def check_policy_compliance(
             if not start_date or days is None:
                 raise ValueError("pto requests require start_date and days")
             return data.check_pto_request(employee, start_date, days)
+        # A remote-work request with a destination and an end date is work abroad
+        # for a period, which is the international check. A fallback model sent
+        # exactly that as "remote_work" on the deployed demo, and its retries
+        # against the arrangement error used up the turn's model calls.
+        if kind in _REMOTE_TYPES and country and start_date and end_date:
+            result = data.check_international_request(employee, country, start_date, end_date)
+            return {"evaluated_as": "international_remote_work", **result}
         if kind in ("international_remote_work", "international"):
             if not (start_date and end_date and country):
                 raise ValueError(
                     "international_remote_work requires country, start_date and end_date"
                 )
             return data.check_international_request(employee, country, start_date, end_date)
-        if kind in ("remote_arrangement", "remote_work"):
+        if kind in _REMOTE_TYPES:
             if not arrangement:
-                raise ValueError("remote_arrangement requires arrangement")
+                raise ValueError(
+                    "remote_arrangement requires arrangement: onsite, hybrid or remote. For "
+                    "working from another country for a period, use request_type "
+                    "international_remote_work with country, start_date and end_date"
+                )
             return data.check_remote_arrangement_change(employee, arrangement)
         raise ValueError(
-            "request_type must be pto, international_remote_work, remote_arrangement, parental_leave"
+            "request_type must be one of: pto (start_date, days), international_remote_work "
+            "(country, start_date, end_date), remote_arrangement (arrangement), "
+            "parental_leave (parent_role, start_date)"
         )
 
     return _guard(run)

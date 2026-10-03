@@ -58,6 +58,60 @@ def test_demo_instructions_are_not_unknown_policy_topics():
         assert not unknown_terms(task["question"])
 
 
+def test_section_headings_count_as_corpus_words_without_hiding_unknown_topics():
+    from evaluation.cases import CASES
+    from rag.vocabulary import unknown_terms
+
+    # "Insufficient" appears only in the heading of POL-PTO-001 §3.3.
+    assert unknown_terms("What happens with an insufficient balance?") == []
+    questions = {case.id: case.question for case in CASES}
+    assert unknown_terms(questions["X01"]) == ["revenue", "stock"]
+    assert unknown_terms(questions["X03"]) == ["pet"]
+
+
+def test_remote_work_abroad_for_a_period_is_checked_as_international():
+    import json
+
+    from mcp_server import hr_server
+
+    result = json.loads(hr_server.check_policy_compliance(
+        request_type="remote_work", employee="Maya Rodriguez", country="Portugal",
+        start_date="2026-10-05", end_date="2026-11-15",
+    ))
+    assert result["evaluated_as"] == "international_remote_work"
+    assert result["compliant"] is False
+    assert result["usage"]["days_used"] == 12
+
+
+@pytest.mark.parametrize("request_type", ["remote_arrangement", "sabbatical"])
+def test_a_compliance_type_error_names_the_international_check(request_type):
+    import json
+
+    from mcp_server import hr_server
+
+    result = json.loads(hr_server.check_policy_compliance(
+        request_type=request_type, employee="Maya Rodriguez",
+    ))
+    assert "international_remote_work" in result["error"]
+
+
+def test_a_document_scoped_miss_points_to_the_section_reader(monkeypatch):
+    import json
+
+    from mcp_server import hr_server
+    from rag.retrieve import SearchResult
+
+    monkeypatch.setattr(
+        hr_server.retrieve, "search",
+        lambda query, k=5, doc_id=None: SearchResult(query, [], False, 0.554),
+    )
+    payload = json.loads(hr_server.search_policy_documents(
+        "outside home country", doc_id="POL-REMOTE-001",
+    ))
+    assert "get_policy_section" in payload["instruction"]
+    assert "does not cover" not in payload["instruction"]
+
+
 def test_punctuation_is_rejected_without_embedding(monkeypatch):
     from rag import retrieve
 

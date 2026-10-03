@@ -133,10 +133,25 @@ def _is_generic(term: str) -> bool:
 
 @functools.lru_cache(maxsize=1)
 def corpus_vocabulary() -> frozenset[str]:
-    """Every token the BM25 index saw, plus normalised forms."""
+    """Every token the BM25 index saw, plus section headings and normalised forms.
+
+    Headings are added because chunk text does not repeat them. "Insufficient"
+    appears in the corpus only as the heading of POL-PTO-001 §3.3 Insufficient
+    Balance, so without them a search for "insufficient balance" was treated as
+    asking about something the corpus never mentions, and declined.
+    """
     from rag.retrieve import _Index
 
-    terms = set(_Index.get().bm25["postings"])
+    index = _Index.get()
+    terms = set(index.bm25["postings"])
+    for chunk in index.meta:
+        headings = chunk.get("heading_path") or []
+        if isinstance(headings, str):
+            headings = [headings]
+        terms.update(bm25.tokenize(" ".join(
+            [str(chunk.get("doc_title") or ""), str(chunk.get("citation") or ""),
+             *map(str, headings)]
+        )))
     return frozenset(
         terms | {_normalise(t) for t in terms}
         | {root for term in terms for root in _roots(term) if len(root) >= 4}
