@@ -39,7 +39,9 @@ class Settings(BaseSettings):
     # order after `groq_model`; every entry must support tool calling
     # (verified against the live catalogue -- Groq's `compound` models reject a
     # caller-supplied tool manifest with HTTP 400 and cannot drive this agent).
-    groq_fallback_models: str = "openai/gpt-oss-20b,qwen/qwen3.8-27b,qwen/qwen3.6-27b"
+    # Groq also retires free-tier models on a published schedule; a retired
+    # entry is skipped after its first refusal, but should then be removed.
+    groq_fallback_models: str = "openai/gpt-oss-20b,qwen/qwen3.8-27b"
     gemini_api_key: str = ""
     # Verified against the live catalogue on 2026-09-13. The 2.x Flash models
     # are now 404 "no longer available to new users", so a stale default here

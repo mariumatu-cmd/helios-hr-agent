@@ -62,8 +62,12 @@ def call_budget():
         _turn_calls.reset(token)
 
 
-def reserve_call() -> None:
-    """Count actual HTTP attempts, including errors; never auto-retry a full budget."""
+def reserve_call() -> float:
+    """Reserve one provider request against the local guards before it is sent.
+
+    Returns the reservation, so `release_call` can refund it if the provider
+    refuses the request without doing any work.
+    """
     if not settings.llm_enabled:
         raise QuotaExceeded("LLM calls are disabled (LLM_ENABLED=false); no quota was used.")
     now = time.monotonic()
@@ -80,6 +84,26 @@ def reserve_call() -> None:
         _requests.append(now)
         if turn is not None:
             turn[0] += 1
+    return now
+
+
+def release_call(stamp: float) -> None:
+    """Refund a reservation the provider refused before spending any tokens.
+
+    A 429, an oversized-request 413 or a retired model costs no tokens.
+    Counting them would let rate-limit churn, which is routine on a free tier,
+    end a turn that still had budget. Anything the provider may have processed
+    stays counted.
+    """
+    with _quota_lock:
+        try:
+            _requests.remove(stamp)
+        except ValueError:
+            return
+        turn = _turn_calls.get()
+        if turn is not None and turn[0] > 0:
+            turn[0] -= 1
+
 
 _ENDPOINTS: dict[str, str] = {
     "groq": "https://api.groq.com/openai/v1",
@@ -114,12 +138,29 @@ class MalformedToolCall(RuntimeError):
         self.failed_generation = failed_generation
 
 
+def _error_detail(exc: APIStatusError) -> dict[str, Any]:
+    """The provider's error object, whether or not it is still enveloped.
+
+    The SDK unwraps an OpenAI-style `{"error": {...}}` body before storing it
+    on the exception, so production sees the inner object. Accepting both
+    shapes keeps the checks below independent of that SDK detail.
+    """
+    body = getattr(exc, "body", None)
+    if not isinstance(body, dict):
+        return {}
+    inner = body.get("error", body)
+    return inner if isinstance(inner, dict) else {}
+
+
+def _error_code(exc: APIStatusError) -> str:
+    return str(getattr(exc, "code", None) or _error_detail(exc).get("code") or "")
+
+
 def _malformed_tool_call(exc: APIStatusError) -> MalformedToolCall | None:
     """Recognise a server-side tool-argument rejection, or return None."""
-    body = getattr(exc, "body", None)
-    error = body.get("error") if isinstance(body, dict) else None
-    if not isinstance(error, dict) or error.get("code") != "tool_use_failed":
+    if _error_code(exc) != "tool_use_failed":
         return None
+    error = _error_detail(exc)
     return MalformedToolCall(
         str(error.get("message") or exc), str(error.get("failed_generation") or "")
     )
@@ -234,17 +275,21 @@ class LLMResponse:
 
 # Groq's free tier is capped on tokens-per-minute, and every agent step resends
 # the full tool manifest plus the transcript so far, so 429s are routine rather
-# than exceptional. They are retried here instead of by the SDK so that the wait
-# can be measured and reported separately -- and so the server's own Retry-After
-# is honoured rather than guessed at with blind exponential backoff.
+# than exceptional. They are handled here instead of by the SDK so that the
+# wait can be measured and reported separately -- and so the server's own
+# Retry-After is honoured rather than guessed at with blind exponential backoff.
 #
 # When another model is still available, waiting is the worse option: the next
 # entry in the chain has its own token budget, so rotating to it costs one
-# request instead of tens of seconds. The long retry budget is therefore spent
-# only on the last entry, where there is nowhere else to go.
-MAX_RATE_LIMIT_RETRIES = 0
-RETRIES_BEFORE_ROTATING = 0
-MAX_BACKOFF_SECONDS = 30.0
+# request instead of tens of seconds. A call waits only when every compatible
+# model is rate-limited, and then for whichever recovers first. An empty bucket
+# refills within a minute, so the wait is capped at one; anything longer is a
+# daily limit or an outage, and is reported instead of holding the request open.
+MAX_WAIT_PER_CALL_SECONDS = 60.0
+
+# Backstop against a provider that keeps refusing with tiny Retry-After values.
+# A healthy call needs at most two attempts per model.
+MAX_ATTEMPTS_PER_CALL = 12
 
 # How long a model is passed over after it rate-limits. Groq's bucket is
 # per-minute, so a minute is the natural refill horizon; the server's own
@@ -264,10 +309,23 @@ MAX_COOLDOWN_SECONDS = 120.0
 # forgetting a failure it already observed.
 _cooldown_until: dict[str, float] = {}
 
+# Models the provider has retired or does not serve. Unlike a rate limit this
+# does not refill, so the model is skipped until the process restarts. Groq
+# retires free-tier models on a published schedule; a shutdown date passing
+# must not turn a configured fallback into a failed task.
+_unavailable: set[str] = set()
+_RETIRED_CODES = frozenset({"model_decommissioned", "model_not_found"})
+
+# Failures specific to one model or one moment, so another model may succeed.
+# 413 is Groq's "request too large for this model's per-minute limit": refused
+# before any work, like a 429, but the same model will refuse it again.
+_TRANSIENT_STATUSES = frozenset({408, 413, 500, 502, 503, 504})
+
 
 def reset_cooldowns() -> None:
-    """Forget every recorded rate-limit. Used by tests to isolate cases."""
+    """Forget every recorded rate limit and retired model. Used by tests."""
     _cooldown_until.clear()
+    _unavailable.clear()
 
 
 def _cooldown_key(cfg: ProviderConfig) -> str:
@@ -316,19 +374,12 @@ def _ordered_chain(chain: list[ProviderConfig]) -> list[tuple[int, ProviderConfi
     return ready + [(index, cfg) for _, index, cfg in cooling]
 
 
-def _retry_after_seconds(exc: APIStatusError, attempt: int) -> float:
-    """How long to wait before retrying, preferring the server's own answer."""
-    header = ""
+def _retry_after_seconds(exc: APIStatusError) -> float | None:
+    """The server's own Retry-After in seconds, or None if it sent none usable."""
     try:
-        header = exc.response.headers.get("retry-after", "") or ""
-    except Exception:
-        header = ""
-    try:
-        if header:
-            return min(float(header), MAX_BACKOFF_SECONDS)
-    except ValueError:
-        pass
-    return min(2.0 ** attempt, MAX_BACKOFF_SECONDS)
+        return float(exc.response.headers.get("retry-after", ""))
+    except (AttributeError, TypeError, ValueError):
+        return None
 
 
 # Reasoning models wrap their scratchpad in these. Groq can be asked to hide it
@@ -346,8 +397,8 @@ def strip_reasoning(text: str | None) -> str:
     """Remove a reasoning model's scratchpad from assistant text.
 
     The trace is shown to the user, and the project brief is explicit that it
-    must carry concise operational detail rather than chain-of-thought. Two of
-    the Groq fallback models are reasoning models, so without this a rotation
+    must carry concise operational detail rather than chain-of-thought. The
+    Groq fallback chain includes reasoning models, so without this a rotation
     triggered by a rate limit -- an infrastructure event the user never sees --
     would start rendering raw private reasoning in the UI.
 
@@ -370,7 +421,15 @@ def chat(
     temperature: float | None = None,
     max_tokens: int | None = None,
 ) -> LLMResponse:
-    """Call the primary model, rotating through the chain on transient failure."""
+    """Call the first model in the chain that can serve the request.
+
+    A model that rate-limits is passed over for the next, which has its own
+    budget; a retired one is skipped for good; one that fails transiently is
+    skipped for this call. The call waits only when every compatible model is
+    rate-limited, and then for the soonest to recover, within
+    MAX_WAIT_PER_CALL_SECONDS. Requests refused before any work was done -- a
+    429, a 413 or a retired model -- are refunded to the local guards.
+    """
     chain = provider_chain()
     if not chain:
         raise NoProviderConfigured(
@@ -379,109 +438,111 @@ def chat(
 
     temp = settings.agent_temperature if temperature is None else temperature
     cap = settings.llm_max_tokens if max_tokens is None else max_tokens
-    last_error: Exception | None = None
+    request: dict[str, Any] = {"messages": messages, "temperature": temp, "max_tokens": cap}
+    if tools:
+        request["tools"] = tools
+        request["tool_choice"] = "auto"
 
-    # Drop models that cannot continue this particular transcript. Doing it up
-    # front matters: reached mid-run, Gemini raises a 400 that aborts the whole
-    # agent turn, so a rate-limited Groq chain turned a recoverable slowdown
-    # into a failed task. Two evaluation cases failed exactly that way. If the
-    # filter would leave nothing, keep the chain as it is -- an attempt that
-    # might fail still beats refusing to call anyone.
-    #
-    # Filtering the ordered list rather than the chain keeps `provider_index`
-    # measured against the configured chain, so `fell_back` still means "not
-    # the configured primary" even when the primary is the one removed.
-    order = _ordered_chain(chain)
-    if tools or _replays_tool_calls_required(messages):
-        order = [entry for entry in order if entry[1].replays_tool_calls]
-        if not order:
-            raise NoProviderConfigured("Configure a Groq key for multi-step tool workflows.")
-    order = [
-        entry for entry in order
-        if _cooldown_until.get(_cooldown_key(entry[1]), 0) <= time.monotonic()
-    ]
-    if not order:
-        raise QuotaExceeded("All compatible models are cooling down. Wait before retrying.")
+    # Exclude models that cannot continue this particular transcript. Doing it
+    # up front matters: reached mid-run, Gemini raises a 400 that aborts the
+    # whole agent turn, so a rate-limited Groq chain turned a recoverable
+    # slowdown into a failed task. Two evaluation cases failed exactly that way.
+    # Entries keep their index in the configured chain, so `fell_back` still
+    # means "not the configured primary" even when the primary is excluded.
+    needs_replay = bool(tools) or _replays_tool_calls_required(messages)
+    if needs_replay and not any(cfg.replays_tool_calls for cfg in chain):
+        raise NoProviderConfigured("Configure a Groq key for multi-step tool workflows.")
 
     run_started = time.perf_counter()
-    total_attempts = 0
-    total_throttle_s = 0.0
+    attempts = 0
+    waited_s = 0.0
+    tried: set[str] = set()
+    failed: set[str] = set()
+    last_error: Exception | None = None
 
-    for position, (provider_index, cfg) in enumerate(order):
-        # max_retries=0: retries are handled below so their cost is observable.
+    while True:
+        order = [
+            (index, cfg) for index, cfg in _ordered_chain(chain)
+            if (cfg.replays_tool_calls or not needs_replay)
+            and _cooldown_key(cfg) not in _unavailable
+            and _cooldown_key(cfg) not in failed
+        ]
+        if not order:
+            break
+        if attempts >= MAX_ATTEMPTS_PER_CALL:
+            raise QuotaExceeded(
+                f"The model provider refused this request {attempts} times in a row. "
+                "Wait a minute, then try again."
+            ) from last_error
+
+        # Ready models come first, then the soonest to recover.
+        provider_index, cfg = order[0]
+        delay = _cooldown_until.get(_cooldown_key(cfg), 0.0) - time.monotonic()
+        if delay > 0 and waited_s + delay <= MAX_WAIT_PER_CALL_SECONDS:
+            log.info("every compatible model is rate-limited; waiting %.1fs for %s/%s",
+                     delay, cfg.name, cfg.model)
+            time.sleep(delay)
+            waited_s += delay
+        elif delay > 0:
+            # Nothing recovers within the wait budget. A cooldown is only an
+            # estimate, so each model not yet asked during this call is asked
+            # once: only the provider's own refusal may end the call.
+            untried = [entry for entry in order if _cooldown_key(entry[1]) not in tried]
+            if not untried:
+                raise QuotaExceeded(
+                    "Every language model is rate-limited right now, so I stopped rather "
+                    "than keep you waiting. Try again in a minute; if this keeps happening, "
+                    "the provider's daily allowance is used up."
+                ) from last_error
+            provider_index, cfg = untried[0]
+
+        key = _cooldown_key(cfg)
+        stamp = reserve_call()
+        attempts += 1
+        tried.add(key)
+        # max_retries=0: every retry is decided here, so its cost is observable.
         client = OpenAI(api_key=cfg.api_key, base_url=cfg.base_url, timeout=60.0, max_retries=0)
-        kwargs: dict[str, Any] = {
-            "model": cfg.model,
-            "messages": messages,
-            "temperature": temp,
-            "max_tokens": cap,
-        }
-        if tools:
-            kwargs["tools"] = tools
-            kwargs["tool_choice"] = "auto"
-
-        throttle_s = 0.0
-        attempts = 0
-        completion = None
-        has_next = position + 1 < len(order)
-        max_retries = RETRIES_BEFORE_ROTATING if has_next else MAX_RATE_LIMIT_RETRIES
-
-        for retry in range(max_retries + 1):
-            reserve_call()
-            attempts += 1
-            total_attempts += 1
-            try:
-                completion = client.chat.completions.create(**kwargs)
-                break
-            except APIStatusError as exc:
-                last_error = exc
-                if exc.status_code == 400:
-                    malformed = _malformed_tool_call(exc)
-                    if malformed is not None:
-                        # Not a transport failure: the request was valid and
-                        # the model's own output was not. Surface it so the
-                        # caller can correct the model rather than rotating.
-                        raise malformed from exc
-                if exc.status_code == 429:
-                    # Observed, not predicted: this model has just told us its
-                    # bucket is empty, so stop leading with it until it refills.
-                    _mark_cooling(cfg)
-                if exc.status_code == 429 and retry < max_retries:
-                    wait = _retry_after_seconds(exc, retry)
-                    log.info(
-                        "%s/%s rate-limited; waiting %.1fs (attempt %d)",
-                        cfg.name, cfg.model, wait, attempts,
-                    )
-                    time.sleep(wait)
-                    throttle_s += wait
-                    total_throttle_s += wait
-                    continue
-                if exc.status_code in (408, 429, 500, 502, 503, 504) and has_next:
-                    log.warning(
-                        "%s/%s failed (%s); rotating to the next model",
-                        cfg.name, cfg.model, exc.status_code,
-                    )
-                    break
-                if exc.status_code == 429:
-                    raise QuotaExceeded("Provider quota exhausted. Wait; no automatic retry.") from exc
-                raise
-            except Exception as exc:  # network / timeout
-                last_error = exc
-                if has_next:
-                    log.warning(
-                        "%s/%s errored (%s); rotating to the next model",
-                        cfg.name, cfg.model, exc,
-                    )
-                    break
-                raise
-
-        if completion is None:
-            continue  # exhausted this provider; try the next one
+        try:
+            completion = client.chat.completions.create(model=cfg.model, **request)
+        except APIStatusError as exc:
+            last_error = exc
+            malformed = _malformed_tool_call(exc)
+            if malformed is not None:
+                # Not a transport failure: the request was valid and the
+                # model's own output was not. Surface it so the caller can
+                # correct the model rather than rotating.
+                raise malformed from exc
+            if exc.status_code == 404 or _error_code(exc) in _RETIRED_CODES:
+                release_call(stamp)
+                _unavailable.add(key)
+                log.warning("%s is no longer served (%s); skipping it", key, exc.status_code)
+                continue
+            if exc.status_code == 429:
+                # Observed, not predicted: this model has just said its bucket
+                # is empty, so it is not led with again until it has refilled.
+                release_call(stamp)
+                _mark_cooling(cfg, _retry_after_seconds(exc))
+                log.info("%s rate-limited; moving on", key)
+                continue
+            if exc.status_code in _TRANSIENT_STATUSES:
+                if exc.status_code == 413:
+                    release_call(stamp)
+                failed.add(key)
+                log.warning("%s failed (%s); moving on", key, exc.status_code)
+                continue
+            raise
+        except Exception as exc:  # network or timeout: the request may have been served
+            last_error = exc
+            failed.add(key)
+            log.warning("%s errored (%s); moving on", key, exc)
+            continue
 
         latency_ms = (time.perf_counter() - run_started) * 1000.0
-        # A success proves the bucket has room again, whatever we assumed.
-        _cooldown_until.pop(_cooldown_key(cfg), None)
+        throttle_ms = waited_s * 1000.0
+        # A success proves the bucket has room again, whatever was assumed.
+        _cooldown_until.pop(key, None)
         msg = completion.choices[0].message
+        usage = getattr(completion, "usage", None)
         return LLMResponse(
             provider=cfg.name,
             model=cfg.model,
@@ -490,11 +551,15 @@ def chat(
             text=strip_reasoning(msg.content),
             latency_ms=latency_ms,
             fell_back=provider_index > 0,
-            service_ms=latency_ms - total_throttle_s * 1000.0,
-            throttle_ms=total_throttle_s * 1000.0,
-            attempts=total_attempts,
-            prompt_tokens=getattr(getattr(completion, "usage", None), "prompt_tokens", 0) or 0,
-            completion_tokens=getattr(getattr(completion, "usage", None), "completion_tokens", 0) or 0,
+            service_ms=latency_ms - throttle_ms,
+            throttle_ms=throttle_ms,
+            attempts=attempts,
+            prompt_tokens=getattr(usage, "prompt_tokens", 0) or 0,
+            completion_tokens=getattr(usage, "completion_tokens", 0) or 0,
         )
 
-    raise RuntimeError(f"every model in the fallback chain failed: {last_error}")
+    if last_error is None:
+        raise RuntimeError(
+            "no configured model is served any more; update GROQ_MODEL or GROQ_FALLBACK_MODELS"
+        )
+    raise RuntimeError(f"every model in the fallback chain failed: {last_error}") from last_error

@@ -5,10 +5,10 @@ tools, arguments, outputs, sources -- and is explicit that hidden
 chain-of-thought must not be exposed. The step trace is rendered in the UI, and
 the assistant text that accompanies a tool call used to be recorded there.
 
-That is safe for the primary model and unsafe for two of the fallbacks: the
-rotation chain reaches ``qwen/qwen3.8-27b`` and ``qwen/qwen3.6-27b`` whenever a
-rate limit is hit, and those are reasoning models that can wrap a scratchpad in
-``<think>`` tags. So the failure mode is not "a model behaves oddly" but "a
+That is safe for the primary model and unsafe for a fallback: the rotation
+chain reaches ``qwen/qwen3.8-27b`` whenever a rate limit is hit, and it is a
+reasoning model that can wrap a scratchpad in ``<think>`` tags. So the failure
+mode is not "a model behaves oddly" but "a
 rate limit -- an infrastructure event the user never sees -- silently leaks raw
 private reasoning into the answer".
 

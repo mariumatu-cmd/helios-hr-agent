@@ -37,7 +37,7 @@ process restart.
 | `CONTEXT_TOKEN_BUDGET=6200` | Estimated prompt ceiling |
 | `LLM_MAX_TOKENS=1200` | Completion ceiling |
 | `LLM_ENABLED` | Set false to stop all real model calls |
-| `LLM_MAX_CALLS_PER_TURN=8` | Actual HTTP attempt cap per turn |
+| `LLM_MAX_CALLS_PER_TURN=8` | Per-turn cap on billable requests; refused requests are refunded |
 | `LLM_MAX_CALLS_PER_HOUR=60` | Process-local hourly cap |
 | `LLM_MAX_CALLS_PER_DAY=100` | Process-local daily cap |
 | `CHAT_MAX_REQUESTS_PER_HOUR=12` | Shared endpoint limit |
@@ -73,7 +73,8 @@ that pass CI are deployed.
    arguments, an output summary and the full JSON. For PTO, review the ticket
    preview card and select **Create mock ticket**; the reply gives the ticket ID
    and reports zero model calls for the confirmation.
-4. After a 429, wait for the provider window to recover before retrying.
+4. A rate limit is normally absorbed: the call moves to another model, or waits
+   up to a minute. If an answer still reports one, wait before retrying.
    Cached results are labelled and are never presented as live runs.
 
 Local counters cannot see account-wide usage or consumption by another

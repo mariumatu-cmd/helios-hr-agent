@@ -159,11 +159,23 @@ This is a synthetic demonstrator, not an authenticated multi-user HR product.
 
 ## Quota and latency engineering
 
-`LLM_MAX_CALLS_PER_TURN=8`, hourly 60, daily 100 count actual HTTP attempts,
-including failed calls and fallbacks. `CHAT_MAX_REQUESTS_PER_HOUR=12` and
-single-chat admission prevent overlapping runs on the shared key. SDK automatic
-retries are disabled, and rate-limited models are not immediately retried.
-All-compatible-models-cooling produces a clear quota response.
+`LLM_MAX_CALLS_PER_TURN=8`, hourly 60, daily 100 count every provider request
+that may have been processed, including server errors and fallbacks. A request
+refused before any work (a 429, a 413 oversized request or a retired model)
+costs no tokens and is refunded, so routine rate-limit churn cannot end a turn
+that still has budget. `CHAT_MAX_REQUESTS_PER_HOUR=12` and single-chat admission
+prevent overlapping runs on the shared key.
+
+SDK automatic retries are disabled; `agent/llm.py` decides every retry. A
+rate-limited model is passed over for the next model, which has its own
+per-minute budget, and is not led with again until its `Retry-After` has passed.
+A call waits only when every compatible model is rate-limited, for the soonest
+to recover, at most 60 seconds per call. Longer limits produce a clear quota
+response instead of a held request. Retired models (`model_decommissioned`,
+`model_not_found`) are skipped until restart. `tests/test_llm_resilience.py`
+replays the longest demo task against a simulated free tier (8,000 TPM per
+model, plus one retired model still configured) at four response speeds. Every
+run completes within 7 of the 8 per-turn calls.
 
 The maximum orchestration length remains 12 steps; the API-attempt budget may
 stop it earlier. Context has a 6,200 estimated-token ceiling, with a 1,200-token

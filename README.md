@@ -83,8 +83,14 @@ their trace/timings belong to the original run.
 - Live evaluation and deployed-task scripts require explicit `--allow-live`.
 - The app admits one chat at a time and rejects duplicate/concurrent submissions.
   The default hourly chat allowance is 12 requests.
-- Actual provider HTTP attempts, including failures and fallbacks, are capped at
-  **8 per turn, 60 per hour and 100 per day**. No automatic same-model 429 retry.
+- Provider requests are capped at **8 per turn, 60 per hour and 100 per day**.
+  A request the provider refuses before doing any work (rate limit, oversized
+  request, retired model) costs no tokens and is refunded; anything it may have
+  processed counts.
+- A rate-limited model is passed over for the next model in the chain, which has
+  its own per-minute budget. A call waits only when every model is rate-limited,
+  for the soonest to recover (honouring `Retry-After`, at most 60 s per call).
+  Longer limits are reported, not waited out. Retired models are skipped.
 - Read-only identical requests within the same session/context may reuse a
   labelled **10-minute cache**. Mutating workflows and ticket listings are not cached.
   **Run live (skip cache)** bypasses the cache and uses quota.
@@ -95,7 +101,8 @@ their trace/timings belong to the original run.
 
 These are process-local application limits, **not provider quota readings**.
 They reset on restart and cannot protect against other applications using the
-same API key. Token-per-minute and provider daily limits can still interrupt a task.
+same API key. Provider daily limits, and per-minute limits that outlast the wait,
+can still interrupt a task.
 
 ## The two demo workflows
 
