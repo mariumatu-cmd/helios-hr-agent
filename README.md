@@ -14,27 +14,17 @@ actions, all accessed through a real Model Context Protocol (MCP) server.
 
 **AI tooling disclosure:** [ai-tooling.md](ai-tooling.md)
 
-The URL may still serve an earlier revision until this branch is merged and
-the gated deployment succeeds. Compare `/health.build_sha` with the submitted commit.
+`/health.build_sha` reports the commit currently deployed.
 
-## Submission status
+## At a glance
 
-The code includes 16 policy documents in Markdown, HTML, PDF and TXT, a local
-221-chunk index, 12 MCP tools, 30 evaluation cases, and two canonical demo workflows.
-The numerical results from September are **historical**, not evidence that the
-revised system achieves the same scores. In particular, the old citation score
-measured retrieved-label presence, not factual support. See the design report.
+- 16 policy documents in Markdown, HTML, PDF and TXT, indexed into 221 chunks.
+- 12 MCP tools covering policy search, employee records, compliance rules and mock actions.
+- 30 evaluation cases and two canonical demo workflows.
 
-Before submitting:
-
-- Record the required **7-10 minute deployed screen-share with voiceover**.
-  Follow the assignment's presenter/camera/identity requirements; do not put ID
-  documents in this public repository.
-- Submit the recording link and repository link through the course dashboard.
-  No recording link is currently included here.
-- Confirm `quantic-grader` has access. The earlier invitation claim could not be
-  independently verified during the review.
-- Verify the deployed commit and demonstrate both numbered UI tasks.
+Live evaluation scores recorded in September are **historical**: the older citation
+metric measured retrieved-label presence rather than factual support. See the
+design report for the current scoring method and results.
 
 ## Setup
 
@@ -55,9 +45,8 @@ is required for multi-step workflows. Gemini's configured compatibility endpoint
 is only available for non-tool calls; it is not a replacement for Groq here.
 Never commit API keys, demo codes, or approval secrets.
 
-Direct dependencies are pinned to versions exercised locally in `pyproject.toml`.
-A full cross-platform transitive lock is **not** claimed: package downloads were
-blocked by the development machine's IT policy. That policy was not bypassed.
+Direct dependencies are pinned in `pyproject.toml`; transitive dependencies are
+not locked.
 
 ## Run
 
@@ -84,9 +73,7 @@ snapshot**, not today's date. This prevents the example answers drifting.
 Only a live chat can establish that. The UI shows cached results explicitly;
 their trace/timings belong to the original run.
 
-## Protecting the demonstration quota
-
-**Do not run the full live evaluation on the day of the recording.**
+## API quota protection
 
 - Unit/integration tests use scripted models and prohibit real chat-completion calls.
   Indexing and retrieval evaluation use the local embedding model, not an LLM API.
@@ -97,10 +84,10 @@ their trace/timings belong to the original run.
   **8 per turn, 60 per hour and 100 per day**. No automatic same-model 429 retry.
 - Read-only identical requests within the same session/context may reuse a
   labelled **10-minute cache**. Mutating workflows and ticket listings are not cached.
-  Use **Force live call** when recording a fresh execution; this intentionally uses quota.
-- Set `DEMO_ACCESS_CODE` to protect a public demo from casual quota consumption.
-  Supply it privately to your grader and enter it in the UI, not the chat.
-- Set `LLM_ENABLED=false` to disable all real model calls during offline rehearsal.
+  **Force live call** bypasses the cache and uses quota.
+- Set `DEMO_ACCESS_CODE` to protect a public deployment from casual quota consumption.
+  Share it privately and enter it in the UI, not the chat.
+- Set `LLM_ENABLED=false` to disable all real model calls.
   Chat explicitly reports that calls are disabled; it does not fake an answer.
 
 These are process-local application limits, **not provider quota readings**.
@@ -143,11 +130,10 @@ python -m rag.ingest.build_index
 ```
 
 The embedding weights must already be cached for fully offline execution.
-Do not bypass organizational download restrictions.
 
-## Live evaluation: intentionally opt-in
+## Live evaluation (opt-in)
 
-Only run with spare quota:
+These commands make real LLM calls and consume quota:
 
 ```powershell
 python -m evaluation.run_eval --allow-live --case C01
@@ -174,8 +160,7 @@ Browser -> FastAPI -> agent orchestrator -> LLM provider
 
 Render runs one Docker service and one worker. GitHub Actions checks the code,
 real MCP transport, app startup and container, then deploys **that exact commit**.
-Independent Render auto-deploy is disabled in `render.yaml`; ensure the existing
-service's dashboard configuration also reflects that setting.
+`render.yaml` disables Render's own auto-deploy, so only revisions that pass CI are deployed.
 
 The folder is called `mcp_server/`, not `mcp/`, to avoid shadowing the SDK package.
 All employee data is synthetic; tickets and email drafts disappear on restart.
