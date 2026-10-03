@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import pathlib
+import secrets
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -22,6 +24,7 @@ from mcp import ClientSession, StdioServerParameters  # noqa: E402
 from mcp.client.stdio import stdio_client  # noqa: E402
 
 from config import settings  # noqa: E402
+from mcp_server import approval  # noqa: E402
 
 EXPECTED_TOOLS = {
     "search_policy_documents",
@@ -53,10 +56,11 @@ def payload(result) -> dict:
 
 
 async def main() -> int:
+    approval_secret = secrets.token_hex(32)
     params = StdioServerParameters(
         command=sys.executable,
         args=[str(settings.mcp_server_script)],
-        env=None,
+        env={**os.environ, "MCP_APPROVAL_SECRET": approval_secret},
     )
 
     async with stdio_client(params) as (read, write):
@@ -120,35 +124,35 @@ async def main() -> int:
                 f"rolling window counts 12 days (got {compliance['usage']['days_used']})",
             )
 
-            preview = payload(await session.call_tool(
-                "create_hr_ticket",
-                {
-                    "employee": "E-1041",
-                    "category": "international_remote_work",
-                    "subject": "Portugal request",
-                    "body": "Six weeks from Lisbon.",
-                },
-            ))
+            ticket = {
+                "employee": "E-1041",
+                "category": "international_remote_work",
+                "subject": "Portugal request",
+                "body": "Six weeks from Lisbon.",
+                "priority": "normal",
+            }
+            preview = payload(await session.call_tool("create_hr_ticket", ticket))
             expect(
                 preview.get("requires_confirmation") is True,
                 "unconfirmed write returns a preview instead of acting",
             )
 
-            created = payload(await session.call_tool(
+            rejected = payload(await session.call_tool(
                 "create_hr_ticket",
-                {
-                    "employee": "E-1041",
-                    "category": "international_remote_work",
-                    "subject": "Portugal request",
-                    "body": "Six weeks from Lisbon.",
-                    "confirmed": True,
-                },
+                {**ticket, "confirmed": True},
             ))
+            expect("error" in rejected, "a confirmation flag alone cannot authorize a write")
+
+            token = approval.issue(approval_secret, "create_hr_ticket", ticket)
+            confirmed = {**ticket, "confirmed": True, "approval_token": token}
+            created = payload(await session.call_tool("create_hr_ticket", confirmed))
             expect(created.get("persisted") is False, "confirmed write is in-memory only")
             expect(
                 created.get("assigned_team") == "Global Mobility",
                 "ticket routes to Global Mobility",
             )
+            replay = payload(await session.call_tool("create_hr_ticket", confirmed))
+            expect("error" in replay, "a consumed approval cannot be replayed")
 
             bad = payload(await session.call_tool(
                 "lookup_employee_profile", {"employee": "Nobody McNotreal"}
