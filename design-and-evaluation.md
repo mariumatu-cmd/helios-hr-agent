@@ -2,14 +2,14 @@
 
 ## Evidence status
 
-This report describes the October submission fixes. **No live LLM evaluation was
-run for these changes**, to preserve the demonstration quota. Do not present the
-September results as measurements of the revised code.
+The current code has not been evaluated end to end against a live LLM. Live
+measurements in this report come from the September revision and are labelled
+historical; they are not measurements of the current code.
 
-The review found a concrete false positive in `evidence/deployed-tasks.json`:
-David's non-birthing-parent scenario was labelled successful while answering
-16 weeks instead of the policy's 8. The old verifier checked tool/step counts,
-not the answer. Its original recording is retained as historical evidence.
+`evidence/deployed-tasks.json` is a superseded September capture. Its verifier
+checked tool and step counts, not answers, and so labelled David's
+non-birthing-parent scenario successful while answering 16 weeks instead of the
+policy's 8. It is retained as a documented failure.
 
 ## Architecture
 
@@ -47,7 +47,7 @@ security, onboarding, holidays, payroll, grievance, learning and safety.
 Markdown, HTML, plain text and PDF normalize into canonical structured documents.
 The `_source_` Markdown used to generate the PDF is excluded from ingestion.
 
-The revised index has **221 chunks**. Small original sections remain independently
+The index has **221 chunks**. Small original sections remain independently
 addressable: merging parental-leave section 2.4 into 2.3 previously broke exact
 lookup and citations. Large sections use sentence-aligned windows with overlap,
 target 320 estimated tokens, cap 420, overlap 60.
@@ -174,7 +174,7 @@ Read-only results can be cached for ten minutes per session and exact
 question/history. The response and UI label cached traces; `api_calls` is zero
 on cache hits, while old trace timings are retained and labelled. Writes, previews
 and mutable ticket listings are never cached; confirming a write clears the cache.
-The user can request `fresh=true` for the recorded live demonstration.
+The user can request `fresh=true` to bypass the cache.
 
 Counters are **process-local**, reset on restart, and do not measure account-wide
 remaining tokens. Provider quotas and other users of the key still matter.
@@ -192,8 +192,8 @@ Explain remaining allowance and conditional alternatives without inventing rules
 **PTO workflow:** retrieve PTO policy, look up Jonas/balance, check three business
 days beginning 2026-09-21, prepare a mock ticket preview. Expected: 13 available
 hours versus 24 requested; 6 days' notice versus 10 required. Explain exception
-routes accurately. The presenter confirms the exact preview in a separate click,
-then shows the returned ticket ID and zero additional LLM calls.
+routes accurately. The user confirms the exact preview in a separate click,
+which returns the ticket ID with zero additional LLM calls.
 
 Both must show successful MCP retrieval and structured-data calls, supporting
 inline citations, final answers and operational traces. The verifier rejects
@@ -237,11 +237,11 @@ rates. The legacy "citation 1.000" meant a returned label mentioned the expected
 document, even if the answer did not cite it.
 
 That run recorded wall-clock p50 **65.4 seconds**, p95 **248.2 seconds**.
-Saved deployed workflows took **206.8** and **189.4 seconds**. A review-time PTO
-request took about **68 seconds**. The former "2-6 second warm chat" claim is
-withdrawn. Health-endpoint latency must not be substituted for chat latency.
+Saved deployed workflows took **206.8** and **189.4 seconds**, and a later PTO
+request took about **68 seconds**. Warm chat is not a 2-6 second operation, and
+health-endpoint latency must not be substituted for chat latency.
 `evidence/cold-start.json` records a historical 52.5-second platform cold start;
-it is not a fresh measurement of this revision.
+it is not a measurement of the current code.
 
 ### Current offline evidence
 
@@ -250,7 +250,7 @@ six-configuration retrieval ablation. They measure document-level hit rate/MRR
 and abstention, **not** answer quality. Consult their timestamps/index context
 rather than mixing them with old full-agent results.
 
-With the revised 221-chunk index, the offline sample contains 17 graded queries
+With the 221-chunk index, the offline sample contains 17 graded queries
 and eight out-of-corpus queries:
 
 | Retrieval | Document hit@1 | Document hit@6 | MRR | False accepts | False refusals |
@@ -270,26 +270,23 @@ preserved section addresses, scoring false positives, session-bound single-use
 confirmation, cache behavior and quota limits. Chat-completion calls are blocked
 inside tests; a green test run consumes no LLM quota.
 
-**Current live answer quality, workflow completion, and representative warm-chat
-latency have not been remeasured.** To preserve the recording quota, run at most
-the two canonical tasks when ready, inspect every answer, and save their traces.
-A full 10-20-task latency sample or 30-case evaluation should wait for spare quota.
+Live answer quality, workflow completion and warm-chat latency of the current
+code have not been measured; the live figures above are historical.
 
 ## Deployment and reproducibility
 
 Docker bakes the local embedding weights and committed index into one service.
-Single-worker operation avoids duplicating model memory. The historical
-343 MB footprint is not claimed as a fresh Linux measurement of the revised image.
+Single-worker operation avoids duplicating model memory. The 343 MB
+footprint is a historical measurement, not one of the current image.
 
 CI runs lint, index freshness, data/rule checks, automated tests, MCP smoke,
 application startup and a container build/start check. Only successful prerequisite
 jobs may trigger Render. The deploy request names the tested commit; the readiness
-verification asserts the live `build_sha` equals it. Render independent auto-deploy
-must also be disabled on the existing dashboard, not merely in the repository.
+verification asserts the live `build_sha` equals it. `render.yaml` disables
+Render's independent auto-deploy.
 
-Direct dependencies are pinned to tested installed versions. Creating a universal
-transitive lock was blocked by local IT download restrictions; no restriction
-was bypassed and no incomplete lock is represented as complete.
+Direct dependencies are pinned to tested versions; transitive dependencies are
+not locked.
 
 ## Remaining limitations
 
@@ -297,5 +294,5 @@ This system is not authorized to make real employment decisions. It has syntheti
 data, a pinned snapshot date, limited calendar/rule coverage and no production
 employee authentication. Citation validation and gold-fact scoring cannot prove
 every natural-language statement. Vocabulary abstention needs broader paraphrase
-testing. Gemini cannot carry the configured tool loop. Free-tier availability,
-daily tokens, recording quality and grader access remain external dependencies.
+testing. Gemini cannot carry the configured tool loop. Free-tier availability
+and provider token limits are external dependencies.

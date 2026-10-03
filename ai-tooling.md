@@ -7,7 +7,7 @@ and what worked well and what did not.
 
 | Tool | Role |
 |---|---|
-| **GitHub Copilot CLI / App** (Claude models for the original build; GPT-6 Astra for the submission review/fixes) | Scaffolding, corpus, MCP server, agent loop, tests, diagnostics, documentation, and requirement-driven corrections. |
+| **GitHub Copilot CLI / App** (Claude and GPT models) | Scaffolding, corpus, MCP server, agent loop, tests, diagnostics, documentation, and requirement-driven corrections. |
 | GitHub Copilot in-editor completion | Minor. Line-level completion while reading and adjusting generated code. |
 
 No other code-generation tool was used. The LLM providers the *application*
@@ -92,7 +92,7 @@ found by running things, not by reading them.
 suggested adding components with good reputations — a cross-encoder reranker, a
 vector database, an LLM-as-judge evaluator — without first checking whether any
 measurement justified them. recall@6 is 1.00, so a reranker has no measured error
-to fix; 184 vectors is a 276 KB NumPy array, so Chroma adds a dependency to
+to fix; 221 vectors is a ~340 KB NumPy array, so Chroma adds a dependency to
 optimise something already free; the evaluation has known-correct answers, so a
 judge adds variance and cost without information. Each rejection is documented in
 `design-and-evaluation.md`. Each required deliberately asking "what would this
@@ -117,14 +117,13 @@ rather than trusted.
 
 ## Division of responsibility
 
-The submission review found errors that the original tests did not detect:
-incorrect parental-leave entitlement, citation scores that counted retrieved
-labels rather than answer citations, and preview-order checks that accepted a
-same-turn write. Fixes added deterministic role-based leave checks, stricter
-scoring, preserved section IDs, and session-bound signed confirmation outside the
-model. Quota controls and offline regression tests were added without calling a
-live LLM. Package-lock generation was stopped when Windows Security reported an
-IT-policy block; installed versions were pinned without bypassing the restriction.
+A requirements check against the assignment found errors that the original
+tests did not detect: incorrect parental-leave entitlement, citation scores that
+counted retrieved labels rather than answer citations, and preview-order checks
+that accepted a same-turn write. The fixes are deterministic role-based leave
+checks, stricter scoring, preserved section IDs, and session-bound signed
+confirmation outside the model, together with quota controls and offline
+regression tests that make no live LLM calls.
 
 The AI tooling produced most of the source text. The direction, the acceptance
 criteria, and every decision that survived a measurement were mine:

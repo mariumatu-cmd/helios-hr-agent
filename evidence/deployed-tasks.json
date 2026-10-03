@@ -1,7 +1,7 @@
 {
   "legacy_verifier_version": 1,
   "superseded": true,
-  "review_findings": [
+  "known_issues": [
     "Legacy passed fields only checked counts and are not current quality evidence.",
     "Parental answer incorrectly grants 16 weeks and calls the non-birthing parent birthing.",
     "International ticket scenario ends at confirmation, not a completed mock write."

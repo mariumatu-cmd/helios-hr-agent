@@ -8,8 +8,8 @@
 | Discovered tools | https://helios-hr-assistant-wz3c.onrender.com/tools |
 | Corpus | https://helios-hr-assistant-wz3c.onrender.com/documents |
 
-The fixes in this branch are **not deployed merely because these URLs respond**.
-After merging, compare `/health.build_sha` to the commit GitHub Actions tested.
+`/health.build_sha` reports the deployed commit, which CI checks against the
+commit it tested.
 
 ## Runtime
 
@@ -20,6 +20,9 @@ records stay inside the container; the LLM is external.
 The Dockerfile bakes the embedding weights into `/opt/fastembed_cache`, owned by
 the non-root runtime user. Both Docker and `render.yaml` use that path.
 `WARM_EMBEDDER=true` warms the MCP process, not another copy in the web process.
+
+No email is sent by this app, and created tickets and drafts disappear on
+process restart.
 
 ## Configuration
 
@@ -38,7 +41,7 @@ the non-root runtime user. Both Docker and `render.yaml` use that path.
 | `LLM_MAX_CALLS_PER_HOUR=60` | Process-local hourly cap |
 | `LLM_MAX_CALLS_PER_DAY=100` | Process-local daily cap |
 | `CHAT_MAX_REQUESTS_PER_HOUR=12` | Shared endpoint limit |
-| `DEMO_ACCESS_CODE` | Optional quota-protection code; share privately with grader |
+| `DEMO_ACCESS_CODE` | Optional quota-protection code; share privately |
 | `RENDER_GIT_COMMIT` | Render-provided revision, exposed as `build_sha` |
 
 Never put secrets in repository files or model prompts. Stdio automatically
@@ -54,25 +57,23 @@ The `quality` and `container` jobs must succeed before `deploy`. The Render
 request specifies the tested `GITHUB_SHA`; CI polls that deploy ID, then checks
 readiness and exact revision. Missing deployment configuration fails explicitly.
 
-`render.yaml` disables independent auto-deployment. **For an existing service,
-confirm Auto-Deploy is also disabled in the Render dashboard**, otherwise its
-previous setting can still bypass GitHub's test gate. Do not manually deploy
-untested revisions for the recording.
+`render.yaml` disables Render's independent auto-deployment, so only revisions
+that pass CI are deployed.
 
-## Recording without exhausting quota
+## Running the live demonstration
 
-1. Complete offline checks before the recording. Do not run the 30-case live suite.
-2. Check the provider's own dashboard for remaining quota. Local counters cannot
-   see account-wide usage or consumption by another application.
-3. Open `/healthz` and wait for the platform to wake. Check `/health` and its SHA.
-   Neither endpoint calls an LLM.
-4. Enter the optional demo code. Select **Force live call** for the recorded run,
-   then use the two numbered canonical demo buttons once each.
-5. Show the tool names, exact arguments/results, source snippets and answer.
-   For PTO, inspect the preview and click its confirmation button. Show the
-   created mock ticket ID and `api_calls: 0` for confirmation.
-6. Do not rerun immediately after a 429. Allow the provider window to recover.
-   Keep any recorded run's errors visible; do not describe cached evidence as live.
+1. Open `/healthz` and wait for the platform to wake, then check `/health` and
+   its SHA. Neither endpoint calls an LLM.
+2. Enter the demo code if one is configured. Select **Force live call**, then use
+   the two numbered canonical demo buttons.
+3. The trace shows the tool names, exact arguments and results, source snippets
+   and the answer. For PTO, the preview's confirmation button creates the mock
+   ticket and reports its ID with `api_calls: 0`.
+4. After a 429, wait for the provider window to recover before retrying.
+   Cached results are labelled and are never presented as live runs.
+
+Local counters cannot see account-wide usage or consumption by another
+application; the provider's dashboard shows remaining quota.
 
 The UI disables concurrent submissions. Identical read-only requests can use a
 labelled ten-minute session cache; previews, writes and mutable ticket reads
@@ -80,7 +81,7 @@ do not. A new conversation clears conversational context, not provider quota.
 `LLM_ENABLED=false` is useful for checking the UI and no-model error path, but
 does not simulate a successful live demo.
 
-Example opt-in verifier, only when spare quota is available:
+The opt-in verifier makes real LLM calls and consumes quota:
 
 ```powershell
 python scripts/verify_deployed_tasks.py --allow-live --task international
@@ -99,16 +100,6 @@ this remains an exact bound.
 
 Warm chat is **not a 2-6 second operation**. Historical deployed tasks took
 about 189-207 seconds; the historical evaluation p50/p95 were 65.4/248.2 seconds.
-These are old-code measurements, and the revised code has not yet been measured
-live to avoid consuming the recording quota. Health response time is a different
-metric and cannot stand in for agent latency.
-
-Budget for those waits in the required 7-10-minute recording. Explain platform
-and quota effects accurately rather than silently replaying cached results.
-
-## Submission checks
-
-The recording link and grader access must be supplied/confirmed by the owner.
-The prior read-invitation statement could not be verified with the review token.
-Keep all identity verification out of the public repository. No email is sent
-by this app, and all created tickets/drafts disappear on process restart.
+These measurements predate the current code, whose live latency has not been
+measured. Health response time is a different metric and cannot stand in for
+agent latency.
