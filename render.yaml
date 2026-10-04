@@ -37,8 +37,12 @@ services:
         value: "true"
       - key: LOG_LEVEL
         value: INFO
+      # Above the code defaults (8 calls, 12 steps): demo runs that land on a
+      # fallback model can need more steps before they answer.
       - key: LLM_MAX_CALLS_PER_TURN
-        value: "8"
+        value: "16"
+      - key: AGENT_MAX_STEPS
+        value: "16"
       - key: LLM_MAX_CALLS_PER_HOUR
         value: "60"
       - key: LLM_MAX_CALLS_PER_DAY

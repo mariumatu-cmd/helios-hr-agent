@@ -83,7 +83,9 @@ their trace/timings belong to the original run.
 - Live evaluation and deployed-task scripts require explicit `--allow-live`.
 - The app admits one chat at a time and rejects duplicate/concurrent submissions.
   The default hourly chat allowance is 12 requests.
-- Provider requests are capped at **8 per turn, 60 per hour and 100 per day**.
+- Provider requests are capped at **8 per turn, 60 per hour and 100 per day** by
+  default. The deployed service allows 16 per turn and 16 agent steps, because
+  demo runs on a fallback model can need more steps.
   A request the provider refuses before doing any work (rate limit, oversized
   request, retired model) costs no tokens and is refunded; anything it may have
   processed counts.

@@ -37,7 +37,8 @@ process restart.
 | `CONTEXT_TOKEN_BUDGET=6200` | Estimated prompt ceiling |
 | `LLM_MAX_TOKENS=1200` | Completion ceiling |
 | `LLM_ENABLED` | Set false to stop all real model calls |
-| `LLM_MAX_CALLS_PER_TURN=8` | Per-turn cap on billable requests; refused requests are refunded |
+| `LLM_MAX_CALLS_PER_TURN=16` | Per-turn cap on billable requests (code default 8); refused requests are refunded |
+| `AGENT_MAX_STEPS=16` | Agent steps per question (code default 12) |
 | `LLM_MAX_CALLS_PER_HOUR=60` | Process-local hourly cap |
 | `LLM_MAX_CALLS_PER_DAY=100` | Process-local daily cap |
 | `CHAT_MAX_REQUESTS_PER_HOUR=12` | Shared endpoint limit |
